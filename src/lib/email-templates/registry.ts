@@ -17,7 +17,8 @@ export interface TemplateEntry {
  *   import { template as welcomeTemplate } from './welcome'
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
+import { template as ticketAutoClosed } from "./ticket-auto-closed";
+
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  // Add templates here as they are created, e.g.:
-  // 'welcome': welcomeTemplate,
-}
+  "ticket-auto-closed": ticketAutoClosed,
+};
