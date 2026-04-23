@@ -10,6 +10,7 @@ import {
   ESTADO_LABELS, MOTIVO_FECHO_LABELS, calcValor,
 } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { HoursPackageWidget } from "@/components/HoursPackageWidget";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/clientes/$id")({
@@ -120,6 +121,10 @@ function ClienteDetail({ id }: { id: string }) {
           <div><div className="text-muted-foreground text-xs">Fecho automático</div><div>{client.dias_fecho_automatico ? `${client.dias_fecho_automatico} dias` : "Desativado"}</div></div>
         </div>
       </Card>
+
+      {client.tipo_contrato === "avenca" && pacote > 0 && (
+        <HoursPackageWidget clientId={client.id} horasPacote={pacote} />
+      )}
 
       <Card className="p-6">
         <div className="flex items-end justify-between gap-4 flex-wrap mb-4 print:hidden">

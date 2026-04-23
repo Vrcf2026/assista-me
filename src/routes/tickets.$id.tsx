@@ -15,15 +15,21 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { StatusBadge, PriorityBadge, TipoBadge } from "@/components/StatusBadge";
 import { SlaBadge } from "@/components/SlaBadge";
+import { TicketTagsEditor } from "@/components/TicketTagsEditor";
+import { TimeEntriesPanel } from "@/components/TimeEntriesPanel";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
-  roundMinutes, calcValor, ESTADO_LABELS, MOTIVO_FECHO_LABELS, TIPO_LABELS,
+  calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send } from "lucide-react";
-import { notifyNovoComentario, notifyTicketFechado } from "@/lib/email/notify-ticket-event";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare } from "lucide-react";
+import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
+import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
@@ -167,6 +173,7 @@ function TicketDetail({ id }: { id: string }) {
                 Cliente: <Link to="/clientes/$id" params={{ id: ticket.client.id }} className="text-primary hover:underline">{ticket.client.nome}</Link>
               </p>
             )}
+            <TicketTagsEditor ticketId={ticket.id} canEdit={isAdmin} />
           </div>
           {isAdmin && (
             <div className="text-right">
@@ -200,6 +207,9 @@ function TicketDetail({ id }: { id: string }) {
 
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
+
+      {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
+      <TimeEntriesPanel ticketId={ticket.id} isAdmin={isAdmin} onChange={load} />
 
       {/* Original (non-comment) attachments */}
       {attachments.filter((a) => !a.comment_id && (isAdmin || !a.is_internal)).length > 0 && (
@@ -260,7 +270,6 @@ function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () => void
   const [prio, setPrio] = useState(ticket.prioridade);
   const [estado, setEstado] = useState(ticket.estado);
   const [tipo, setTipo] = useState(ticket.tipo_intervencao);
-  const [tempoInput, setTempoInput] = useState("");
   const [escalateOpen, setEscalateOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -297,19 +306,6 @@ function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () => void
     if (newTipo === tipo) return;
     setTipo(newTipo);
     setEscalateOpen(true);
-  };
-
-  const addTempo = async () => {
-    const min = Number(tempoInput);
-    if (!min || min <= 0) return;
-    const rounded = roundMinutes(min, ticket.tipo_intervencao);
-    const newTotal = ticket.tempo_gasto_minutos + rounded;
-    const { error } = await supabase.from("tickets")
-      .update({ tempo_gasto_minutos: newTotal }).eq("id", ticket.id);
-    if (error) return toast.error(error.message);
-    toast.success(`+${rounded} min adicionados (arredondado)`);
-    setTempoInput("");
-    onChange();
   };
 
   return (
@@ -362,13 +358,8 @@ function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () => void
       </div>
 
       <div className="border-t mt-4 pt-4">
-        <Label className="text-xs">Adicionar tempo (minutos)</Label>
-        <div className="flex items-center gap-2 mt-1.5 max-w-md">
-          <Input type="number" min={1} value={tempoInput} onChange={(e) => setTempoInput(e.target.value)} placeholder="ex: 25" />
-          <Button onClick={addTempo} size="sm">Adicionar</Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Arredondamento automático conforme o tipo (5min remota / mín 45min presencial).
+        <p className="text-xs text-muted-foreground">
+          Use o painel <strong>Tempo registado</strong> abaixo para adicionar entradas detalhadas (com data e descrição).
           Total atual: <span className="font-mono">{formatMinutes(ticket.tempo_gasto_minutos)}</span>
         </p>
       </div>
@@ -482,6 +473,10 @@ function CloseDialog({
         { id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id },
         motivo,
         solucao,
+      );
+      // Pedir avaliação de satisfação ao cliente
+      void notifyTicketSatisfacao(
+        { id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id },
       );
       onOpenChange(false);
       onDone();
@@ -599,6 +594,13 @@ function NewCommentForm({
   const [internal, setInternal] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void supabase.from("response_templates").select("id, titulo, mensagem").order("ordem").order("titulo")
+      .then(({ data }) => setTemplates((data ?? []) as { id: string; titulo: string; mensagem: string }[]));
+  }, [isAdmin]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -633,18 +635,25 @@ function NewCommentForm({
         });
       }
 
-      // Notificar cliente: só em comentários do admin que NÃO sejam notas internas.
-      if (isAdmin && !sendInternal) {
-        const { data: t } = await supabase
-          .from("tickets")
-          .select("id, numero, titulo, client_id")
-          .eq("id", ticketId)
-          .maybeSingle();
-        if (t) {
-          void notifyNovoComentario(
-            t as { id: string; numero: number; titulo: string; client_id: string },
+      // Notificar:
+      // - cliente: quando admin escreve algo NÃO interno
+      // - admin: quando o cliente escreve
+      const { data: t } = await supabase
+        .from("tickets")
+        .select("id, numero, titulo, client_id, client:clients(nome)")
+        .eq("id", ticketId)
+        .maybeSingle();
+      if (t) {
+        const ticketLite = { id: t.id, numero: t.numero, titulo: t.titulo, client_id: t.client_id };
+        if (isAdmin && !sendInternal) {
+          void notifyNovoComentario(ticketLite, mensagem, "Equipa VRCF", comment.id);
+        }
+        if (!isAdmin) {
+          const clientName = (t as any).client?.nome ?? "Cliente";
+          void notifyAdminNovoComentarioCliente(
+            { id: t.id, numero: t.numero, titulo: t.titulo },
+            clientName,
             mensagem,
-            "Equipa VRCF",
             comment.id,
           );
         }
@@ -680,6 +689,28 @@ function NewCommentForm({
               <Checkbox checked={internal} onCheckedChange={(v) => setInternal(!!v)} />
               <Lock className="h-3.5 w-3.5" /> Nota interna
             </label>
+          )}
+          {isAdmin && templates.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" type="button" className="h-9">
+                  <MessageSquare className="h-4 w-4 mr-1" /> Respostas
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-1" align="start">
+                {templates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setMensagem((m) => (m ? m + "\n\n" : "") + t.mensagem)}
+                    className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-secondary"
+                  >
+                    <div className="font-medium">{t.titulo}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-2">{t.mensagem}</div>
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
           )}
         </div>
         <Button type="submit" disabled={busy || !mensagem.trim()}>

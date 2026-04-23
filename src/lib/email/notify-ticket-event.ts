@@ -91,3 +91,37 @@ export async function notifyTicketFechado(
     },
   });
 }
+
+/**
+ * Cria registo de satisfação para o ticket (token único) e envia email
+ * com link de avaliação. Idempotente — só dispara uma vez por ticket.
+ */
+export async function notifyTicketSatisfacao(ticket: TicketLite) {
+  const r = await resolveClientEmail(ticket.client_id);
+  if (!r) return;
+  // Verificar se já existe
+  const { data: existing } = await supabase
+    .from("ticket_satisfaction")
+    .select("token")
+    .eq("ticket_id", ticket.id)
+    .maybeSingle();
+  let token = existing?.token;
+  if (!token) {
+    token = crypto.randomUUID().replace(/-/g, "");
+    const { error } = await supabase
+      .from("ticket_satisfaction")
+      .insert({ ticket_id: ticket.id, token });
+    if (error) { console.error("satisfacao insert failed", error); return; }
+  }
+  await sendTransactionalEmail({
+    templateName: "ticket-satisfacao",
+    recipientEmail: r.email,
+    idempotencyKey: `ticket-satisfacao-${ticket.id}`,
+    templateData: {
+      clienteNome: r.nome,
+      ticketNumero: ticket.numero,
+      ticketTitulo: ticket.titulo,
+      satisfacaoUrl: `${SITE_URL}/satisfacao/${token}`,
+    },
+  });
+}

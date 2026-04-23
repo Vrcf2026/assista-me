@@ -10,13 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
+import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
+import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
+import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -29,6 +33,11 @@ import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsRoute = TicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -47,13 +56,18 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
-  id: '/tickets/novo',
-  path: '/tickets/novo',
-  getParentRoute: () => rootRouteImport,
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => TicketsRoute,
 } as any)
 const TicketsIdRoute = TicketsIdRouteImport.update({
-  id: '/tickets/$id',
-  path: '/tickets/$id',
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TicketsRoute,
+} as any)
+const SatisfacaoTokenRoute = SatisfacaoTokenRouteImport.update({
+  id: '/satisfacao/$token',
+  path: '/satisfacao/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -65,6 +79,16 @@ const ClientesIdRoute = ClientesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ClientesRoute,
+} as any)
+const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
+  id: '/admin/templates',
+  path: '/admin/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTagsRoute = AdminTagsRouteImport.update({
+  id: '/admin/tags',
+  path: '/admin/tags',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminEmailsRoute = AdminEmailsRouteImport.update({
   id: '/admin/emails',
@@ -115,10 +139,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/tags': typeof AdminTagsRoute
+  '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -133,10 +161,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/tags': typeof AdminTagsRoute
+  '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -152,10 +184,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/tags': typeof AdminTagsRoute
+  '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -172,10 +208,14 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
+    | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/tags'
+    | '/admin/templates'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
@@ -190,10 +230,14 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
+    | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/tags'
+    | '/admin/templates'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
@@ -208,10 +252,14 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
+    | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/tags'
+    | '/admin/templates'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
@@ -227,11 +275,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  TicketsRoute: typeof TicketsRouteWithChildren
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
+  AdminTagsRoute: typeof AdminTagsRoute
+  AdminTemplatesRoute: typeof AdminTemplatesRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
-  TicketsIdRoute: typeof TicketsIdRoute
-  TicketsNovoRoute: typeof TicketsNovoRoute
+  SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -248,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/unsubscribe'
       fullPath: '/unsubscribe'
       preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets': {
+      id: '/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -273,16 +330,23 @@ declare module '@tanstack/react-router' {
     }
     '/tickets/novo': {
       id: '/tickets/novo'
-      path: '/tickets/novo'
+      path: '/novo'
       fullPath: '/tickets/novo'
       preLoaderRoute: typeof TicketsNovoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TicketsRoute
     }
     '/tickets/$id': {
       id: '/tickets/$id'
-      path: '/tickets/$id'
+      path: '/$id'
       fullPath: '/tickets/$id'
       preLoaderRoute: typeof TicketsIdRouteImport
+      parentRoute: typeof TicketsRoute
+    }
+    '/satisfacao/$token': {
+      id: '/satisfacao/$token'
+      path: '/satisfacao/$token'
+      fullPath: '/satisfacao/$token'
+      preLoaderRoute: typeof SatisfacaoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -298,6 +362,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/clientes/$id'
       preLoaderRoute: typeof ClientesIdRouteImport
       parentRoute: typeof ClientesRoute
+    }
+    '/admin/templates': {
+      id: '/admin/templates'
+      path: '/admin/templates'
+      fullPath: '/admin/templates'
+      preLoaderRoute: typeof AdminTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/tags': {
+      id: '/admin/tags'
+      path: '/admin/tags'
+      fullPath: '/admin/tags'
+      preLoaderRoute: typeof AdminTagsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/emails': {
       id: '/admin/emails'
@@ -370,15 +448,30 @@ const ClientesRouteWithChildren = ClientesRoute._addFileChildren(
   ClientesRouteChildren,
 )
 
+interface TicketsRouteChildren {
+  TicketsIdRoute: typeof TicketsIdRoute
+  TicketsNovoRoute: typeof TicketsNovoRoute
+}
+
+const TicketsRouteChildren: TicketsRouteChildren = {
+  TicketsIdRoute: TicketsIdRoute,
+  TicketsNovoRoute: TicketsNovoRoute,
+}
+
+const TicketsRouteWithChildren =
+  TicketsRoute._addFileChildren(TicketsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
+  TicketsRoute: TicketsRouteWithChildren,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
+  AdminTagsRoute: AdminTagsRoute,
+  AdminTemplatesRoute: AdminTemplatesRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
-  TicketsIdRoute: TicketsIdRoute,
-  TicketsNovoRoute: TicketsNovoRoute,
+  SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

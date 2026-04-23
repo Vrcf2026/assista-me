@@ -13,10 +13,16 @@ import { template as ticketAutoClosed } from "./ticket-auto-closed";
 import { template as ticketCriado } from "./ticket-criado";
 import { template as ticketNovoComentario } from "./ticket-novo-comentario";
 import { template as ticketFechado } from "./ticket-fechado";
+import { template as adminNovoTicket } from "./admin-novo-ticket";
+import { template as adminNovoComentario } from "./admin-novo-comentario";
+import { template as ticketSatisfacao } from "./ticket-satisfacao";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "ticket-auto-closed": ticketAutoClosed,
   "ticket-criado": ticketCriado,
   "ticket-novo-comentario": ticketNovoComentario,
   "ticket-fechado": ticketFechado,
+  "admin-novo-ticket": adminNovoTicket,
+  "admin-novo-comentario": adminNovoComentario,
+  "ticket-satisfacao": ticketSatisfacao,
 };
