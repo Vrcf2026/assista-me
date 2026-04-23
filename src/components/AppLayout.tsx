@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, Ticket, Users, LayoutDashboard, Mail } from "lucide-react";
+import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -42,15 +42,27 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <>
                 <Link to="/" className={linkCls(location.pathname === "/")}>
                   <LayoutDashboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Link>
+                <Link to="/tickets" className={linkCls(isActive("/tickets") && location.pathname !== "/tickets/novo")}>
+                  <List className="h-4 w-4" />
                   <span className="hidden sm:inline">Tickets</span>
                 </Link>
                 <Link to="/clientes" className={linkCls(isActive("/clientes"))}>
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Clientes</span>
                 </Link>
+                <Link to="/admin/tags" className={linkCls(isActive("/admin/tags"))}>
+                  <Tag className="h-4 w-4" />
+                  <span className="hidden lg:inline">Tags</span>
+                </Link>
+                <Link to="/admin/templates" className={linkCls(isActive("/admin/templates"))}>
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="hidden lg:inline">Respostas</span>
+                </Link>
                 <Link to="/admin/emails" className={linkCls(isActive("/admin/emails"))}>
                   <Mail className="h-4 w-4" />
-                  <span className="hidden sm:inline">Emails</span>
+                  <span className="hidden lg:inline">Emails</span>
                 </Link>
               </>
             ) : (

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
+import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
 
 export const Route = createFileRoute("/tickets/novo")({
   component: NovoTicketPage,
@@ -46,7 +47,7 @@ function NovoCliente() {
     setBusy(true);
     try {
       const { data: client } = await supabase
-        .from("clients").select("id").eq("user_id", user.id).maybeSingle();
+        .from("clients").select("id, nome").eq("user_id", user.id).maybeSingle();
       if (!client) throw new Error("Cliente não configurado.");
       const { data: ticket, error } = await supabase
         .from("tickets")
@@ -77,6 +78,11 @@ function NovoCliente() {
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       void notifyTicketCriado(
         { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id },
+        prioridade,
+      );
+      void notifyAdminNovoTicket(
+        { id: ticket.id, numero: ticket.numero, titulo },
+        client.nome,
         prioridade,
       );
       navigate({ to: "/tickets/$id", params: { id: ticket.id } });

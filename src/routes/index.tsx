@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { AppLayout } from "@/components/AppLayout";
-import { AdminTickets } from "@/components/admin/AdminTickets";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ClientTickets } from "@/components/client/ClientTickets";
 
 export const Route = createFileRoute("/")({
@@ -27,7 +27,7 @@ function Index() {
 
   return (
     <AppLayout>
-      {role === "admin" ? <AdminTickets /> : <ClientTickets />}
+      {role === "admin" ? <AdminDashboard /> : <ClientTickets />}
     </AppLayout>
   );
 }
