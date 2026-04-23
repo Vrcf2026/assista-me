@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { StatusBadge, PriorityBadge, TipoBadge } from "@/components/StatusBadge";
+import { SlaBadge } from "@/components/SlaBadge";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
   roundMinutes, calcValor, ESTADO_LABELS, MOTIVO_FECHO_LABELS, TIPO_LABELS,
@@ -155,6 +156,9 @@ function TicketDetail({ id }: { id: string }) {
               <StatusBadge estado={ticket.estado} />
               <PriorityBadge prioridade={ticket.prioridade} />
               <TipoBadge tipo={ticket.tipo_intervencao} />
+              {ticket.tipo_intervencao === "critica" && ticket.estado !== "fechado" && (
+                <SlaBadge openedAt={ticket.created_at} />
+              )}
             </div>
             <h1 className="text-2xl font-semibold">{ticket.titulo}</h1>
             {isAdmin && ticket.client && (
