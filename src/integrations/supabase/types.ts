@@ -259,6 +259,33 @@ export type Database = {
         }
         Relationships: []
       }
+      response_templates: {
+        Row: {
+          created_at: string
+          id: string
+          mensagem: string
+          ordem: number
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mensagem: string
+          ordem?: number
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mensagem?: string
+          ordem?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -318,6 +345,98 @@ export type Database = {
           },
         ]
       }
+      ticket_satisfaction: {
+        Row: {
+          comentario: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          submitted_at: string | null
+          ticket_id: string
+          token: string
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          ticket_id: string
+          token: string
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          ticket_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_satisfaction_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_tag_assignments: {
+        Row: {
+          created_at: string
+          tag_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          tag_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          tag_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_tag_assignments_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_tag_assignments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_tags: {
+        Row: {
+          cor: string
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          cor?: string
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          cor?: string
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           client_id: string
@@ -331,6 +450,7 @@ export type Database = {
           prioridade: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada: string | null
           tecnico_responsavel: string | null
+          tecnico_responsavel_id: string | null
           tempo_gasto_minutos: number
           tipo_intervencao: Database["public"]["Enums"]["intervention_type"]
           titulo: string
@@ -348,6 +468,7 @@ export type Database = {
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null
+          tecnico_responsavel_id?: string | null
           tempo_gasto_minutos?: number
           tipo_intervencao?: Database["public"]["Enums"]["intervention_type"]
           titulo: string
@@ -365,6 +486,7 @@ export type Database = {
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null
+          tecnico_responsavel_id?: string | null
           tempo_gasto_minutos?: number
           tipo_intervencao?: Database["public"]["Enums"]["intervention_type"]
           titulo?: string
@@ -376,6 +498,47 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          created_at: string
+          data_trabalho: string
+          descricao: string | null
+          id: string
+          minutos: number
+          ticket_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_trabalho?: string
+          descricao?: string | null
+          id?: string
+          minutos: number
+          ticket_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_trabalho?: string
+          descricao?: string | null
+          id?: string
+          minutos?: number
+          ticket_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]
@@ -406,6 +569,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      client_horas_consumidas_mes: {
+        Args: { _ano: number; _client_id: string; _mes: number }
+        Returns: number
+      }
       current_user_client_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
