@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, Ticket, Users, LayoutDashboard } from "lucide-react";
+import { LogOut, Ticket, Users, LayoutDashboard, Mail } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -47,6 +47,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <Link to="/clientes" className={linkCls(isActive("/clientes"))}>
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Clientes</span>
+                </Link>
+                <Link to="/admin/emails" className={linkCls(isActive("/admin/emails"))}>
+                  <Mail className="h-4 w-4" />
+                  <span className="hidden sm:inline">Emails</span>
                 </Link>
               </>
             ) : (

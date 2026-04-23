@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 
 export const Route = createFileRoute("/tickets/novo")({
   component: NovoTicketPage,
@@ -74,6 +75,10 @@ function NovoCliente() {
         });
       }
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
+      void notifyTicketCriado(
+        { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id },
+        prioridade,
+      );
       navigate({ to: "/tickets/$id", params: { id: ticket.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
@@ -155,6 +160,10 @@ function NovoAdmin() {
         }).select("id, numero").single();
       if (error) throw error;
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
+      void notifyTicketCriado(
+        { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId },
+        prioridade,
+      );
       navigate({ to: "/tickets/$id", params: { id: ticket.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
