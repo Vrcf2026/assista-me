@@ -594,6 +594,13 @@ function NewCommentForm({
   const [internal, setInternal] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void supabase.from("response_templates").select("id, titulo, mensagem").order("ordem").order("titulo")
+      .then(({ data }) => setTemplates((data ?? []) as { id: string; titulo: string; mensagem: string }[]));
+  }, [isAdmin]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -682,6 +689,28 @@ function NewCommentForm({
               <Checkbox checked={internal} onCheckedChange={(v) => setInternal(!!v)} />
               <Lock className="h-3.5 w-3.5" /> Nota interna
             </label>
+          )}
+          {isAdmin && templates.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" type="button" className="h-9">
+                  <MessageSquare className="h-4 w-4 mr-1" /> Respostas
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-1" align="start">
+                {templates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setMensagem((m) => (m ? m + "\n\n" : "") + t.mensagem)}
+                    className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-secondary"
+                  >
+                    <div className="font-medium">{t.titulo}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-2">{t.mensagem}</div>
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
           )}
         </div>
         <Button type="submit" disabled={busy || !mensagem.trim()}>
