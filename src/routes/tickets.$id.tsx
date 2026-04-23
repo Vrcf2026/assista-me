@@ -466,9 +466,9 @@ function CloseDialog({
     setBusy(true);
     try {
       const { error } = await supabase.from("tickets").update({
-        estado: "fechado",
+        estado: "fechado" as const,
         solucao_aplicada: solucao,
-        motivo_fecho: motivo,
+        motivo_fecho: motivo as "resolvido" | "nao_reproduzivel" | "duplicado" | "fechado_pelo_cliente",
         fechado_em: new Date().toISOString(),
       }).eq("id", ticket.id);
       if (error) throw error;
