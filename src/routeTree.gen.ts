@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -46,6 +47,12 @@ const ClientesIdRoute = ClientesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ClientesRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/clientes/$id': typeof ClientesIdRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/clientes/$id': typeof ClientesIdRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/clientes/$id': typeof ClientesIdRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
     | '/clientes/$id'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,6 +118,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   TicketsIdRoute: typeof TicketsIdRoute
   TicketsNovoRoute: typeof TicketsNovoRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -151,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesIdRouteImport
       parentRoute: typeof ClientesRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -172,6 +193,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   TicketsIdRoute: TicketsIdRoute,
   TicketsNovoRoute: TicketsNovoRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
