@@ -22,6 +22,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api/public/hooks/auto-close-tickets'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -91,6 +92,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksAutoCloseTicketsRoute =
+  ApiPublicHooksAutoCloseTicketsRouteImport.update({
+    id: '/api/public/hooks/auto-close-tickets',
+    path: '/api/public/hooks/auto-close-tickets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -116,6 +124,7 @@ export interface FileRoutesByTo {
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -132,6 +141,7 @@ export interface FileRoutesById {
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/auto-close-tickets'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/auto-close-tickets'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/tickets/$id'
     | '/tickets/novo'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/auto-close-tickets'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -194,6 +207,7 @@ export interface RootRouteChildren {
   TicketsIdRoute: typeof TicketsIdRoute
   TicketsNovoRoute: typeof TicketsNovoRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -294,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/auto-close-tickets': {
+      id: '/api/public/hooks/auto-close-tickets'
+      path: '/api/public/hooks/auto-close-tickets'
+      fullPath: '/api/public/hooks/auto-close-tickets'
+      preLoaderRoute: typeof ApiPublicHooksAutoCloseTicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -317,6 +338,7 @@ const rootRouteChildren: RootRouteChildren = {
   TicketsIdRoute: TicketsIdRoute,
   TicketsNovoRoute: TicketsNovoRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
