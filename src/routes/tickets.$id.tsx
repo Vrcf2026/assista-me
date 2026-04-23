@@ -23,6 +23,7 @@ import {
 } from "@/lib/format";
 import { toast } from "sonner";
 import { ArrowLeft, Lock, Paperclip, Send } from "lucide-react";
+import { notifyNovoComentario, notifyTicketFechado } from "@/lib/email/notify-ticket-event";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
@@ -477,6 +478,11 @@ function CloseDialog({
       }).eq("id", ticket.id);
       if (error) throw error;
       toast.success("Ticket fechado");
+      void notifyTicketFechado(
+        { id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id },
+        motivo,
+        solucao,
+      );
       onOpenChange(false);
       onDone();
     } catch (err) {
@@ -599,12 +605,13 @@ function NewCommentForm({
     if (!user || !mensagem.trim()) return;
     setBusy(true);
     try {
+      const sendInternal = isAdmin && internal;
       const { data: comment, error } = await supabase
         .from("comments").insert({
           ticket_id: ticketId,
           user_id: user.id,
           mensagem,
-          is_internal: isAdmin && internal,
+          is_internal: sendInternal,
         }).select("id").single();
       if (error) throw error;
 
