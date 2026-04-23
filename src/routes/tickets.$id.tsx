@@ -629,8 +629,25 @@ function NewCommentForm({
           file_name: f.name,
           file_size: f.size,
           mime_type: f.type,
-          is_internal: isAdmin && internal,
+          is_internal: sendInternal,
         });
+      }
+
+      // Notificar cliente: só em comentários do admin que NÃO sejam notas internas.
+      if (isAdmin && !sendInternal) {
+        const { data: t } = await supabase
+          .from("tickets")
+          .select("id, numero, titulo, client_id")
+          .eq("id", ticketId)
+          .maybeSingle();
+        if (t) {
+          void notifyNovoComentario(
+            t as { id: string; numero: number; titulo: string; client_id: string },
+            mensagem,
+            "Equipa VRCF",
+            comment.id,
+          );
+        }
       }
 
       setMensagem(""); setFiles([]); setInternal(false);
