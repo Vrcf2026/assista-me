@@ -208,31 +208,21 @@ function ClientFormDialog({
         if (error) throw error;
         toast.success("Cliente atualizado");
       } else {
-        // Create user via signUp
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/`, data: { nome } },
+        // Use edge function (service role) so the admin session stays intact
+        const { data, error } = await supabase.functions.invoke("admin-create-client", {
+          body: {
+            email,
+            password,
+            nome,
+            nif: nif || null,
+            tipo_contrato: tipo,
+            tarifa_hora: Number(tarifa),
+            horas_pacote: tipo === "avenca" && horasPacote ? Number(horasPacote) : null,
+            dias_fecho_automatico: dias ? Number(dias) : null,
+          },
         });
-        if (signUpErr) throw signUpErr;
-        const newUserId = signUpData.user?.id;
-        if (!newUserId) throw new Error("Não foi possível criar a conta");
-
-        // Insert client row
-        const { error: clientErr } = await supabase.from("clients").insert({
-          user_id: newUserId,
-          nome,
-          nif: nif || null,
-          tipo_contrato: tipo,
-          tarifa_hora: Number(tarifa),
-          horas_pacote: tipo === "avenca" && horasPacote ? Number(horasPacote) : null,
-          dias_fecho_automatico: dias ? Number(dias) : null,
-        });
-        if (clientErr) throw clientErr;
-
-        // Insert client role
-        await supabase.from("user_roles").insert({ user_id: newUserId, role: "client" });
-
+        if (error) throw error;
+        if (data && (data as { error?: string }).error) throw new Error((data as { error: string }).error);
         toast.success("Cliente criado");
       }
       onSaved();
