@@ -139,7 +139,7 @@ function NovoCliente() {
 }
 
 function NovoAdmin() {
-  // Admin can pick the client
+  // Admin can pick the client and create on their behalf
   const navigate = useNavigate();
   const { user } = useAuth();
   const [clients, setClients] = useState<{ id: string; nome: string }[]>([]);
@@ -147,6 +147,9 @@ function NovoAdmin() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
+  const [tipo, setTipo] = useState<"remota" | "presencial" | "critica">("remota");
+  const [files, setFiles] = useState<File[]>([]);
+  const [notificarCliente, setNotificarCliente] = useState(true);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -159,14 +162,39 @@ function NovoAdmin() {
     if (!user || !clientId) return;
     setBusy(true);
     try {
+      const client = clients.find((c) => c.id === clientId);
       const { data: ticket, error } = await supabase
         .from("tickets").insert({
-          client_id: clientId, titulo, descricao, prioridade,
+          client_id: clientId, titulo, descricao, prioridade, tipo_intervencao: tipo,
         }).select("id, numero").single();
       if (error) throw error;
+
+      for (const f of files) {
+        const path = `${ticket.id}/${Date.now()}-${f.name}`;
+        const { error: upErr } = await supabase.storage
+          .from("ticket-attachments").upload(path, f);
+        if (upErr) { toast.error(upErr.message); continue; }
+        await supabase.from("attachments").insert({
+          ticket_id: ticket.id,
+          uploaded_by: user.id,
+          file_url: path,
+          file_name: f.name,
+          file_size: f.size,
+          mime_type: f.type,
+          is_internal: false,
+        });
+      }
+
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
-      void notifyTicketCriado(
-        { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId },
+      if (notificarCliente) {
+        void notifyTicketCriado(
+          { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId },
+          prioridade,
+        );
+      }
+      void notifyAdminNovoTicket(
+        { id: ticket.id, numero: ticket.numero, titulo },
+        client?.nome ?? "Cliente",
         prioridade,
       );
       navigate({ to: "/tickets/$id", params: { id: ticket.id } });
@@ -181,7 +209,10 @@ function NovoAdmin() {
         <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
       </Button>
       <Card className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Novo ticket</h1>
+        <h1 className="text-2xl font-semibold mb-1">Novo ticket (em nome do cliente)</h1>
+        <p className="text-sm text-muted-foreground mb-4">
+          Use este formulário para abrir um ticket por telefone/email em nome de um cliente.
+        </p>
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
             <Label>Cliente *</Label>
@@ -194,24 +225,58 @@ function NovoAdmin() {
           </div>
           <div className="space-y-1.5">
             <Label>Título *</Label>
-            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} required />
+            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} required maxLength={200} />
           </div>
           <div className="space-y-1.5">
             <Label>Descrição *</Label>
-            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} required rows={5} />
+            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} required rows={5} maxLength={5000} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Prioridade</Label>
+              <Select value={prioridade} onValueChange={(v) => setPrioridade(v as typeof prioridade)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de intervenção</Label>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as typeof tipo)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="remota">Remota / Telefónica</SelectItem>
+                  <SelectItem value="presencial">Presencial</SelectItem>
+                  <SelectItem value="critica">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Prioridade</Label>
-            <Select value={prioridade} onValueChange={(v) => setPrioridade(v as typeof prioridade)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="baixa">Baixa</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Anexos (imagens ou PDF)</Label>
+            <Input
+              type="file"
+              multiple
+              accept="image/*,application/pdf"
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            />
+            {files.length > 0 && (
+              <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
+            )}
           </div>
-          <Button type="submit" className="w-full" disabled={busy || !clientId}>{busy ? "..." : "Criar"}</Button>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notificarCliente}
+              onChange={(e) => setNotificarCliente(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Enviar email de confirmação ao cliente
+          </label>
+          <Button type="submit" className="w-full" disabled={busy || !clientId}>{busy ? "..." : "Criar ticket"}</Button>
         </form>
       </Card>
     </div>
