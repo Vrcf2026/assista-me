@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +14,7 @@ export const Route = createFileRoute("/satisfacao/$token")({
 function SatisfacaoPage() {
   const { token } = Route.useParams();
   const [loading, setLoading] = useState(true);
-  const [validToken, setValidToken] = useState<{ id: string; submitted_at: string | null; ticketNum?: number } | null>(null);
+  const [validToken, setValidToken] = useState<{ submitted_at: string | null; ticketNum?: number } | null>(null);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comentario, setComentario] = useState("");
@@ -23,30 +22,30 @@ function SatisfacaoPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const { data } = await supabase
-        .from("ticket_satisfaction")
-        .select("id, submitted_at, ticket:tickets(numero)")
-        .eq("token", token)
-        .maybeSingle();
-      if (data) {
-        const t = (data as any).ticket as { numero?: number } | null;
-        setValidToken({ id: data.id, submitted_at: data.submitted_at, ticketNum: t?.numero });
+    void fetch(`/api/public/satisfacao/${encodeURIComponent(token)}`)
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.valid) return;
+        setValidToken({ submitted_at: data.submitted_at ?? null, ticketNum: data.ticketNumero ?? undefined });
         if (data.submitted_at) setSubmitted(true);
-      }
-      setLoading(false);
-    })();
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
   }, [token]);
 
   const submit = async () => {
     if (!validToken || rating === 0) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("ticket_satisfaction")
-      .update({ rating, comentario: comentario.trim() || null, submitted_at: new Date().toISOString() })
-      .eq("id", validToken.id);
+    const response = await fetch(`/api/public/satisfacao/${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rating, comentario }),
+    });
+    const data = await response.json().catch(() => ({}));
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (!response.ok || (!data.success && data.reason !== "already_submitted")) {
+      return toast.error("Não foi possível registar a avaliação.");
+    }
     setSubmitted(true);
   };
 
@@ -108,7 +107,7 @@ function SatisfacaoPage() {
             </div>
 
             <Button onClick={submit} disabled={rating === 0 || busy} className="w-full">
-              Enviar avaliação
+              {busy ? "A enviar…" : "Enviar avaliação"}
             </Button>
           </div>
         )}
