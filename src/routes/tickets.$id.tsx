@@ -27,7 +27,7 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare } from "lucide-react";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock } from "lucide-react";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 
