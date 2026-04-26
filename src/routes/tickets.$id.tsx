@@ -612,6 +612,7 @@ function NewCommentForm({
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
+  const [minutosResposta, setMinutosResposta] = useState("");
 
   useEffect(() => {
     if (!isAdmin) return;
