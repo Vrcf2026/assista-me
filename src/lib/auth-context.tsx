@@ -26,39 +26,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(null);
       return;
     }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .maybeSingle();
-    setRole((data?.role as Role) ?? "client");
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (error) throw error;
+      setRole((data?.role as Role) ?? "client");
+    } catch (error) {
+      console.error("Failed to fetch role", error);
+      setRole("client");
+    }
   };
 
   useEffect(() => {
-    // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      // Defer role lookup to avoid recursive auth calls
-      if (s?.user) {
-        setTimeout(() => { void fetchRole(s.user.id); }, 0);
-      } else {
-        setRole(null);
-      }
-    });
+    let cancelled = false;
+    let finished = false;
 
-    // THEN check existing session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        void fetchRole(s.user.id).finally(() => setLoading(false));
-      } else {
+    const finishLoading = () => {
+      if (!cancelled && !finished) {
+        finished = true;
         setLoading(false);
       }
+    };
+
+    const timeout = window.setTimeout(() => {
+      finishLoading();
+    }, 2500);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (cancelled) return;
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s?.user) {
+        setTimeout(() => {
+          void fetchRole(s.user.id).finally(finishLoading);
+        }, 0);
+      } else {
+        setRole(null);
+        finishLoading();
+      }
     });
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data: { session: s } }) => {
+        if (cancelled) return;
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) {
+          return fetchRole(s.user.id);
+        }
+        setRole(null);
+      })
+      .catch((error) => {
+        console.error("Failed to restore session", error);
+        if (!cancelled) {
+          setSession(null);
+          setUser(null);
+          setRole(null);
+        }
+      })
+      .finally(finishLoading);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
