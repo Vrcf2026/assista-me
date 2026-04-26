@@ -126,6 +126,21 @@ function TicketDetail({ id }: { id: string }) {
     setLoading(false);
   };
 
+  const openAttachment = async (attachment: Attachment) => {
+    if (/^https?:\/\//i.test(attachment.file_url)) {
+      window.open(attachment.file_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("ticket-attachments")
+      .createSignedUrl(attachment.file_url, 60 * 10);
+    if (error || !data?.signedUrl) {
+      toast.error(error?.message ?? "Não foi possível abrir o anexo");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
   useEffect(() => { void load(); }, [id]);
 
   // Mark admin comments as seen by client (first time)
