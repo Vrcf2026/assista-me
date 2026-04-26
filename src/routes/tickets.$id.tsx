@@ -751,6 +751,20 @@ function NewCommentForm({
               </PopoverContent>
             </Popover>
           )}
+          {isAdmin && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="number"
+                min={1}
+                value={minutosResposta}
+                onChange={(e) => setMinutosResposta(e.target.value)}
+                placeholder="min"
+                className="h-9 w-20"
+                title="Tempo gasto nesta resposta (cria registo automático)"
+              />
+            </div>
+          )}
         </div>
         <Button type="submit" disabled={busy || !mensagem.trim()}>
           <Send className="h-4 w-4 mr-1" /> Enviar
