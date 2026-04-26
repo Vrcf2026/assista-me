@@ -269,7 +269,7 @@ function TicketDetail({ id }: { id: string }) {
           comments={comments}
           attachments={attachments}
           isAdmin={isAdmin}
-          currentUserId={user?.id}
+          onOpenAttachment={openAttachment}
         />
         <div className="mt-4 pt-4 border-t">
           <NewCommentForm ticketId={id} isAdmin={isAdmin} onSent={load} />
