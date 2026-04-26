@@ -233,9 +233,9 @@ function TicketDetail({ id }: { id: string }) {
           <ul className="space-y-1">
             {attachments.filter((a) => !a.comment_id && (isAdmin || !a.is_internal)).map((a) => (
               <li key={a.id}>
-                <a href={a.file_url} target="_blank" rel="noopener" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+                <button type="button" onClick={() => void openAttachment(a)} className="text-sm text-primary hover:underline inline-flex items-center gap-1">
                   <Paperclip className="h-3.5 w-3.5" /> {a.file_name}
-                </a>
+                </button>
               </li>
             ))}
           </ul>
