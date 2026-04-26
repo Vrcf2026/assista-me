@@ -575,9 +575,9 @@ function CommentList({
               <ul className="mt-2 space-y-0.5">
                 {attsByComment[c.id].map((a) => (
                   <li key={a.id}>
-                    <a href={a.file_url} target="_blank" rel="noopener" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                    <button type="button" onClick={() => void onOpenAttachment(a)} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                       <Paperclip className="h-3 w-3" /> {a.file_name}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
