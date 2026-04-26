@@ -64,11 +64,10 @@ function NovoCliente() {
         const { error: upErr } = await supabase.storage
           .from("ticket-attachments").upload(path, f);
         if (upErr) { toast.error(upErr.message); continue; }
-        const { data: pub } = supabase.storage.from("ticket-attachments").getPublicUrl(path);
         await supabase.from("attachments").insert({
           ticket_id: ticket.id,
           uploaded_by: user.id,
-          file_url: pub.publicUrl,
+          file_url: path,
           file_name: f.name,
           file_size: f.size,
           mime_type: f.type,

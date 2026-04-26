@@ -126,6 +126,21 @@ function TicketDetail({ id }: { id: string }) {
     setLoading(false);
   };
 
+  const openAttachment = async (attachment: Attachment) => {
+    if (/^https?:\/\//i.test(attachment.file_url)) {
+      window.open(attachment.file_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("ticket-attachments")
+      .createSignedUrl(attachment.file_url, 60 * 10);
+    if (error || !data?.signedUrl) {
+      toast.error(error?.message ?? "Não foi possível abrir o anexo");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
   useEffect(() => { void load(); }, [id]);
 
   // Mark admin comments as seen by client (first time)
@@ -218,9 +233,9 @@ function TicketDetail({ id }: { id: string }) {
           <ul className="space-y-1">
             {attachments.filter((a) => !a.comment_id && (isAdmin || !a.is_internal)).map((a) => (
               <li key={a.id}>
-                <a href={a.file_url} target="_blank" rel="noopener" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+                <button type="button" onClick={() => void openAttachment(a)} className="text-sm text-primary hover:underline inline-flex items-center gap-1">
                   <Paperclip className="h-3.5 w-3.5" /> {a.file_name}
-                </a>
+                </button>
               </li>
             ))}
           </ul>
@@ -255,6 +270,7 @@ function TicketDetail({ id }: { id: string }) {
           attachments={attachments}
           isAdmin={isAdmin}
           currentUserId={user?.id}
+          onOpenAttachment={openAttachment}
         />
         <div className="mt-4 pt-4 border-t">
           <NewCommentForm ticketId={id} isAdmin={isAdmin} onSent={load} />
@@ -518,12 +534,13 @@ function CloseDialog({
 
 // ============== Comments ==============
 function CommentList({
-  comments, attachments, isAdmin, currentUserId,
+  comments, attachments, isAdmin, currentUserId, onOpenAttachment,
 }: {
   comments: Comment[];
   attachments: Attachment[];
   isAdmin: boolean;
   currentUserId: string | undefined;
+  onOpenAttachment: (attachment: Attachment) => void | Promise<void>;
 }) {
   const visible = comments.filter((c) => isAdmin || !c.is_internal);
   const attsByComment = useMemo(() => {
@@ -558,9 +575,9 @@ function CommentList({
               <ul className="mt-2 space-y-0.5">
                 {attsByComment[c.id].map((a) => (
                   <li key={a.id}>
-                    <a href={a.file_url} target="_blank" rel="noopener" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                    <button type="button" onClick={() => void onOpenAttachment(a)} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
                       <Paperclip className="h-3 w-3" /> {a.file_name}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -622,12 +639,11 @@ function NewCommentForm({
         const { error: upErr } = await supabase.storage
           .from("ticket-attachments").upload(path, f);
         if (upErr) { toast.error(upErr.message); continue; }
-        const { data: pub } = supabase.storage.from("ticket-attachments").getPublicUrl(path);
         await supabase.from("attachments").insert({
           ticket_id: ticketId,
           comment_id: comment.id,
           uploaded_by: user.id,
-          file_url: pub.publicUrl,
+          file_url: path,
           file_name: f.name,
           file_size: f.size,
           mime_type: f.type,
