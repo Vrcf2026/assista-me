@@ -652,6 +652,28 @@ function NewCommentForm({
         });
       }
 
+      // Tempo associado à resposta (admin)
+      if (isAdmin && minutosResposta) {
+        const m = Number(minutosResposta);
+        if (m > 0) {
+          const { error: teErr } = await supabase.from("time_entries").insert({
+            ticket_id: ticketId,
+            user_id: user.id,
+            minutos: m,
+            descricao: mensagem.slice(0, 500),
+            data_trabalho: new Date().toISOString().slice(0, 10),
+          });
+          if (!teErr) {
+            const { data: tk } = await supabase
+              .from("tickets").select("tempo_gasto_minutos").eq("id", ticketId).maybeSingle();
+            const novo = (tk?.tempo_gasto_minutos ?? 0) + m;
+            await supabase.from("tickets").update({ tempo_gasto_minutos: novo }).eq("id", ticketId);
+          } else {
+            toast.error(teErr.message);
+          }
+        }
+      }
+
       // Notificar:
       // - cliente: quando admin escreve algo NÃO interno
       // - admin: quando o cliente escreve
@@ -676,7 +698,7 @@ function NewCommentForm({
         }
       }
 
-      setMensagem(""); setFiles([]); setInternal(false);
+      setMensagem(""); setFiles([]); setInternal(false); setMinutosResposta("");
       onSent();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
