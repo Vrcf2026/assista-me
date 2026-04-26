@@ -27,7 +27,7 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare } from "lucide-react";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock } from "lucide-react";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 
@@ -612,6 +612,7 @@ function NewCommentForm({
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
+  const [minutosResposta, setMinutosResposta] = useState("");
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -651,6 +652,28 @@ function NewCommentForm({
         });
       }
 
+      // Tempo associado à resposta (admin)
+      if (isAdmin && minutosResposta) {
+        const m = Number(minutosResposta);
+        if (m > 0) {
+          const { error: teErr } = await supabase.from("time_entries").insert({
+            ticket_id: ticketId,
+            user_id: user.id,
+            minutos: m,
+            descricao: mensagem.slice(0, 500),
+            data_trabalho: new Date().toISOString().slice(0, 10),
+          });
+          if (!teErr) {
+            const { data: tk } = await supabase
+              .from("tickets").select("tempo_gasto_minutos").eq("id", ticketId).maybeSingle();
+            const novo = (tk?.tempo_gasto_minutos ?? 0) + m;
+            await supabase.from("tickets").update({ tempo_gasto_minutos: novo }).eq("id", ticketId);
+          } else {
+            toast.error(teErr.message);
+          }
+        }
+      }
+
       // Notificar:
       // - cliente: quando admin escreve algo NÃO interno
       // - admin: quando o cliente escreve
@@ -675,7 +698,7 @@ function NewCommentForm({
         }
       }
 
-      setMensagem(""); setFiles([]); setInternal(false);
+      setMensagem(""); setFiles([]); setInternal(false); setMinutosResposta("");
       onSent();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
@@ -727,6 +750,20 @@ function NewCommentForm({
                 ))}
               </PopoverContent>
             </Popover>
+          )}
+          {isAdmin && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="number"
+                min={1}
+                value={minutosResposta}
+                onChange={(e) => setMinutosResposta(e.target.value)}
+                placeholder="min"
+                className="h-9 w-20"
+                title="Tempo gasto nesta resposta (cria registo automático)"
+              />
+            </div>
           )}
         </div>
         <Button type="submit" disabled={busy || !mensagem.trim()}>
