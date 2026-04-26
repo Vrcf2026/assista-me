@@ -534,12 +534,13 @@ function CloseDialog({
 
 // ============== Comments ==============
 function CommentList({
-  comments, attachments, isAdmin, currentUserId,
+  comments, attachments, isAdmin, currentUserId, onOpenAttachment,
 }: {
   comments: Comment[];
   attachments: Attachment[];
   isAdmin: boolean;
   currentUserId: string | undefined;
+  onOpenAttachment: (attachment: Attachment) => void | Promise<void>;
 }) {
   const visible = comments.filter((c) => isAdmin || !c.is_internal);
   const attsByComment = useMemo(() => {
