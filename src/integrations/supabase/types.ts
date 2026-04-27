@@ -68,6 +68,38 @@ export type Database = {
           },
         ]
       }
+      client_users: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_client_admin: boolean
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_client_admin?: boolean
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_client_admin?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -79,7 +111,6 @@ export type Database = {
           tarifa_hora: number
           tipo_contrato: Database["public"]["Enums"]["contract_type"]
           updated_at: string
-          user_id: string
         }
         Insert: {
           created_at?: string
@@ -91,7 +122,6 @@ export type Database = {
           tarifa_hora?: number
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
-          user_id: string
         }
         Update: {
           created_at?: string
@@ -103,7 +133,6 @@ export type Database = {
           tarifa_hora?: number
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -441,6 +470,7 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          created_by: string | null
           descricao: string
           estado: Database["public"]["Enums"]["ticket_status"]
           fechado_em: string | null
@@ -459,6 +489,7 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string
+          created_by?: string | null
           descricao: string
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
@@ -477,6 +508,7 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string
+          created_by?: string | null
           descricao?: string
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
@@ -573,7 +605,6 @@ export type Database = {
         Args: { _ano: number; _client_id: string; _mes: number }
         Returns: number
       }
-      current_user_client_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -587,6 +618,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_client_admin: {
+        Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
       move_to_dlq: {
@@ -606,6 +641,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      user_client_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "client"
