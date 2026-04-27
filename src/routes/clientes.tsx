@@ -23,7 +23,6 @@ export const Route = createFileRoute("/clientes")({
 
 interface Client {
   id: string;
-  user_id: string;
   nome: string;
   nif: string | null;
   tipo_contrato: "avenca" | "pontual";
@@ -170,8 +169,6 @@ function ClientFormDialog({
 }) {
   const [nome, setNome] = useState("");
   const [nif, setNif] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [tipo, setTipo] = useState<"avenca" | "pontual">("pontual");
   const [tarifa, setTarifa] = useState("25");
   const [horasPacote, setHorasPacote] = useState("");
@@ -187,7 +184,7 @@ function ClientFormDialog({
       setHorasPacote(editing.horas_pacote ? String(editing.horas_pacote) : "");
       setDias(editing.dias_fecho_automatico ? String(editing.dias_fecho_automatico) : "");
     } else {
-      setNome(""); setNif(""); setEmail(""); setPassword("");
+      setNome(""); setNif("");
       setTipo("pontual"); setTarifa("25"); setHorasPacote(""); setDias("7");
     }
   }, [editing, open]);
@@ -208,11 +205,8 @@ function ClientFormDialog({
         if (error) throw error;
         toast.success("Cliente atualizado");
       } else {
-        // Use edge function (service role) so the admin session stays intact
         const { data, error } = await supabase.functions.invoke("admin-create-client", {
           body: {
-            email,
-            password,
             nome,
             nif: nif || null,
             tipo_contrato: tipo,
@@ -223,7 +217,7 @@ function ClientFormDialog({
         });
         if (error) throw error;
         if (data && (data as { error?: string }).error) throw new Error((data as { error: string }).error);
-        toast.success("Cliente criado");
+        toast.success("Cliente criado — abra a ficha para adicionar utilizadores");
       }
       onSaved();
     } catch (err) {
@@ -248,18 +242,6 @@ function ClientFormDialog({
             <Label>NIF</Label>
             <Input value={nif} onChange={(e) => setNif(e.target.value)} />
           </div>
-          {!editing && (
-            <>
-              <div className="space-y-1.5">
-                <Label>Email (login) *</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Palavra-passe inicial *</Label>
-                <Input type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-            </>
-          )}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Tipo contrato</Label>
@@ -286,6 +268,11 @@ function ClientFormDialog({
             <Label>Dias até fecho automático (vazio = desativado)</Label>
             <Input type="number" value={dias} onChange={(e) => setDias(e.target.value)} placeholder="7" />
           </div>
+          {!editing && (
+            <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+              💡 Após criar, abra a ficha do cliente para adicionar utilizadores de login.
+            </p>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={busy}>{busy ? "..." : "Guardar"}</Button>

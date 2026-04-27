@@ -8,43 +8,62 @@ interface TicketLite {
   numero: number;
   titulo: string;
   client_id: string;
+  created_by?: string | null;
 }
 
 /**
- * Resolve email do dono do cliente associado ao ticket.
- * Usa o profiles.email (mantido em sync com auth.users via trigger handle_new_user).
+ * Resolve emails para notificar:
+ * - O criador do ticket (se existir)
+ * - Todos os admins do cliente (excluindo o próprio criador para evitar duplicados)
  */
-async function resolveClientEmail(clientId: string): Promise<{ email: string; nome: string | null } | null> {
+async function resolveRecipients(
+  clientId: string,
+  createdBy: string | null | undefined,
+): Promise<{ emails: { email: string; nome: string | null }[]; clienteNome: string | null }> {
   const { data: client } = await supabase
-    .from("clients")
-    .select("user_id, nome")
-    .eq("id", clientId)
-    .maybeSingle();
-  if (!client?.user_id) return null;
-  const { data: profile } = await supabase
+    .from("clients").select("nome").eq("id", clientId).maybeSingle();
+  const clienteNome = client?.nome ?? null;
+
+  // Buscar membership do cliente
+  const { data: members } = await supabase
+    .from("client_users")
+    .select("user_id, is_client_admin")
+    .eq("client_id", clientId);
+
+  const ids = new Set<string>();
+  if (createdBy) ids.add(createdBy);
+  (members ?? []).forEach((m) => { if (m.is_client_admin) ids.add(m.user_id); });
+
+  if (ids.size === 0) return { emails: [], clienteNome };
+
+  const { data: profiles } = await supabase
     .from("profiles")
-    .select("email")
-    .eq("user_id", client.user_id)
-    .maybeSingle();
-  if (!profile?.email) return null;
-  return { email: profile.email, nome: client.nome };
+    .select("user_id, email, nome")
+    .in("user_id", Array.from(ids));
+
+  const emails = (profiles ?? [])
+    .filter((p) => !!p.email)
+    .map((p) => ({ email: p.email, nome: p.nome ?? clienteNome }));
+
+  return { emails, clienteNome };
 }
 
 export async function notifyTicketCriado(ticket: TicketLite, prioridade: string) {
-  const r = await resolveClientEmail(ticket.client_id);
-  if (!r) return;
-  await sendTransactionalEmail({
-    templateName: "ticket-criado",
-    recipientEmail: r.email,
-    idempotencyKey: `ticket-criado-${ticket.id}`,
-    templateData: {
-      clienteNome: r.nome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      prioridade,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
-  });
+  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  for (const r of emails) {
+    await sendTransactionalEmail({
+      templateName: "ticket-criado",
+      recipientEmail: r.email,
+      idempotencyKey: `ticket-criado-${ticket.id}-${r.email}`,
+      templateData: {
+        clienteNome: r.nome ?? clienteNome,
+        ticketNumero: ticket.numero,
+        ticketTitulo: ticket.titulo,
+        prioridade,
+        ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+      },
+    });
+  }
 }
 
 export async function notifyNovoComentario(
@@ -53,21 +72,22 @@ export async function notifyNovoComentario(
   autor: string,
   commentId: string,
 ) {
-  const r = await resolveClientEmail(ticket.client_id);
-  if (!r) return;
-  await sendTransactionalEmail({
-    templateName: "ticket-novo-comentario",
-    recipientEmail: r.email,
-    idempotencyKey: `ticket-comentario-${commentId}`,
-    templateData: {
-      clienteNome: r.nome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      autor,
-      mensagem,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
-  });
+  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  for (const r of emails) {
+    await sendTransactionalEmail({
+      templateName: "ticket-novo-comentario",
+      recipientEmail: r.email,
+      idempotencyKey: `ticket-comentario-${commentId}-${r.email}`,
+      templateData: {
+        clienteNome: r.nome ?? clienteNome,
+        ticketNumero: ticket.numero,
+        ticketTitulo: ticket.titulo,
+        autor,
+        mensagem,
+        ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+      },
+    });
+  }
 }
 
 export async function notifyTicketFechado(
@@ -75,50 +95,47 @@ export async function notifyTicketFechado(
   motivoFecho: string,
   solucaoAplicada: string | null,
 ) {
-  const r = await resolveClientEmail(ticket.client_id);
-  if (!r) return;
-  await sendTransactionalEmail({
-    templateName: "ticket-fechado",
-    recipientEmail: r.email,
-    idempotencyKey: `ticket-fechado-${ticket.id}`,
-    templateData: {
-      clienteNome: r.nome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      motivoFecho,
-      solucaoAplicada,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
-  });
+  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  for (const r of emails) {
+    await sendTransactionalEmail({
+      templateName: "ticket-fechado",
+      recipientEmail: r.email,
+      idempotencyKey: `ticket-fechado-${ticket.id}-${r.email}`,
+      templateData: {
+        clienteNome: r.nome ?? clienteNome,
+        ticketNumero: ticket.numero,
+        ticketTitulo: ticket.titulo,
+        motivoFecho,
+        solucaoAplicada,
+        ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+      },
+    });
+  }
 }
 
 /**
- * Cria registo de satisfação para o ticket (token único) e envia email
- * com link de avaliação. Idempotente — só dispara uma vez por ticket.
+ * Cria registo de satisfação (token único) e envia email ao criador do ticket.
  */
 export async function notifyTicketSatisfacao(ticket: TicketLite) {
-  const r = await resolveClientEmail(ticket.client_id);
-  if (!r) return;
-  // Verificar se já existe
+  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  // Apenas ao criador, não a todos os admins do cliente
+  const recipient = emails[0];
+  if (!recipient) return;
+
   const { data: existing } = await supabase
-    .from("ticket_satisfaction")
-    .select("token")
-    .eq("ticket_id", ticket.id)
-    .maybeSingle();
+    .from("ticket_satisfaction").select("token").eq("ticket_id", ticket.id).maybeSingle();
   let token = existing?.token;
   if (!token) {
     token = crypto.randomUUID().replace(/-/g, "");
-    const { error } = await supabase
-      .from("ticket_satisfaction")
-      .insert({ ticket_id: ticket.id, token });
+    const { error } = await supabase.from("ticket_satisfaction").insert({ ticket_id: ticket.id, token });
     if (error) { console.error("satisfacao insert failed", error); return; }
   }
   await sendTransactionalEmail({
     templateName: "ticket-satisfacao",
-    recipientEmail: r.email,
+    recipientEmail: recipient.email,
     idempotencyKey: `ticket-satisfacao-${ticket.id}`,
     templateData: {
-      clienteNome: r.nome,
+      clienteNome: recipient.nome ?? clienteNome,
       ticketNumero: ticket.numero,
       ticketTitulo: ticket.titulo,
       satisfacaoUrl: `${SITE_URL}/satisfacao/${token}`,

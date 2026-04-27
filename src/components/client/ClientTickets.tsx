@@ -28,13 +28,12 @@ export function ClientTickets() {
   useEffect(() => {
     if (!user) return;
     void (async () => {
-      // Check if client profile exists
-      const { data: client } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setHasClient(!!client);
+      // Check if user belongs to any client
+      const { data: memberships } = await supabase
+        .from("client_users")
+        .select("client_id")
+        .eq("user_id", user.id);
+      setHasClient((memberships ?? []).length > 0);
 
       const { data, error } = await supabase
         .from("tickets")
