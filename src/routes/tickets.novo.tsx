@@ -46,14 +46,20 @@ function NovoCliente() {
     if (!user) return;
     setBusy(true);
     try {
-      const { data: client } = await supabase
-        .from("clients").select("id, nome").eq("user_id", user.id).maybeSingle();
-      if (!client) throw new Error("Cliente não configurado.");
+      // Buscar primeiro cliente associado ao utilizador
+      const { data: memberships } = await supabase
+        .from("client_users").select("client_id").eq("user_id", user.id).limit(1);
+      const clientId = memberships?.[0]?.client_id;
+      if (!clientId) throw new Error("A sua conta não está associada a nenhum cliente.");
+      const { data: clientRow } = await supabase
+        .from("clients").select("nome").eq("id", clientId).maybeSingle();
+      const client = { id: clientId, nome: clientRow?.nome ?? "Cliente" };
       const { data: ticket, error } = await supabase
         .from("tickets")
         .insert({
           client_id: client.id,
           titulo, descricao, prioridade,
+          created_by: user.id,
         })
         .select("id, numero")
         .single();
@@ -76,7 +82,7 @@ function NovoCliente() {
       }
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       void notifyTicketCriado(
-        { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id },
+        { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id, created_by: user.id },
         prioridade,
       );
       void notifyAdminNovoTicket(
@@ -166,6 +172,7 @@ function NovoAdmin() {
       const { data: ticket, error } = await supabase
         .from("tickets").insert({
           client_id: clientId, titulo, descricao, prioridade, tipo_intervencao: tipo,
+          created_by: user.id,
         }).select("id, numero").single();
       if (error) throw error;
 
@@ -188,7 +195,7 @@ function NovoAdmin() {
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       if (notificarCliente) {
         void notifyTicketCriado(
-          { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId },
+          { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId, created_by: null },
           prioridade,
         );
       }

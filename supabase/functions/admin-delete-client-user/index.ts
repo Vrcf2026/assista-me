@@ -6,18 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-interface CreateClientPayload {
-  nome: string;
-  nif?: string | null;
-  tipo_contrato: "avenca" | "pontual";
-  tarifa_hora: number;
-  horas_pacote?: number | null;
-  dias_fecho_automatico?: number | null;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -29,29 +19,27 @@ Deno.serve(async (req) => {
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return json({ error: "Invalid token" }, 401);
+    const { data: userData } = await userClient.auth.getUser();
+    if (!userData.user) return json({ error: "Invalid token" }, 401);
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: roleRows } = await admin.from("user_roles")
       .select("role").eq("user_id", userData.user.id).eq("role", "admin");
     if (!roleRows || roleRows.length === 0) return json({ error: "Forbidden" }, 403);
 
-    const body = (await req.json()) as CreateClientPayload;
-    if (!body.nome) return json({ error: "Nome obrigatório" }, 400);
+    const { user_id, delete_account } = (await req.json()) as { user_id: string; delete_account?: boolean };
+    if (!user_id) return json({ error: "user_id obrigatório" }, 400);
 
-    const { data: client, error: clientErr } = await admin.from("clients").insert({
-      nome: body.nome,
-      nif: body.nif ?? null,
-      tipo_contrato: body.tipo_contrato,
-      tarifa_hora: body.tarifa_hora,
-      horas_pacote: body.tipo_contrato === "avenca" && body.horas_pacote ? body.horas_pacote : null,
-      dias_fecho_automatico: body.dias_fecho_automatico ?? null,
-    }).select("id").single();
+    // Remover todas as associações
+    await admin.from("client_users").delete().eq("user_id", user_id);
 
-    if (clientErr) return json({ error: clientErr.message }, 400);
+    if (delete_account) {
+      await admin.from("user_roles").delete().eq("user_id", user_id);
+      await admin.from("profiles").delete().eq("user_id", user_id);
+      await admin.auth.admin.deleteUser(user_id);
+    }
 
-    return json({ ok: true, client_id: client.id });
+    return json({ ok: true });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : "Unknown error" }, 500);
   }
