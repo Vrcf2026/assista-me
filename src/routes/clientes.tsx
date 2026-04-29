@@ -109,9 +109,18 @@ function ClientesList() {
                     ? pacote - usedMin / 60
                     : null;
                   return (
-                    <tr key={c.id} className="border-t hover:bg-secondary/50">
+                    <tr
+                      key={c.id}
+                      className="border-t hover:bg-secondary/50 cursor-pointer"
+                      onClick={() => { window.location.href = `/clientes/${c.id}`; }}
+                    >
                       <td className="px-4 py-2 font-medium">
-                        <Link to="/clientes/$id" params={{ id: c.id }} className="hover:underline text-primary">
+                        <Link
+                          to="/clientes/$id"
+                          params={{ id: c.id }}
+                          className="hover:underline text-primary"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {c.nome}
                         </Link>
                       </td>
@@ -136,7 +145,7 @@ function ClientesList() {
                         {c.dias_fecho_automatico ? `${c.dias_fecho_automatico} dias` : "Desativado"}
                       </td>
                       <td className="px-4 py-2 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => { setEditing(c); setDialogOpen(true); }}>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditing(c); setDialogOpen(true); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       </td>
