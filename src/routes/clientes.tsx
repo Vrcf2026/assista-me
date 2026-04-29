@@ -145,7 +145,7 @@ function ClientesList() {
                         {c.dias_fecho_automatico ? `${c.dias_fecho_automatico} dias` : "Desativado"}
                       </td>
                       <td className="px-4 py-2 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => { setEditing(c); setDialogOpen(true); }}>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditing(c); setDialogOpen(true); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       </td>
