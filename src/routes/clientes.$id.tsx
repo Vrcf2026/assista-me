@@ -12,7 +12,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { HoursPackageWidget } from "@/components/HoursPackageWidget";
 import { ClientUsersPanel } from "@/components/ClientUsersPanel";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/clientes/$id")({
   component: ClienteDetailPage,
@@ -98,9 +98,16 @@ function ClienteDetail({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
-      <Button asChild variant="ghost" size="sm" className="print:hidden">
-        <Link to="/clientes"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
-      </Button>
+      <div className="flex items-center justify-between print:hidden">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/clientes"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link to="/tickets/novo" search={{ clientId: client.id }}>
+            <Plus className="h-4 w-4 mr-1" /> Novo ticket para este cliente
+          </Link>
+        </Button>
+      </div>
 
       <Card className="p-6">
         <h1 className="text-2xl font-semibold">{client.nome}</h1>
