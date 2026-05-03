@@ -67,7 +67,7 @@ export function ClientTickets() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/tickets/novo"><Plus className="h-4 w-4 mr-1" /> Novo ticket</Link>
+          <Link to="/tickets/novo" search={{ clientId: undefined }}><Plus className="h-4 w-4 mr-1" /> Novo ticket</Link>
         </Button>
       </div>
 
@@ -80,7 +80,7 @@ export function ClientTickets() {
               Ainda não criou nenhum ticket.
             </p>
             <Button asChild>
-              <Link to="/tickets/novo"><Plus className="h-4 w-4 mr-1" /> Criar primeiro ticket</Link>
+              <Link to="/tickets/novo" search={{ clientId: undefined }}><Plus className="h-4 w-4 mr-1" /> Criar primeiro ticket</Link>
             </Button>
           </div>
         ) : (

@@ -17,6 +17,9 @@ import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
 
 export const Route = createFileRoute("/tickets/novo")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    clientId: typeof s.clientId === "string" ? s.clientId : undefined,
+  }),
   component: NovoTicketPage,
 });
 
@@ -148,8 +151,9 @@ function NovoAdmin() {
   // Admin can pick the client and create on their behalf
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { clientId: preselected } = Route.useSearch();
   const [clients, setClients] = useState<{ id: string; nome: string }[]>([]);
-  const [clientId, setClientId] = useState("");
+  const [clientId, setClientId] = useState(preselected ?? "");
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
