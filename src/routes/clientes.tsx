@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { AppLayout } from "@/components/AppLayout";
@@ -34,6 +34,7 @@ interface Client {
 function ClientesPage() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const { location } = useRouterState();
 
   useEffect(() => {
     if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
@@ -43,10 +44,13 @@ function ClientesPage() {
     return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">A carregar…</div>;
   }
 
+  if (location.pathname !== "/clientes") return <Outlet />;
+
   return <AppLayout><ClientesList /></AppLayout>;
 }
 
 function ClientesList() {
+  const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
   const [usage, setUsage] = useState<Record<string, number>>({}); // client_id -> minutes used
   const [loading, setLoading] = useState(true);
@@ -112,7 +116,7 @@ function ClientesList() {
                     <tr
                       key={c.id}
                       className="border-t hover:bg-secondary/50 cursor-pointer"
-                      onClick={() => { window.location.href = `/clientes/${c.id}`; }}
+                      onClick={() => { void navigate({ to: "/clientes/$id", params: { id: c.id } }); }}
                     >
                       <td className="px-4 py-2 font-medium">
                         <Link
