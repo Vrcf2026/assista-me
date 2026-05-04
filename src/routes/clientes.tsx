@@ -111,7 +111,7 @@ function ClientesList() {
               <tbody>
                 {clients.map((c) => {
                   const usedMin = usage[c.id] ?? 0;
-                  const pacote = Number(c.horas_pacote ?? 0);
+                  const pacote = Number(c.horas_pacote_anual ?? c.horas_pacote ?? 0);
                   const saldo = c.tipo_contrato === "avenca" && pacote > 0
                     ? pacote - usedMin / 60
                     : null;
