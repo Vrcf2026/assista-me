@@ -306,7 +306,7 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
       ) : (
         <ul className="space-y-1.5">
           {entries.map((e) => (
-            <li key={e.id} className="text-sm border-l-2 border-primary/40 pl-3 flex items-start justify-between gap-2">
+            <li key={e.id} className={`text-sm border-l-2 border-primary/40 pl-3 flex items-start justify-between gap-2 ${e.nao_contabilizar ? "opacity-50" : ""}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   <span className="font-mono">{formatDate(e.data_trabalho)}</span>
@@ -314,6 +314,16 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
                   <span>{e.profile?.nome ?? e.profile?.email ?? "—"}</span>
                   <span>·</span>
                   <span className="font-semibold text-foreground">{formatMinutes(e.minutos)}</span>
+                  <span className={`px-1.5 py-0.5 rounded border text-[10px] ${TIPO_INTERVENCAO_COLORS[e.tipo_intervencao] ?? ""}`}>
+                    {TIPO_INTERVENCAO_LABELS[e.tipo_intervencao] ?? e.tipo_intervencao}
+                  </span>
+                  {e.nao_contabilizar ? (
+                    <span className="px-1.5 py-0.5 rounded border text-[10px] bg-gray-200 text-gray-700 border-gray-400">Não contabilizado</span>
+                  ) : (
+                    <span className={`px-1.5 py-0.5 rounded border text-[10px] ${ESTADO_FATURACAO_COLORS[e.estado_faturacao] ?? ""}`}>
+                      {ESTADO_FATURACAO_LABELS[e.estado_faturacao] ?? e.estado_faturacao}
+                    </span>
+                  )}
                 </div>
                 {e.descricao && <div className="text-sm mt-0.5">{e.descricao}</div>}
               </div>
