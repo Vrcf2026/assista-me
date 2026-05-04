@@ -102,9 +102,12 @@ export type Database = {
       }
       clients: {
         Row: {
+          contrato_fim: string | null
+          contrato_inicio: string | null
           created_at: string
           dias_fecho_automatico: number | null
           horas_pacote: number | null
+          horas_pacote_anual: number | null
           id: string
           nif: string | null
           nome: string
@@ -113,9 +116,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          contrato_fim?: string | null
+          contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           horas_pacote?: number | null
+          horas_pacote_anual?: number | null
           id?: string
           nif?: string | null
           nome: string
@@ -124,9 +130,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          contrato_fim?: string | null
+          contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           horas_pacote?: number | null
+          horas_pacote_anual?: number | null
           id?: string
           nif?: string | null
           nome?: string
@@ -539,9 +548,12 @@ export type Database = {
           created_at: string
           data_trabalho: string
           descricao: string | null
+          estado_faturacao: string
           id: string
           minutos: number
+          nao_contabilizar: boolean
           ticket_id: string
+          tipo_intervencao: Database["public"]["Enums"]["intervention_type"]
           updated_at: string
           user_id: string
         }
@@ -549,9 +561,12 @@ export type Database = {
           created_at?: string
           data_trabalho?: string
           descricao?: string | null
+          estado_faturacao?: string
           id?: string
           minutos: number
+          nao_contabilizar?: boolean
           ticket_id: string
+          tipo_intervencao?: Database["public"]["Enums"]["intervention_type"]
           updated_at?: string
           user_id: string
         }
@@ -559,9 +574,12 @@ export type Database = {
           created_at?: string
           data_trabalho?: string
           descricao?: string | null
+          estado_faturacao?: string
           id?: string
           minutos?: number
+          nao_contabilizar?: boolean
           ticket_id?: string
+          tipo_intervencao?: Database["public"]["Enums"]["intervention_type"]
           updated_at?: string
           user_id?: string
         }
@@ -601,6 +619,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calcular_estado_faturacao: {
+        Args: {
+          _client_id: string
+          _minutos: number
+          _nao_contabilizar: boolean
+        }
+        Returns: string
+      }
+      client_horas_consumidas_anual: {
+        Args: { _client_id: string }
+        Returns: number
+      }
       client_horas_consumidas_mes: {
         Args: { _ano: number; _client_id: string; _mes: number }
         Returns: number
@@ -652,7 +682,7 @@ export type Database = {
         | "fechado_pelo_cliente"
         | "inatividade"
       contract_type: "avenca" | "pontual"
-      intervention_type: "remota" | "presencial" | "critica"
+      intervention_type: "remota" | "presencial" | "critica" | "preventiva"
       ticket_priority: "baixa" | "media" | "alta"
       ticket_status: "aberto" | "em_progresso" | "aguarda_cliente" | "fechado"
     }
@@ -791,7 +821,7 @@ export const Constants = {
         "inatividade",
       ],
       contract_type: ["avenca", "pontual"],
-      intervention_type: ["remota", "presencial", "critica"],
+      intervention_type: ["remota", "presencial", "critica", "preventiva"],
       ticket_priority: ["baixa", "media", "alta"],
       ticket_status: ["aberto", "em_progresso", "aguarda_cliente", "fechado"],
     },
