@@ -34,6 +34,7 @@ interface Entry {
 
 interface Props {
   ticketId: string;
+  clientId: string;
   isAdmin: boolean;
   onChange?: () => void;
 }
@@ -48,11 +49,13 @@ function nowHHMM() {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
+export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Props) {
   const { user } = useAuth();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [descricao, setDescricao] = useState("");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [tipoIntervencao, setTipoIntervencao] = useState<TipoIntervencao>("remota");
+  const [naoContabilizar, setNaoContabilizar] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Manual
