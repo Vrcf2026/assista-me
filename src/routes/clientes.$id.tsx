@@ -163,9 +163,6 @@ function ClienteDetail({ id }: { id: string }) {
           <div className="grid sm:grid-cols-3 gap-4 text-sm">
             <div><div className="text-muted-foreground text-xs">Total tickets</div><div className="text-xl font-semibold">{monthTickets.length}</div></div>
             <div><div className="text-muted-foreground text-xs">Total horas</div><div className="text-xl font-semibold">{formatHours(monthMin)}</div></div>
-            {saldoH !== null && (
-              <div><div className="text-muted-foreground text-xs">Saldo do pacote</div><div className="text-xl font-semibold">{saldoH.toFixed(2)}h</div></div>
-            )}
           </div>
 
           <h4 className="font-semibold mt-6 mb-2 text-sm">Detalhe por ticket</h4>
