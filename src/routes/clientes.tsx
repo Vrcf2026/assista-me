@@ -274,9 +274,21 @@ function ClientFormDialog({
             </div>
           </div>
           {tipo === "avenca" && (
-            <div className="space-y-1.5">
-              <Label>Horas do pacote (anuais)</Label>
-              <Input type="number" step="0.5" value={horasPacote} onChange={(e) => setHorasPacote(e.target.value)} placeholder="ex: 48" />
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Horas do pacote (anuais)</Label>
+                <Input type="number" step="0.5" value={horasPacoteAnual} onChange={(e) => setHorasPacoteAnual(e.target.value)} placeholder="ex: 48" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Início contrato</Label>
+                  <Input type="date" value={contratoInicio} onChange={(e) => setContratoInicio(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Fim contrato</Label>
+                  <Input type="date" value={contratoFim} onChange={(e) => setContratoFim(e.target.value)} />
+                </div>
+              </div>
             </div>
           )}
           <div className="space-y-1.5">
