@@ -28,6 +28,9 @@ interface Client {
   tipo_contrato: "avenca" | "pontual";
   tarifa_hora: number;
   horas_pacote: number | null;
+  horas_pacote_anual: number | null;
+  contrato_inicio: string | null;
+  contrato_fim: string | null;
   dias_fecho_automatico: number | null;
 }
 
