@@ -224,7 +224,7 @@ function TicketDetail({ id }: { id: string }) {
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
-      <TimeEntriesPanel ticketId={ticket.id} isAdmin={isAdmin} onChange={load} />
+      <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
 
       {/* Original (non-comment) attachments */}
       {attachments.filter((a) => !a.comment_id && (isAdmin || !a.is_internal)).length > 0 && (
