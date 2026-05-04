@@ -118,21 +118,34 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
     if (!user) return;
     if (!mins || mins <= 0) { toast.error("Tempo inválido"); return; }
     setBusy(true);
+
+    // Calcular estado de faturação via RPC
+    let estado_faturacao = "pendente";
+    const { data: estadoData } = await supabase.rpc("calcular_estado_faturacao", {
+      _client_id: clientId,
+      _minutos: mins,
+      _nao_contabilizar: naoContabilizar,
+    });
+    if (typeof estadoData === "string") estado_faturacao = estadoData;
+
     const { error } = await supabase.from("time_entries").insert({
       ticket_id: ticketId,
       user_id: user.id,
       minutos: mins,
       descricao: descricao.trim() || null,
       data_trabalho: data,
+      tipo_intervencao: tipoIntervencao,
+      nao_contabilizar: naoContabilizar,
+      estado_faturacao,
     });
-    if (!error) {
+    if (!error && !naoContabilizar) {
       const newTotal = total + mins;
       await supabase.from("tickets").update({ tempo_gasto_minutos: newTotal }).eq("id", ticketId);
     }
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`+${mins} min registados`);
-    setMinutos(""); setDescricao(""); setHoraInicio(""); setHoraFim("");
+    setMinutos(""); setDescricao(""); setHoraInicio(""); setHoraFim(""); setNaoContabilizar(false);
     await load();
     onChange?.();
   };
