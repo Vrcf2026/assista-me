@@ -21,6 +21,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
+import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -91,6 +92,11 @@ const AdminTagsRoute = AdminTagsRouteImport.update({
   path: '/admin/tags',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminFaturacaoRoute = AdminFaturacaoRouteImport.update({
+  id: '/admin/faturacao',
+  path: '/admin/faturacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminEmailsRoute = AdminEmailsRouteImport.update({
   id: '/admin/emails',
   path: '/admin/emails',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
     | '/clientes/$id'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
     | '/clientes/$id'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
+    | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
     | '/clientes/$id'
@@ -291,6 +303,7 @@ export interface RootRouteChildren {
   TicketsRoute: typeof TicketsRouteWithChildren
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
+  AdminFaturacaoRoute: typeof AdminFaturacaoRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -391,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTagsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/faturacao': {
+      id: '/admin/faturacao'
+      path: '/admin/faturacao'
+      fullPath: '/admin/faturacao'
+      preLoaderRoute: typeof AdminFaturacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/emails': {
       id: '/admin/emails'
       path: '/admin/emails'
@@ -489,6 +509,7 @@ const rootRouteChildren: RootRouteChildren = {
   TicketsRoute: TicketsRouteWithChildren,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
+  AdminFaturacaoRoute: AdminFaturacaoRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,

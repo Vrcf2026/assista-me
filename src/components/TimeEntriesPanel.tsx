@@ -7,9 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Clock, Trash2, Play, Square, RotateCcw } from "lucide-react";
 import { formatMinutes, formatDate } from "@/lib/format";
+import {
+  TIPO_INTERVENCAO_LABELS, TIPO_INTERVENCAO_COLORS,
+  ESTADO_FATURACAO_LABELS, ESTADO_FATURACAO_COLORS,
+} from "@/lib/billing";
+
+type TipoIntervencao = "remota" | "presencial" | "preventiva" | "critica";
 
 interface Entry {
   id: string;
@@ -18,11 +26,15 @@ interface Entry {
   descricao: string | null;
   data_trabalho: string;
   created_at: string;
+  tipo_intervencao: TipoIntervencao;
+  nao_contabilizar: boolean;
+  estado_faturacao: string;
   profile?: { nome: string | null; email: string } | null;
 }
 
 interface Props {
   ticketId: string;
+  clientId: string;
   isAdmin: boolean;
   onChange?: () => void;
 }
@@ -37,11 +49,13 @@ function nowHHMM() {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
+export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Props) {
   const { user } = useAuth();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [descricao, setDescricao] = useState("");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [tipoIntervencao, setTipoIntervencao] = useState<TipoIntervencao>("remota");
+  const [naoContabilizar, setNaoContabilizar] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Manual
@@ -104,21 +118,34 @@ export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
     if (!user) return;
     if (!mins || mins <= 0) { toast.error("Tempo inválido"); return; }
     setBusy(true);
+
+    // Calcular estado de faturação via RPC
+    let estado_faturacao = "pendente";
+    const { data: estadoData } = await supabase.rpc("calcular_estado_faturacao", {
+      _client_id: clientId,
+      _minutos: mins,
+      _nao_contabilizar: naoContabilizar,
+    });
+    if (typeof estadoData === "string") estado_faturacao = estadoData;
+
     const { error } = await supabase.from("time_entries").insert({
       ticket_id: ticketId,
       user_id: user.id,
       minutos: mins,
       descricao: descricao.trim() || null,
       data_trabalho: data,
+      tipo_intervencao: tipoIntervencao,
+      nao_contabilizar: naoContabilizar,
+      estado_faturacao,
     });
-    if (!error) {
+    if (!error && !naoContabilizar) {
       const newTotal = total + mins;
       await supabase.from("tickets").update({ tempo_gasto_minutos: newTotal }).eq("id", ticketId);
     }
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`+${mins} min registados`);
-    setMinutos(""); setDescricao(""); setHoraInicio(""); setHoraFim("");
+    setMinutos(""); setDescricao(""); setHoraInicio(""); setHoraFim(""); setNaoContabilizar(false);
     await load();
     onChange?.();
   };
@@ -179,15 +206,30 @@ export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
 
       {isAdmin && (
         <div className="mb-4 p-3 bg-secondary/30 rounded space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Data</Label>
               <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs">Tipo de intervenção</Label>
+              <Select value={tipoIntervencao} onValueChange={(v) => setTipoIntervencao(v as TipoIntervencao)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="remota">Remota</SelectItem>
+                  <SelectItem value="presencial">Presencial</SelectItem>
+                  <SelectItem value="preventiva">Preventiva</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs">Descrição (opcional)</Label>
               <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={500} placeholder="O que foi feito" />
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="naoContab" checked={naoContabilizar} onCheckedChange={(v) => setNaoContabilizar(Boolean(v))} />
+            <Label htmlFor="naoContab" className="text-xs cursor-pointer">Não contabilizar (cortesia / interno)</Label>
           </div>
 
           <Tabs defaultValue="manual">
@@ -264,7 +306,7 @@ export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
       ) : (
         <ul className="space-y-1.5">
           {entries.map((e) => (
-            <li key={e.id} className="text-sm border-l-2 border-primary/40 pl-3 flex items-start justify-between gap-2">
+            <li key={e.id} className={`text-sm border-l-2 border-primary/40 pl-3 flex items-start justify-between gap-2 ${e.nao_contabilizar ? "opacity-50" : ""}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   <span className="font-mono">{formatDate(e.data_trabalho)}</span>
@@ -272,6 +314,16 @@ export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
                   <span>{e.profile?.nome ?? e.profile?.email ?? "—"}</span>
                   <span>·</span>
                   <span className="font-semibold text-foreground">{formatMinutes(e.minutos)}</span>
+                  <span className={`px-1.5 py-0.5 rounded border text-[10px] ${TIPO_INTERVENCAO_COLORS[e.tipo_intervencao] ?? ""}`}>
+                    {TIPO_INTERVENCAO_LABELS[e.tipo_intervencao] ?? e.tipo_intervencao}
+                  </span>
+                  {e.nao_contabilizar ? (
+                    <span className="px-1.5 py-0.5 rounded border text-[10px] bg-gray-200 text-gray-700 border-gray-400">Não contabilizado</span>
+                  ) : (
+                    <span className={`px-1.5 py-0.5 rounded border text-[10px] ${ESTADO_FATURACAO_COLORS[e.estado_faturacao] ?? ""}`}>
+                      {ESTADO_FATURACAO_LABELS[e.estado_faturacao] ?? e.estado_faturacao}
+                    </span>
+                  )}
                 </div>
                 {e.descricao && <div className="text-sm mt-0.5">{e.descricao}</div>}
               </div>

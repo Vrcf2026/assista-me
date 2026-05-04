@@ -12,6 +12,9 @@ interface CreateClientPayload {
   tipo_contrato: "avenca" | "pontual";
   tarifa_hora: number;
   horas_pacote?: number | null;
+  horas_pacote_anual?: number | null;
+  contrato_inicio?: string | null;
+  contrato_fim?: string | null;
   dias_fecho_automatico?: number | null;
 }
 
@@ -40,12 +43,15 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as CreateClientPayload;
     if (!body.nome) return json({ error: "Nome obrigatório" }, 400);
 
+    const isAvenca = body.tipo_contrato === "avenca";
     const { data: client, error: clientErr } = await admin.from("clients").insert({
       nome: body.nome,
       nif: body.nif ?? null,
       tipo_contrato: body.tipo_contrato,
       tarifa_hora: body.tarifa_hora,
-      horas_pacote: body.tipo_contrato === "avenca" && body.horas_pacote ? body.horas_pacote : null,
+      horas_pacote_anual: isAvenca && body.horas_pacote_anual ? body.horas_pacote_anual : null,
+      contrato_inicio: isAvenca ? body.contrato_inicio ?? null : null,
+      contrato_fim: isAvenca ? body.contrato_fim ?? null : null,
       dias_fecho_automatico: body.dias_fecho_automatico ?? null,
     }).select("id").single();
 

@@ -28,6 +28,9 @@ interface Client {
   tipo_contrato: "avenca" | "pontual";
   tarifa_hora: number;
   horas_pacote: number | null;
+  horas_pacote_anual: number | null;
+  contrato_inicio: string | null;
+  contrato_fim: string | null;
   dias_fecho_automatico: number | null;
 }
 
@@ -108,7 +111,7 @@ function ClientesList() {
               <tbody>
                 {clients.map((c) => {
                   const usedMin = usage[c.id] ?? 0;
-                  const pacote = Number(c.horas_pacote ?? 0);
+                  const pacote = Number(c.horas_pacote_anual ?? c.horas_pacote ?? 0);
                   const saldo = c.tipo_contrato === "avenca" && pacote > 0
                     ? pacote - usedMin / 60
                     : null;
@@ -184,7 +187,9 @@ function ClientFormDialog({
   const [nif, setNif] = useState("");
   const [tipo, setTipo] = useState<"avenca" | "pontual">("pontual");
   const [tarifa, setTarifa] = useState("25");
-  const [horasPacote, setHorasPacote] = useState("");
+  const [horasPacoteAnual, setHorasPacoteAnual] = useState("");
+  const [contratoInicio, setContratoInicio] = useState("");
+  const [contratoFim, setContratoFim] = useState("");
   const [dias, setDias] = useState("7");
   const [busy, setBusy] = useState(false);
 
@@ -194,11 +199,14 @@ function ClientFormDialog({
       setNif(editing.nif ?? "");
       setTipo(editing.tipo_contrato);
       setTarifa(String(editing.tarifa_hora));
-      setHorasPacote(editing.horas_pacote ? String(editing.horas_pacote) : "");
+      setHorasPacoteAnual(editing.horas_pacote_anual ? String(editing.horas_pacote_anual) : (editing.horas_pacote ? String(editing.horas_pacote) : ""));
+      setContratoInicio(editing.contrato_inicio ?? "");
+      setContratoFim(editing.contrato_fim ?? "");
       setDias(editing.dias_fecho_automatico ? String(editing.dias_fecho_automatico) : "");
     } else {
       setNome(""); setNif("");
-      setTipo("pontual"); setTarifa("25"); setHorasPacote(""); setDias("7");
+      setTipo("pontual"); setTarifa("25"); setHorasPacoteAnual("");
+      setContratoInicio(""); setContratoFim(""); setDias("7");
     }
   }, [editing, open]);
 
@@ -206,28 +214,22 @@ function ClientFormDialog({
     e.preventDefault();
     setBusy(true);
     try {
+      const payload = {
+        nome,
+        nif: nif || null,
+        tipo_contrato: tipo,
+        tarifa_hora: Number(tarifa),
+        horas_pacote_anual: tipo === "avenca" && horasPacoteAnual ? Number(horasPacoteAnual) : null,
+        contrato_inicio: tipo === "avenca" && contratoInicio ? contratoInicio : null,
+        contrato_fim: tipo === "avenca" && contratoFim ? contratoFim : null,
+        dias_fecho_automatico: dias ? Number(dias) : null,
+      };
       if (editing) {
-        const { error } = await supabase.from("clients").update({
-          nome,
-          nif: nif || null,
-          tipo_contrato: tipo,
-          tarifa_hora: Number(tarifa),
-          horas_pacote: tipo === "avenca" && horasPacote ? Number(horasPacote) : null,
-          dias_fecho_automatico: dias ? Number(dias) : null,
-        }).eq("id", editing.id);
+        const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
         if (error) throw error;
         toast.success("Cliente atualizado");
       } else {
-        const { data, error } = await supabase.functions.invoke("admin-create-client", {
-          body: {
-            nome,
-            nif: nif || null,
-            tipo_contrato: tipo,
-            tarifa_hora: Number(tarifa),
-            horas_pacote: tipo === "avenca" && horasPacote ? Number(horasPacote) : null,
-            dias_fecho_automatico: dias ? Number(dias) : null,
-          },
-        });
+        const { data, error } = await supabase.functions.invoke("admin-create-client", { body: payload });
         if (error) throw error;
         if (data && (data as { error?: string }).error) throw new Error((data as { error: string }).error);
         toast.success("Cliente criado — abra a ficha para adicionar utilizadores");
@@ -272,9 +274,21 @@ function ClientFormDialog({
             </div>
           </div>
           {tipo === "avenca" && (
-            <div className="space-y-1.5">
-              <Label>Horas do pacote (anuais)</Label>
-              <Input type="number" step="0.5" value={horasPacote} onChange={(e) => setHorasPacote(e.target.value)} placeholder="ex: 48" />
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Horas do pacote (anuais)</Label>
+                <Input type="number" step="0.5" value={horasPacoteAnual} onChange={(e) => setHorasPacoteAnual(e.target.value)} placeholder="ex: 48" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Início contrato</Label>
+                  <Input type="date" value={contratoInicio} onChange={(e) => setContratoInicio(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Fim contrato</Label>
+                  <Input type="date" value={contratoFim} onChange={(e) => setContratoFim(e.target.value)} />
+                </div>
+              </div>
             </div>
           )}
           <div className="space-y-1.5">
