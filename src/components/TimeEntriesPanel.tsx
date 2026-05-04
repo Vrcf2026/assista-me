@@ -7,9 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Clock, Trash2, Play, Square, RotateCcw } from "lucide-react";
 import { formatMinutes, formatDate } from "@/lib/format";
+import {
+  TIPO_INTERVENCAO_LABELS, TIPO_INTERVENCAO_COLORS,
+  ESTADO_FATURACAO_LABELS, ESTADO_FATURACAO_COLORS,
+} from "@/lib/billing";
+
+type TipoIntervencao = "remota" | "presencial" | "preventiva" | "critica";
 
 interface Entry {
   id: string;
@@ -18,6 +26,9 @@ interface Entry {
   descricao: string | null;
   data_trabalho: string;
   created_at: string;
+  tipo_intervencao: TipoIntervencao;
+  nao_contabilizar: boolean;
+  estado_faturacao: string;
   profile?: { nome: string | null; email: string } | null;
 }
 
