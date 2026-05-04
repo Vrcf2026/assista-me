@@ -206,15 +206,30 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
 
       {isAdmin && (
         <div className="mb-4 p-3 bg-secondary/30 rounded space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Data</Label>
               <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs">Tipo de intervenção</Label>
+              <Select value={tipoIntervencao} onValueChange={(v) => setTipoIntervencao(v as TipoIntervencao)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="remota">Remota</SelectItem>
+                  <SelectItem value="presencial">Presencial</SelectItem>
+                  <SelectItem value="preventiva">Preventiva</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs">Descrição (opcional)</Label>
               <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={500} placeholder="O que foi feito" />
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="naoContab" checked={naoContabilizar} onCheckedChange={(v) => setNaoContabilizar(Boolean(v))} />
+            <Label htmlFor="naoContab" className="text-xs cursor-pointer">Não contabilizar (cortesia / interno)</Label>
           </div>
 
           <Tabs defaultValue="manual">
