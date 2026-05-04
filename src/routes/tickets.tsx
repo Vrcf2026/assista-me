@@ -12,10 +12,14 @@ function TicketsListPage() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isChildRoute = pathname !== "/tickets";
+
   useEffect(() => {
+    if (isChildRoute) return;
     if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
-  }, [user, role, loading, navigate]);
+  }, [user, role, loading, navigate, isChildRoute]);
+
+  if (isChildRoute) return <Outlet />;
   if (loading || role !== "admin") return null;
-  if (pathname !== "/tickets") return <Outlet />;
   return <AppLayout><AdminTickets /></AppLayout>;
 }
