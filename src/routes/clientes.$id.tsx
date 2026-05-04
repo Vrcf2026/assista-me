@@ -86,8 +86,7 @@ function ClienteDetail({ id }: { id: string }) {
 
   const totalMin = tickets.reduce((s, t) => s + t.tempo_gasto_minutos, 0);
   const totalValor = calcValor(totalMin, Number(client.tarifa_hora));
-  const pacote = Number(client.horas_pacote ?? 0);
-  const saldoH = client.tipo_contrato === "avenca" && pacote > 0 ? pacote - totalMin / 60 : null;
+  const pacoteAnual = Number(client.horas_pacote_anual ?? 0);
 
   // Filter for selected month
   const [year, monthStr] = mes.split("-");
@@ -116,25 +115,28 @@ function ClienteDetail({ id }: { id: string }) {
         <h1 className="text-2xl font-semibold">{client.nome}</h1>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-sm">
           <div><div className="text-muted-foreground text-xs">NIF</div><div>{client.nif ?? "—"}</div></div>
-          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{client.tipo_contrato === "avenca" ? "Avença" : "Pontual"}</div></div>
+          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{client.tipo_contrato === "avenca" ? "Avença anual" : "Pontual"}</div></div>
           <div><div className="text-muted-foreground text-xs">Tarifa</div><div className="font-mono">{formatCurrency(Number(client.tarifa_hora))}/h</div></div>
-          <div><div className="text-muted-foreground text-xs">Pacote anual</div><div>{pacote > 0 ? `${pacote}h` : "—"}</div></div>
+          {client.tipo_contrato === "avenca" ? (
+            <>
+              <div><div className="text-muted-foreground text-xs">Pacote anual</div><div>{pacoteAnual > 0 ? `${pacoteAnual}h` : "—"}</div></div>
+              <div><div className="text-muted-foreground text-xs">Início contrato</div><div>{client.contrato_inicio ? new Date(client.contrato_inicio).toLocaleDateString("pt-PT") : "—"}</div></div>
+              <div><div className="text-muted-foreground text-xs">Fim contrato</div><div>{client.contrato_fim ? new Date(client.contrato_fim).toLocaleDateString("pt-PT") : "—"}</div></div>
+            </>
+          ) : null}
           <div><div className="text-muted-foreground text-xs">Total horas usadas</div><div>{formatHours(totalMin)}</div></div>
-          {saldoH !== null && (
-            <div>
-              <div className="text-muted-foreground text-xs">Saldo restante</div>
-              <div className={saldoH < 0 ? "text-destructive font-semibold" : "font-semibold"}>
-                {saldoH.toFixed(2)}h
-              </div>
-            </div>
-          )}
           <div><div className="text-muted-foreground text-xs">Total faturável</div><div className="font-mono font-semibold">{formatCurrency(totalValor)}</div></div>
           <div><div className="text-muted-foreground text-xs">Fecho automático</div><div>{client.dias_fecho_automatico ? `${client.dias_fecho_automatico} dias` : "Desativado"}</div></div>
         </div>
       </Card>
 
-      {client.tipo_contrato === "avenca" && pacote > 0 && (
-        <HoursPackageWidget clientId={client.id} horasPacote={pacote} />
+      {client.tipo_contrato === "avenca" && pacoteAnual > 0 && (
+        <HoursPackageWidget
+          clientId={client.id}
+          horasPacoteAnual={pacoteAnual}
+          contratoInicio={client.contrato_inicio}
+          contratoFim={client.contrato_fim}
+        />
       )}
 
       <ClientUsersPanel clientId={client.id} />
