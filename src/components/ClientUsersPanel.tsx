@@ -112,6 +112,9 @@ export function ClientUsersPanel({ clientId }: { clientId: string }) {
                     )}
                   </td>
                   <td className="px-3 py-2 text-right space-x-1">
+                    <Button size="sm" variant="ghost" onClick={() => setEditing(m)} title="Editar">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                     <Button size="sm" variant="ghost" onClick={() => toggleAdmin(m)} title={m.is_client_admin ? "Remover admin" : "Tornar admin"}>
                       {m.is_client_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
                     </Button>
