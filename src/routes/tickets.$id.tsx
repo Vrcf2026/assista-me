@@ -273,7 +273,7 @@ function TicketDetail({ id }: { id: string }) {
           onOpenAttachment={openAttachment}
         />
         <div className="mt-4 pt-4 border-t">
-          <NewCommentForm ticketId={id} isAdmin={isAdmin} onSent={load} />
+          <NewCommentForm ticketId={id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={load} />
         </div>
       </Card>
     </div>
