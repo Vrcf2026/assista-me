@@ -54,7 +54,7 @@ interface Ticket {
   descricao: string;
   prioridade: "baixa" | "media" | "alta";
   estado: "aberto" | "em_progresso" | "aguarda_cliente" | "fechado";
-  tipo_intervencao: "remota" | "presencial" | "critica";
+  tipo_intervencao: "remota" | "presencial" | "preventiva" | "critica";
   tecnico_responsavel: string | null;
   tempo_gasto_minutos: number;
   solucao_aplicada: string | null;
