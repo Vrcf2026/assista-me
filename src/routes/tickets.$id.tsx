@@ -282,6 +282,15 @@ function TicketDetail({ id }: { id: string }) {
           <NewCommentForm ticketId={id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={load} />
         </div>
       </Card>
+
+      {isAdmin && (
+        <HeaderEscalateDialog
+          open={headerEscalateOpen}
+          onOpenChange={setHeaderEscalateOpen}
+          ticket={ticket}
+          onDone={load}
+        />
+      )}
     </div>
   );
 }
