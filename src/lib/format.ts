@@ -46,10 +46,10 @@ export function formatDateTime(d: string | Date): string {
  */
 export function roundMinutes(
   minutes: number,
-  tipo: "remota" | "presencial" | "critica",
+  tipo: "remota" | "presencial" | "preventiva" | "critica",
 ): number {
   if (minutes <= 0) return 0;
-  if (tipo === "remota" || tipo === "critica") {
+  if (tipo === "remota" || tipo === "critica" || tipo === "preventiva") {
     return Math.ceil(minutes / 5) * 5;
   }
   // presencial
