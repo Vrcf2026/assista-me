@@ -8,7 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UserPlus, Trash2, Shield, ShieldOff } from "lucide-react";
+import { UserPlus, Trash2, Shield, ShieldOff, Pencil } from "lucide-react";
 
 interface Member {
   user_id: string;
