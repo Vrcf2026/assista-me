@@ -21,6 +21,7 @@ export function ClientUsersPanel({ clientId }: { clientId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Member | null>(null);
 
   const load = async () => {
     setLoading(true);
