@@ -179,6 +179,11 @@ function TicketDetail({ id }: { id: string }) {
               <StatusBadge estado={ticket.estado} />
               <PriorityBadge prioridade={ticket.prioridade} />
               <TipoBadge tipo={ticket.tipo_intervencao} />
+              {isAdmin && (
+                <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => setHeaderEscalateOpen(true)}>
+                  🔺 Escalar
+                </Button>
+              )}
               {ticket.tipo_intervencao === "critica" && ticket.estado !== "fechado" && (
                 <SlaBadge openedAt={ticket.created_at} />
               )}
