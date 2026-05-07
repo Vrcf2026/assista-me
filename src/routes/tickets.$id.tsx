@@ -419,17 +419,29 @@ function EscalateDialog({
     e.preventDefault();
     setBusy(true);
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
       const { error: e1 } = await supabase.from("ticket_escalations").insert({
         ticket_id: ticket.id,
         tipo_anterior: ticket.tipo_intervencao,
         tipo_novo: novoTipo,
-        motivo,
+        motivo: motivo.trim() || null,
+        escalado_por: uid,
       });
       if (e1) throw e1;
       const { error: e2 } = await supabase.from("tickets")
         .update({ tipo_intervencao: novoTipo }).eq("id", ticket.id);
       if (e2) throw e2;
-      toast.success("Tipo de intervenção atualizado");
+      if (uid) {
+        const msg = `🔺 Intervenção escalada de ${TIPO_LABELS[ticket.tipo_intervencao]} → ${TIPO_LABELS[novoTipo]}${motivo.trim() ? ` — Motivo: ${motivo.trim()}` : ""}`;
+        await supabase.from("comments").insert({
+          ticket_id: ticket.id,
+          user_id: uid,
+          mensagem: msg,
+          is_internal: true,
+        });
+      }
+      toast.success("Intervenção escalada");
       onOpenChange(false);
       onDone();
     } catch (err) {
@@ -440,18 +452,21 @@ function EscalateDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onCancel(); onOpenChange(v); }}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Alterar tipo de intervenção</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Escalar intervenção</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Tipo actual: <span className="font-medium text-foreground">{TIPO_LABELS[ticket.tipo_intervencao]}</span>
+          </p>
           <p className="text-sm">
             <span className="font-medium">{TIPO_LABELS[ticket.tipo_intervencao]}</span> → <span className="font-medium">{TIPO_LABELS[novoTipo]}</span>
           </p>
           <div className="space-y-1.5">
-            <Label>Motivo *</Label>
-            <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} required rows={3} />
+            <Label>Motivo (opcional)</Label>
+            <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} placeholder="Ex: Problema não resolvido remotamente" />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => { onCancel(); onOpenChange(false); }}>Cancelar</Button>
-            <Button type="submit" disabled={busy || !motivo.trim()}>Confirmar</Button>
+            <Button type="submit" disabled={busy}>Escalar</Button>
           </DialogFooter>
         </form>
       </DialogContent>
