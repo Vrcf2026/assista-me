@@ -130,14 +130,23 @@ function ClienteDetail({ id }: { id: string }) {
         </div>
       </Card>
 
-      {client.tipo_contrato === "avenca" && pacoteAnual > 0 && (
+      {client.tipo_contrato === "pontual" ? (
         <HoursPackageWidget
           clientId={client.id}
+          tipoContrato="pontual"
+          horasPacoteAnual={0}
+          contratoInicio={null}
+          contratoFim={null}
+        />
+      ) : pacoteAnual > 0 ? (
+        <HoursPackageWidget
+          clientId={client.id}
+          tipoContrato="avenca"
           horasPacoteAnual={pacoteAnual}
           contratoInicio={client.contrato_inicio}
           contratoFim={client.contrato_fim}
         />
-      )}
+      ) : null}
 
       <ClientUsersPanel clientId={client.id} />
 
