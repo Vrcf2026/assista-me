@@ -600,9 +600,10 @@ function CommentList({
 }
 
 function NewCommentForm({
-  ticketId, isAdmin, onSent,
+  ticketId, clientId, isAdmin, onSent,
 }: {
   ticketId: string;
+  clientId: string;
   isAdmin: boolean;
   onSent: () => void;
 }) {
@@ -612,13 +613,96 @@ function NewCommentForm({
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
-  const [minutosResposta, setMinutosResposta] = useState("");
+
+  // Tempo
+  const [showTime, setShowTime] = useState(false);
+  const [tipoInt, setTipoInt] = useState<"remota" | "presencial" | "preventiva">("remota");
+  const [naoContab, setNaoContab] = useState(false);
+  const [timeMode, setTimeMode] = useState<"manual" | "chrono" | "range">("manual");
+  const [minutos, setMinutos] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
+
+  // Cronómetro
+  const chronoKey = `chrono:reply:${ticketId}`;
+  const [chronoStart, setChronoStart] = useState<number | null>(null);
+  const [chronoElapsed, setChronoElapsed] = useState(0);
 
   useEffect(() => {
     if (!isAdmin) return;
     void supabase.from("response_templates").select("id, titulo, mensagem").order("ordem").order("titulo")
       .then(({ data }) => setTemplates((data ?? []) as { id: string; titulo: string; mensagem: string }[]));
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const raw = localStorage.getItem(chronoKey);
+    if (raw) {
+      const start = Number(raw);
+      if (!Number.isNaN(start)) setChronoStart(start);
+    }
+  }, [chronoKey, isAdmin]);
+
+  useEffect(() => {
+    if (chronoStart == null) return;
+    setChronoElapsed(Date.now() - chronoStart);
+    const t = window.setInterval(() => setChronoElapsed(Date.now() - chronoStart), 1000);
+    return () => window.clearInterval(t);
+  }, [chronoStart]);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const formatElapsed = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  };
+  const nowHHMM = () => {
+    const d = new Date();
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const startChrono = () => {
+    const t = Date.now();
+    setChronoStart(t);
+    localStorage.setItem(chronoKey, String(t));
+  };
+  const stopChrono = () => {
+    if (chronoStart == null) return;
+    const mins = Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+    setChronoStart(null);
+    localStorage.removeItem(chronoKey);
+    setChronoElapsed(0);
+    setMinutos(String(mins));
+    setTimeMode("manual");
+    toast.success(`${mins} min preenchidos no campo Manual`);
+  };
+
+  const computeMinutes = (): number => {
+    if (timeMode === "manual") return Number(minutos) || 0;
+    if (timeMode === "chrono") {
+      if (chronoStart != null) return Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+      return Number(minutos) || 0;
+    }
+    if (timeMode === "range") {
+      if (!horaInicio || !horaFim) return 0;
+      const [h1, m1] = horaInicio.split(":").map(Number);
+      const [h2, m2] = horaFim.split(":").map(Number);
+      let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (mins <= 0) mins += 24 * 60;
+      return mins;
+    }
+    return 0;
+  };
+
+  const resetTime = () => {
+    setMinutos(""); setHoraInicio(""); setHoraFim("");
+    setNaoContab(false); setTipoInt("remota");
+    setShowTime(false); setTimeMode("manual");
+    if (chronoStart != null) {
+      setChronoStart(null);
+      localStorage.removeItem(chronoKey);
+      setChronoElapsed(0);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -653,30 +737,39 @@ function NewCommentForm({
       }
 
       // Tempo associado à resposta (admin)
-      if (isAdmin && minutosResposta) {
-        const m = Number(minutosResposta);
-        if (m > 0) {
+      if (isAdmin) {
+        const mins = computeMinutes();
+        if (mins > 0) {
+          let estado_faturacao = "pendente";
+          const { data: estadoData } = await supabase.rpc("calcular_estado_faturacao", {
+            _client_id: clientId,
+            _minutos: mins,
+            _nao_contabilizar: naoContab,
+          });
+          if (typeof estadoData === "string") estado_faturacao = estadoData;
+
           const { error: teErr } = await supabase.from("time_entries").insert({
             ticket_id: ticketId,
             user_id: user.id,
-            minutos: m,
+            minutos: mins,
             descricao: mensagem.slice(0, 500),
             data_trabalho: new Date().toISOString().slice(0, 10),
+            tipo_intervencao: tipoInt,
+            nao_contabilizar: naoContab,
+            estado_faturacao,
           });
-          if (!teErr) {
+          if (teErr) {
+            toast.error(teErr.message);
+          } else if (!naoContab) {
             const { data: tk } = await supabase
               .from("tickets").select("tempo_gasto_minutos").eq("id", ticketId).maybeSingle();
-            const novo = (tk?.tempo_gasto_minutos ?? 0) + m;
+            const novo = (tk?.tempo_gasto_minutos ?? 0) + mins;
             await supabase.from("tickets").update({ tempo_gasto_minutos: novo }).eq("id", ticketId);
-          } else {
-            toast.error(teErr.message);
           }
         }
       }
 
-      // Notificar:
-      // - cliente: quando admin escreve algo NÃO interno
-      // - admin: quando o cliente escreve
+      // Notificações
       const { data: t } = await supabase
         .from("tickets")
         .select("id, numero, titulo, client_id, client:clients(nome)")
@@ -698,7 +791,8 @@ function NewCommentForm({
         }
       }
 
-      setMensagem(""); setFiles([]); setInternal(false); setMinutosResposta("");
+      setMensagem(""); setFiles([]); setInternal(false);
+      resetTime();
       onSent();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
@@ -714,6 +808,113 @@ function NewCommentForm({
         rows={3}
         className={isAdmin && internal ? "bg-internal-note" : ""}
       />
+
+      {isAdmin && (
+        <div className="border rounded-md">
+          <button
+            type="button"
+            onClick={() => setShowTime((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-secondary/50"
+          >
+            <span className="flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5" /> Registar tempo nesta resposta
+              {chronoStart != null && (
+                <span className="text-xs font-mono text-primary">{formatElapsed(chronoElapsed)}</span>
+              )}
+            </span>
+            <span className="text-xs text-muted-foreground">{showTime ? "▲" : "▼"}</span>
+          </button>
+          {showTime && (
+            <div className="p-3 border-t space-y-3 bg-secondary/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Tipo de intervenção</Label>
+                  <Select value={tipoInt} onValueChange={(v) => setTipoInt(v as typeof tipoInt)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="remota">Remota</SelectItem>
+                      <SelectItem value="presencial">Presencial</SelectItem>
+                      <SelectItem value="preventiva">Preventiva</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end gap-2">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox checked={naoContab} onCheckedChange={(v) => setNaoContab(!!v)} />
+                    Não contabilizar (cortesia / interno)
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-1 border rounded p-0.5 bg-background w-fit">
+                {(["manual", "chrono", "range"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setTimeMode(m)}
+                    className={`px-3 py-1 text-xs rounded ${timeMode === m ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
+                  >
+                    {m === "manual" ? "Manual" : m === "chrono" ? "Cronómetro" : "Início/Fim"}
+                  </button>
+                ))}
+              </div>
+
+              {timeMode === "manual" && (
+                <div className="flex items-end gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Minutos</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={minutos}
+                      onChange={(e) => setMinutos(e.target.value)}
+                      className="w-32"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {timeMode === "chrono" && (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-mono text-2xl tabular-nums">{formatElapsed(chronoElapsed)}</div>
+                  <div className="flex gap-2">
+                    {chronoStart == null ? (
+                      <Button type="button" size="sm" onClick={startChrono}>▶ Iniciar</Button>
+                    ) : (
+                      <Button type="button" size="sm" variant="destructive" onClick={stopChrono}>⏹ Parar</Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {timeMode === "range" && (
+                <div className="flex gap-3 flex-wrap">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Início</Label>
+                    <div className="flex gap-1">
+                      <Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className="w-28" />
+                      <Button type="button" size="sm" variant="ghost" onClick={() => setHoraInicio(nowHHMM())}>Agora</Button>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Fim</Label>
+                    <div className="flex gap-1">
+                      <Input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} className="w-28" />
+                      <Button type="button" size="sm" variant="ghost" onClick={() => setHoraFim(nowHHMM())}>Agora</Button>
+                    </div>
+                  </div>
+                  {horaInicio && horaFim && (
+                    <div className="text-xs text-muted-foreground self-end pb-2">
+                      = {computeMinutes()} min
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-3">
           <Input
@@ -751,23 +952,9 @@ function NewCommentForm({
               </PopoverContent>
             </Popover>
           )}
-          {isAdmin && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                type="number"
-                min={1}
-                value={minutosResposta}
-                onChange={(e) => setMinutosResposta(e.target.value)}
-                placeholder="min"
-                className="h-9 w-20"
-                title="Tempo gasto nesta resposta (cria registo automático)"
-              />
-            </div>
-          )}
         </div>
         <Button type="submit" disabled={busy || !mensagem.trim()}>
-          <Send className="h-4 w-4 mr-1" /> Enviar
+          <Send className="h-4 w-4 mr-1" /> Enviar resposta
         </Button>
       </div>
     </form>
