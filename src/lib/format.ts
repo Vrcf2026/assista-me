@@ -79,6 +79,7 @@ export const PRIORIDADE_LABELS: Record<string, string> = {
 export const TIPO_LABELS: Record<string, string> = {
   remota: "Remota / Telefónica",
   presencial: "Presencial",
+  preventiva: "Preventiva",
   critica: "Crítica",
 };
 
