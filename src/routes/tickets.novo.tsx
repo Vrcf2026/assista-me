@@ -157,7 +157,7 @@ function NovoAdmin() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
-  const [tipo, setTipo] = useState<"remota" | "presencial" | "critica">("remota");
+  const [tipo, setTipo] = useState<"remota" | "presencial" | "preventiva" | "critica">("remota");
   const [files, setFiles] = useState<File[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   const [busy, setBusy] = useState(false);
