@@ -364,6 +364,7 @@ function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () => void
             <SelectContent>
               <SelectItem value="remota">Remota / Telefónica</SelectItem>
               <SelectItem value="presencial">Presencial</SelectItem>
+              <SelectItem value="preventiva">Preventiva</SelectItem>
               <SelectItem value="critica">Crítica (SLA 8h úteis)</SelectItem>
             </SelectContent>
           </Select>
