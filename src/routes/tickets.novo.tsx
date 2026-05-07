@@ -157,7 +157,7 @@ function NovoAdmin() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
-  const [tipo, setTipo] = useState<"remota" | "presencial" | "critica">("remota");
+  const [tipo, setTipo] = useState<"remota" | "presencial" | "preventiva" | "critica">("remota");
   const [files, setFiles] = useState<File[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -259,9 +259,10 @@ function NovoAdmin() {
               <Select value={tipo} onValueChange={(v) => setTipo(v as typeof tipo)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="remota">Remota / Telefónica</SelectItem>
-                  <SelectItem value="presencial">Presencial</SelectItem>
-                  <SelectItem value="critica">Crítica</SelectItem>
+                 <SelectItem value="remota">Remota / Telefónica</SelectItem>
+                 <SelectItem value="presencial">Presencial</SelectItem>
+                 <SelectItem value="preventiva">Preventiva</SelectItem>
+                 <SelectItem value="critica">Crítica</SelectItem>
                 </SelectContent>
               </Select>
             </div>

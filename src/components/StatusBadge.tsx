@@ -18,6 +18,7 @@ const PRIO_CLS: Record<string, string> = {
 const TIPO_CLS: Record<string, string> = {
   remota: "bg-secondary text-secondary-foreground border-border",
   presencial: "bg-accent text-accent-foreground border-border",
+  preventiva: "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800",
   critica: "bg-destructive/15 text-destructive border-destructive/30",
 };
 

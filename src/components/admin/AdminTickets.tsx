@@ -114,6 +114,7 @@ export function AdminTickets() {
             <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="remota">Remota</SelectItem>
             <SelectItem value="presencial">Presencial</SelectItem>
+            <SelectItem value="preventiva">Preventiva</SelectItem>
             <SelectItem value="critica">Crítica</SelectItem>
           </SelectContent>
         </Select>

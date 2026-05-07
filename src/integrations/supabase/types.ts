@@ -351,24 +351,27 @@ export type Database = {
       ticket_escalations: {
         Row: {
           created_at: string
+          escalado_por: string | null
           id: string
-          motivo: string
+          motivo: string | null
           ticket_id: string
           tipo_anterior: Database["public"]["Enums"]["intervention_type"]
           tipo_novo: Database["public"]["Enums"]["intervention_type"]
         }
         Insert: {
           created_at?: string
+          escalado_por?: string | null
           id?: string
-          motivo: string
+          motivo?: string | null
           ticket_id: string
           tipo_anterior: Database["public"]["Enums"]["intervention_type"]
           tipo_novo: Database["public"]["Enums"]["intervention_type"]
         }
         Update: {
           created_at?: string
+          escalado_por?: string | null
           id?: string
-          motivo?: string
+          motivo?: string | null
           ticket_id?: string
           tipo_anterior?: Database["public"]["Enums"]["intervention_type"]
           tipo_novo?: Database["public"]["Enums"]["intervention_type"]
