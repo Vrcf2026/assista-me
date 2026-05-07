@@ -489,6 +489,95 @@ function EscalateDialog({
   );
 }
 
+function HeaderEscalateDialog({
+  open, onOpenChange, ticket, onDone,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  ticket: Ticket;
+  onDone: () => void;
+}) {
+  const TIPOS: Ticket["tipo_intervencao"][] = ["remota", "presencial", "preventiva", "critica"];
+  const opcoes = TIPOS.filter((t) => t !== ticket.tipo_intervencao);
+  const [novoTipo, setNovoTipo] = useState<Ticket["tipo_intervencao"]>(opcoes[0]);
+  const [motivo, setMotivo] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setNovoTipo(opcoes[0]);
+      setMotivo("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, ticket.tipo_intervencao]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      const { error: e1 } = await supabase.from("ticket_escalations").insert({
+        ticket_id: ticket.id,
+        tipo_anterior: ticket.tipo_intervencao,
+        tipo_novo: novoTipo,
+        motivo: motivo.trim() || null,
+        escalado_por: uid,
+      });
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("tickets")
+        .update({ tipo_intervencao: novoTipo }).eq("id", ticket.id);
+      if (e2) throw e2;
+      if (uid) {
+        const msg = `🔺 Intervenção escalada de ${TIPO_LABELS[ticket.tipo_intervencao]} → ${TIPO_LABELS[novoTipo]}${motivo.trim() ? ` — Motivo: ${motivo.trim()}` : ""}`;
+        await supabase.from("comments").insert({
+          ticket_id: ticket.id,
+          user_id: uid,
+          mensagem: msg,
+          is_internal: true,
+        });
+      }
+      toast.success("Intervenção escalada");
+      onOpenChange(false);
+      onDone();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Escalar intervenção</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Tipo actual: <span className="font-medium text-foreground">{TIPO_LABELS[ticket.tipo_intervencao]}</span>
+          </p>
+          <div className="space-y-1.5">
+            <Label>Novo tipo</Label>
+            <Select value={novoTipo} onValueChange={(v) => setNovoTipo(v as Ticket["tipo_intervencao"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {opcoes.map((t) => (
+                  <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Motivo (opcional)</Label>
+            <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} placeholder="Ex: Problema não resolvido remotamente" />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={busy}>Escalar</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function CloseDialog({
   open, onOpenChange, ticket, onCancel, onDone,
 }: {
