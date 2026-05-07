@@ -259,9 +259,10 @@ function NovoAdmin() {
               <Select value={tipo} onValueChange={(v) => setTipo(v as typeof tipo)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="remota">Remota / Telefónica</SelectItem>
-                  <SelectItem value="presencial">Presencial</SelectItem>
-                  <SelectItem value="critica">Crítica</SelectItem>
+                 <SelectItem value="remota">Remota / Telefónica</SelectItem>
+                 <SelectItem value="presencial">Presencial</SelectItem>
+                 <SelectItem value="preventiva">Preventiva</SelectItem>
+                 <SelectItem value="critica">Crítica</SelectItem>
                 </SelectContent>
               </Select>
             </div>
