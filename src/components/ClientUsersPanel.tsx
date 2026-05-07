@@ -135,7 +135,108 @@ export function ClientUsersPanel({ clientId }: { clientId: string }) {
         clientId={clientId}
         onAdded={() => { setOpen(false); void load(); }}
       />
+      <EditUserDialog
+        member={editing}
+        clientId={clientId}
+        onOpenChange={(v) => { if (!v) setEditing(null); }}
+        onSaved={() => { setEditing(null); void load(); }}
+      />
     </Card>
+  );
+}
+
+function EditUserDialog({
+  member, clientId, onOpenChange, onSaved,
+}: {
+  member: Member | null;
+  clientId: string;
+  onOpenChange: (v: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (member) {
+      setNome(member.nome ?? "");
+      setPassword("");
+      setIsAdmin(member.is_client_admin);
+    }
+  }, [member]);
+
+  if (!member) return null;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password && password.length < 6) {
+      toast.error("Password mínima 6 caracteres");
+      return;
+    }
+    setBusy(true);
+    try {
+      if (nome !== (member.nome ?? "")) {
+        const { error } = await supabase.from("profiles").update({ nome }).eq("user_id", member.user_id);
+        if (error) throw error;
+      }
+      if (password) {
+        const { data, error } = await supabase.functions.invoke("admin-reset-client-password", {
+          body: { user_id: member.user_id, password },
+        });
+        if (error) throw error;
+        if (data && (data as { error?: string }).error) throw new Error((data as { error: string }).error);
+      }
+      if (isAdmin !== member.is_client_admin) {
+        const { error } = await supabase.from("client_users")
+          .update({ is_client_admin: isAdmin })
+          .eq("client_id", clientId)
+          .eq("user_id", member.user_id);
+        if (error) throw error;
+      }
+      toast.success("Utilizador atualizado");
+      onSaved();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={!!member} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar utilizador</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Nome</Label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email</Label>
+            <Input value={member.email ?? ""} disabled />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Nova palavra-passe</Label>
+            <Input type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Deixar em branco para não alterar" />
+            <p className="text-xs text-muted-foreground">Mínimo 6 caracteres se preenchido.</p>
+          </div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isAdmin}
+              onChange={(e) => setIsAdmin(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <span>É <strong>administrador do cliente</strong></span>
+          </label>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={busy}>{busy ? "..." : "Guardar"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
