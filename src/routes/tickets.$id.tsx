@@ -100,6 +100,7 @@ function TicketDetail({ id }: { id: string }) {
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [headerEscalateOpen, setHeaderEscalateOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
