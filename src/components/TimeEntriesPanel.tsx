@@ -1,16 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Clock, Trash2, Play, Square, RotateCcw } from "lucide-react";
+import { Clock, Trash2 } from "lucide-react";
 import { formatMinutes, formatDate } from "@/lib/format";
 import {
   TIPO_INTERVENCAO_LABELS, TIPO_INTERVENCAO_COLORS,
@@ -39,57 +33,9 @@ interface Props {
   onChange?: () => void;
 }
 
-function pad(n: number) { return String(n).padStart(2, "0"); }
-function formatElapsed(ms: number) {
-  const s = Math.floor(ms / 1000);
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
-}
-function nowHHMM() {
-  const d = new Date();
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Props) {
+export function TimeEntriesPanel({ ticketId, isAdmin, onChange }: Props) {
   const { user } = useAuth();
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [descricao, setDescricao] = useState("");
-  const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
-  const [tipoIntervencao, setTipoIntervencao] = useState<TipoIntervencao>("remota");
-  const [naoContabilizar, setNaoContabilizar] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  // Manual
-  const [minutos, setMinutos] = useState("");
-
-  // Cronómetro
-  const storageKey = `chrono:${ticketId}`;
-  const [chronoStart, setChronoStart] = useState<number | null>(null);
-  const [chronoElapsed, setChronoElapsed] = useState(0);
-  const tickRef = useRef<number | null>(null);
-
-  // Hora início / fim
-  const [horaInicio, setHoraInicio] = useState("");
-  const [horaFim, setHoraFim] = useState("");
-
-  // restore chrono
-  useEffect(() => {
-    if (!isAdmin) return;
-    const raw = localStorage.getItem(storageKey);
-    if (raw) {
-      const start = Number(raw);
-      if (!Number.isNaN(start)) setChronoStart(start);
-    }
-  }, [storageKey, isAdmin]);
-
-  useEffect(() => {
-    if (chronoStart == null) {
-      if (tickRef.current) { window.clearInterval(tickRef.current); tickRef.current = null; }
-      return;
-    }
-    setChronoElapsed(Date.now() - chronoStart);
-    tickRef.current = window.setInterval(() => setChronoElapsed(Date.now() - chronoStart), 1000);
-    return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
-  }, [chronoStart]);
 
   const load = async () => {
     const { data: rows } = await supabase
@@ -114,76 +60,6 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
 
   const total = entries.reduce((s, e) => s + e.minutos, 0);
 
-  const insertEntry = async (mins: number) => {
-    if (!user) return;
-    if (!mins || mins <= 0) { toast.error("Tempo inválido"); return; }
-    setBusy(true);
-
-    // Calcular estado de faturação via RPC
-    let estado_faturacao = "pendente";
-    const { data: estadoData } = await supabase.rpc("calcular_estado_faturacao", {
-      _client_id: clientId,
-      _minutos: mins,
-      _nao_contabilizar: naoContabilizar,
-    });
-    if (typeof estadoData === "string") estado_faturacao = estadoData;
-
-    const { error } = await supabase.from("time_entries").insert({
-      ticket_id: ticketId,
-      user_id: user.id,
-      minutos: mins,
-      descricao: descricao.trim() || null,
-      data_trabalho: data,
-      tipo_intervencao: tipoIntervencao,
-      nao_contabilizar: naoContabilizar,
-      estado_faturacao,
-    });
-    if (!error && !naoContabilizar) {
-      const newTotal = total + mins;
-      await supabase.from("tickets").update({ tempo_gasto_minutos: newTotal }).eq("id", ticketId);
-    }
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(`+${mins} min registados`);
-    setMinutos(""); setDescricao(""); setHoraInicio(""); setHoraFim(""); setNaoContabilizar(false);
-    await load();
-    onChange?.();
-  };
-
-  const submitManual = (e: React.FormEvent) => {
-    e.preventDefault();
-    insertEntry(Number(minutos));
-  };
-
-  const startChrono = () => {
-    const t = Date.now();
-    setChronoStart(t);
-    localStorage.setItem(storageKey, String(t));
-  };
-  const stopChrono = async () => {
-    if (chronoStart == null) return;
-    const mins = Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
-    setChronoStart(null);
-    localStorage.removeItem(storageKey);
-    setChronoElapsed(0);
-    await insertEntry(mins);
-  };
-  const resetChrono = () => {
-    setChronoStart(null);
-    setChronoElapsed(0);
-    localStorage.removeItem(storageKey);
-  };
-
-  const submitRange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!horaInicio || !horaFim) return;
-    const [h1, m1] = horaInicio.split(":").map(Number);
-    const [h2, m2] = horaFim.split(":").map(Number);
-    let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
-    if (mins <= 0) mins += 24 * 60; // dia seguinte
-    insertEntry(mins);
-  };
-
   const remove = async (id: string, mins: number) => {
     if (!confirm("Eliminar registo?")) return;
     const { error } = await supabase.from("time_entries").delete().eq("id", id);
@@ -203,103 +79,6 @@ export function TimeEntriesPanel({ ticketId, clientId, isAdmin, onChange }: Prop
         </h3>
         <span className="text-sm font-mono">{formatMinutes(total)}</span>
       </div>
-
-      {isAdmin && (
-        <div className="mb-4 p-3 bg-secondary/30 rounded space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div className="space-y-1">
-              <Label className="text-xs">Data</Label>
-              <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Tipo de intervenção</Label>
-              <Select value={tipoIntervencao} onValueChange={(v) => setTipoIntervencao(v as TipoIntervencao)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="remota">Remota</SelectItem>
-                  <SelectItem value="presencial">Presencial</SelectItem>
-                  <SelectItem value="preventiva">Preventiva</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Descrição (opcional)</Label>
-              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={500} placeholder="O que foi feito" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="naoContab" checked={naoContabilizar} onCheckedChange={(v) => setNaoContabilizar(Boolean(v))} />
-            <Label htmlFor="naoContab" className="text-xs cursor-pointer">Não contabilizar (cortesia / interno)</Label>
-          </div>
-
-          <Tabs defaultValue="manual">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="manual">Manual</TabsTrigger>
-              <TabsTrigger value="chrono">Cronómetro</TabsTrigger>
-              <TabsTrigger value="range">Hora início/fim</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="manual" className="mt-3">
-              <form onSubmit={submitManual} className="flex gap-2 items-end">
-                <div className="flex-1 space-y-1">
-                  <Label className="text-xs">Minutos</Label>
-                  <Input type="number" min={1} value={minutos} onChange={(e) => setMinutos(e.target.value)} />
-                </div>
-                <Button type="submit" size="sm" disabled={busy || !minutos}>Registar</Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="chrono" className="mt-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-mono text-2xl tabular-nums">
-                  {formatElapsed(chronoElapsed)}
-                </div>
-                <div className="flex gap-2">
-                  {chronoStart == null ? (
-                    <Button type="button" size="sm" onClick={startChrono} disabled={busy}>
-                      <Play className="h-4 w-4 mr-1" /> Iniciar
-                    </Button>
-                  ) : (
-                    <>
-                      <Button type="button" size="sm" variant="destructive" onClick={() => void stopChrono()} disabled={busy}>
-                        <Square className="h-4 w-4 mr-1" /> Parar e registar
-                      </Button>
-                      <Button type="button" size="sm" variant="ghost" onClick={resetChrono}>
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-              {chronoStart != null && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Cronómetro persiste enquanto este browser estiver aberto.
-                </p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="range" className="mt-3">
-              <form onSubmit={submitRange} className="flex gap-2 items-end flex-wrap">
-                <div className="space-y-1">
-                  <Label className="text-xs">Início</Label>
-                  <div className="flex gap-1">
-                    <Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className="w-28" />
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setHoraInicio(nowHHMM())}>Agora</Button>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Fim</Label>
-                  <div className="flex gap-1">
-                    <Input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} className="w-28" />
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setHoraFim(nowHHMM())}>Agora</Button>
-                  </div>
-                </div>
-                <Button type="submit" size="sm" disabled={busy || !horaInicio || !horaFim}>Registar</Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
 
       {entries.length === 0 ? (
         <p className="text-xs text-muted-foreground text-center py-3">Sem registos.</p>
