@@ -184,8 +184,17 @@ function EditUserDialog({
         const { data, error } = await supabase.functions.invoke("admin-reset-client-password", {
           body: { user_id: member.user_id, password },
         });
-        if (error) throw error;
-        if (data && (data as { error?: string }).error) throw new Error((data as { error: string }).error);
+        if (error) {
+          console.error("invoke error:", error);
+          const msg = (data as { error?: string } | null)?.error ?? error.message ?? "Erro ao alterar password";
+          throw new Error(msg);
+        }
+        if (data && (data as { error?: string }).error) {
+          throw new Error((data as { error: string }).error);
+        }
+        if (!data || !(data as { ok?: boolean }).ok) {
+          throw new Error("Resposta inesperada do servidor ao alterar password");
+        }
       }
       if (isAdmin !== member.is_client_admin) {
         const { error } = await supabase.from("client_users")
