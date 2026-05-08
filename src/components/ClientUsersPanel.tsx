@@ -184,13 +184,18 @@ function EditUserDialog({
         const { data, error } = await supabase.functions.invoke("admin-reset-client-password", {
           body: { user_id: member.user_id, password },
         });
+        const translateErr = (m: string) => {
+          if (/weak|known|easy to guess/i.test(m)) return "Password demasiado fraca ou comum. Escolha outra (misture letras, números e símbolos).";
+          if (/at least|short|length/i.test(m)) return "Password demasiado curta (mínimo 6 caracteres).";
+          return m;
+        };
         if (error) {
           console.error("invoke error:", error);
-          const msg = (data as { error?: string } | null)?.error ?? error.message ?? "Erro ao alterar password";
-          throw new Error(msg);
+          const raw = (data as { error?: string } | null)?.error ?? error.message ?? "Erro ao alterar password";
+          throw new Error(translateErr(raw));
         }
         if (data && (data as { error?: string }).error) {
-          throw new Error((data as { error: string }).error);
+          throw new Error(translateErr((data as { error: string }).error));
         }
         if (!data || !(data as { ok?: boolean }).ok) {
           throw new Error("Resposta inesperada do servidor ao alterar password");
