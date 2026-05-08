@@ -154,12 +154,20 @@ function NovoAdmin() {
   const { clientId: preselected } = Route.useSearch();
   const [clients, setClients] = useState<{ id: string; nome: string }[]>([]);
   const [clientId, setClientId] = useState(preselected ?? "");
+  const [clientUsers, setClientUsers] = useState<{ user_id: string; nome: string | null; email: string | null }[]>([]);
+  const [assignToUser, setAssignToUser] = useState(false);
+  const [assignedUserId, setAssignedUserId] = useState<string>("");
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
   const [tipo, setTipo] = useState<"remota" | "presencial" | "preventiva" | "critica">("remota");
   const [files, setFiles] = useState<File[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
+  // Time entry (optional, registado imediatamente)
+  const [logTime, setLogTime] = useState(false);
+  const [minutos, setMinutos] = useState<number>(0);
+  const [naoContabilizar, setNaoContabilizar] = useState(false);
+  const [descTempo, setDescTempo] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -167,16 +175,33 @@ function NovoAdmin() {
       .then(({ data }) => setClients((data ?? []) as { id: string; nome: string }[]));
   }, []);
 
+  // Load users of the selected client
+  useEffect(() => {
+    if (!clientId) { setClientUsers([]); return; }
+    void (async () => {
+      const { data: links } = await supabase
+        .from("client_users").select("user_id").eq("client_id", clientId);
+      const ids = (links ?? []).map((l) => l.user_id);
+      if (ids.length === 0) { setClientUsers([]); return; }
+      const { data: profs } = await supabase
+        .from("profiles").select("user_id, nome, email").in("user_id", ids);
+      setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+    })();
+    setAssignedUserId("");
+    setAssignToUser(false);
+  }, [clientId]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !clientId) return;
     setBusy(true);
     try {
       const client = clients.find((c) => c.id === clientId);
+      const createdBy = assignToUser && assignedUserId ? assignedUserId : user.id;
       const { data: ticket, error } = await supabase
         .from("tickets").insert({
           client_id: clientId, titulo, descricao, prioridade, tipo_intervencao: tipo,
-          created_by: user.id,
+          created_by: createdBy,
         }).select("id, numero").single();
       if (error) throw error;
 
@@ -196,10 +221,30 @@ function NovoAdmin() {
         });
       }
 
+      // Optional time entry — entra na avença/faturação
+      if (logTime && minutos > 0) {
+        const { data: estado } = await supabase.rpc("calcular_estado_faturacao", {
+          _client_id: clientId, _minutos: minutos, _nao_contabilizar: naoContabilizar,
+        });
+        const { error: teErr } = await supabase.from("time_entries").insert({
+          ticket_id: ticket.id,
+          user_id: user.id,
+          minutos,
+          tipo_intervencao: tipo,
+          nao_contabilizar: naoContabilizar,
+          descricao: descTempo || null,
+          estado_faturacao: (estado as string) ?? "pendente",
+        });
+        if (teErr) toast.error(`Tempo: ${teErr.message}`);
+        else await supabase.from("tickets")
+          .update({ tempo_gasto_minutos: minutos })
+          .eq("id", ticket.id);
+      }
+
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       if (notificarCliente) {
         void notifyTicketCriado(
-          { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId, created_by: null },
+          { id: ticket.id, numero: ticket.numero, titulo, client_id: clientId, created_by: createdBy },
           prioridade,
         );
       }
@@ -214,10 +259,14 @@ function NovoAdmin() {
     } finally { setBusy(false); }
   };
 
+  const preselectedClient = preselected ? clients.find((c) => c.id === preselected) : null;
+
   return (
     <div className="max-w-2xl mx-auto space-y-4">
       <Button asChild variant="ghost" size="sm">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
+        <Link to={preselected ? "/clientes/$id" : "/"} params={preselected ? { id: preselected } : undefined as never}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+        </Link>
       </Button>
       <Card className="p-6">
         <h1 className="text-2xl font-semibold mb-1">Novo ticket (em nome do cliente)</h1>
@@ -225,15 +274,56 @@ function NovoAdmin() {
           Use este formulário para abrir um ticket por telefone/email em nome de um cliente.
         </p>
         <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Cliente *</Label>
-            <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
-              <SelectContent>
-                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+          {preselected ? (
+            <div className="space-y-1.5">
+              <Label>Cliente</Label>
+              <div className="px-3 py-2 rounded-md border bg-muted/30 text-sm">
+                {preselectedClient?.nome ?? "A carregar…"}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label>Cliente *</Label>
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {clientId && clientUsers.length > 0 && (
+            <div className="space-y-2 rounded-md border p-3 bg-muted/20">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={assignToUser}
+                  onChange={(e) => setAssignToUser(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Atribuir a um utilizador do cliente (para seguimento)
+              </label>
+              {assignToUser && (
+                <Select value={assignedUserId} onValueChange={setAssignedUserId}>
+                  <SelectTrigger><SelectValue placeholder="Escolher utilizador" /></SelectTrigger>
+                  <SelectContent>
+                    {clientUsers.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {u.nome ?? u.email ?? u.user_id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {assignToUser && (
+                <p className="text-xs text-muted-foreground">
+                  O ticket aparecerá como criado por este utilizador, que poderá seguir e responder.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label>Título *</Label>
             <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} required maxLength={200} />
@@ -279,6 +369,50 @@ function NovoAdmin() {
               <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
             )}
           </div>
+
+          <div className="space-y-2 rounded-md border p-3 bg-muted/20">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={logTime}
+                onChange={(e) => setLogTime(e.target.checked)}
+                className="h-4 w-4"
+              />
+              ⏱️ Registar tempo já trabalhado neste ticket
+            </label>
+            {logTime && (
+              <div className="space-y-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Minutos</Label>
+                    <Input
+                      type="number" min={0}
+                      value={minutos || ""}
+                      onChange={(e) => setMinutos(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                  <label className="flex items-end gap-2 text-sm cursor-pointer pb-2">
+                    <input
+                      type="checkbox"
+                      checked={naoContabilizar}
+                      onChange={(e) => setNaoContabilizar(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    Não contabilizar
+                  </label>
+                </div>
+                <Input
+                  placeholder="Descrição do trabalho (opcional)"
+                  value={descTempo}
+                  onChange={(e) => setDescTempo(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  O tempo entra na avença/faturação conforme o tipo de contrato do cliente.
+                </p>
+              </div>
+            )}
+          </div>
+
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input
               type="checkbox"
