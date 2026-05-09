@@ -356,17 +356,44 @@ function NovoAdmin() {
               </Select>
             </div>
           </div>
+
           <div className="space-y-1.5">
-            <Label>Anexos (imagens ou PDF)</Label>
+            <Label>Equipamento / Sistema afectado</Label>
             <Input
-              type="file"
-              multiple
-              accept="image/*,application/pdf"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              value={equipamento}
+              onChange={(e) => setEquipamento(e.target.value)}
+              placeholder="Ex: Servidor srv3diso, PC receção, Router principal"
+              maxLength={200}
             />
-            {files.length > 0 && (
-              <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
-            )}
+          </div>
+
+          {(tipo === "presencial" || tipo === "preventiva") && (
+            <div className="space-y-1.5">
+              <Label>Localização</Label>
+              <Input
+                value={localizacao}
+                onChange={(e) => setLocalizacao(e.target.value)}
+                placeholder="Ex: Escritório Lisboa, Sala servidores"
+                maxLength={200}
+              />
+            </div>
+          )}
+
+          {tipo === "presencial" && (
+            <div className="space-y-1.5">
+              <Label>Contacto no local</Label>
+              <Input
+                value={contactoLocal}
+                onChange={(e) => setContactoLocal(e.target.value)}
+                placeholder="Nome e telefone de quem recebe o técnico"
+                maxLength={200}
+              />
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Anexos</Label>
+            <AttachmentPicker files={files} onChange={setFiles} />
           </div>
 
           <div className="space-y-2 rounded-md border p-3 bg-muted/20">
