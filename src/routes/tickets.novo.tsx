@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
 
 export const Route = createFileRoute("/tickets/novo")({
   validateSearch: (s: Record<string, unknown>) => ({
