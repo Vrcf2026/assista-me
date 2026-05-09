@@ -481,12 +481,15 @@ export type Database = {
       tickets: {
         Row: {
           client_id: string
+          contacto_local: string | null
           created_at: string
           created_by: string | null
           descricao: string
+          equipamento: string | null
           estado: Database["public"]["Enums"]["ticket_status"]
           fechado_em: string | null
           id: string
+          localizacao: string | null
           motivo_fecho: Database["public"]["Enums"]["close_reason"] | null
           numero: number
           prioridade: Database["public"]["Enums"]["ticket_priority"]
@@ -500,12 +503,15 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          contacto_local?: string | null
           created_at?: string
           created_by?: string | null
           descricao: string
+          equipamento?: string | null
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
           id?: string
+          localizacao?: string | null
           motivo_fecho?: Database["public"]["Enums"]["close_reason"] | null
           numero?: number
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
@@ -519,12 +525,15 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          contacto_local?: string | null
           created_at?: string
           created_by?: string | null
           descricao?: string
+          equipamento?: string | null
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
           id?: string
+          localizacao?: string | null
           motivo_fecho?: Database["public"]["Enums"]["close_reason"] | null
           numero?: number
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
