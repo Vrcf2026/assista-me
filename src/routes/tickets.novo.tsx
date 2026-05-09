@@ -154,6 +154,9 @@ function NovoAdmin() {
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
   const [tipo, setTipo] = useState<"remota" | "presencial" | "preventiva" | "critica">("remota");
+  const [equipamento, setEquipamento] = useState("");
+  const [localizacao, setLocalizacao] = useState("");
+  const [contactoLocal, setContactoLocal] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   // Time entry (optional, registado imediatamente)
