@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
 
 export const Route = createFileRoute("/tickets/novo")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -129,16 +130,8 @@ function NovoCliente() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Anexos (imagens ou PDF)</Label>
-            <Input
-              type="file"
-              multiple
-              accept="image/*,application/pdf"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-            />
-            {files.length > 0 && (
-              <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
-            )}
+            <Label>Anexos</Label>
+            <AttachmentPicker files={files} onChange={setFiles} />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Criar ticket"}</Button>
         </form>
@@ -161,6 +154,9 @@ function NovoAdmin() {
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
   const [tipo, setTipo] = useState<"remota" | "presencial" | "preventiva" | "critica">("remota");
+  const [equipamento, setEquipamento] = useState("");
+  const [localizacao, setLocalizacao] = useState("");
+  const [contactoLocal, setContactoLocal] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   // Time entry (optional, registado imediatamente)
@@ -202,6 +198,9 @@ function NovoAdmin() {
         .from("tickets").insert({
           client_id: clientId, titulo, descricao, prioridade, tipo_intervencao: tipo,
           created_by: createdBy,
+          equipamento: equipamento.trim() || null,
+          localizacao: (tipo === "presencial" || tipo === "preventiva") ? (localizacao.trim() || null) : null,
+          contacto_local: tipo === "presencial" ? (contactoLocal.trim() || null) : null,
         }).select("id, numero").single();
       if (error) throw error;
 
@@ -357,17 +356,44 @@ function NovoAdmin() {
               </Select>
             </div>
           </div>
+
           <div className="space-y-1.5">
-            <Label>Anexos (imagens ou PDF)</Label>
+            <Label>Equipamento / Sistema afectado</Label>
             <Input
-              type="file"
-              multiple
-              accept="image/*,application/pdf"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              value={equipamento}
+              onChange={(e) => setEquipamento(e.target.value)}
+              placeholder="Ex: Servidor srv3diso, PC receção, Router principal"
+              maxLength={200}
             />
-            {files.length > 0 && (
-              <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
-            )}
+          </div>
+
+          {(tipo === "presencial" || tipo === "preventiva") && (
+            <div className="space-y-1.5">
+              <Label>Localização</Label>
+              <Input
+                value={localizacao}
+                onChange={(e) => setLocalizacao(e.target.value)}
+                placeholder="Ex: Escritório Lisboa, Sala servidores"
+                maxLength={200}
+              />
+            </div>
+          )}
+
+          {tipo === "presencial" && (
+            <div className="space-y-1.5">
+              <Label>Contacto no local</Label>
+              <Input
+                value={contactoLocal}
+                onChange={(e) => setContactoLocal(e.target.value)}
+                placeholder="Nome e telefone de quem recebe o técnico"
+                maxLength={200}
+              />
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Anexos</Label>
+            <AttachmentPicker files={files} onChange={setFiles} />
           </div>
 
           <div className="space-y-2 rounded-md border p-3 bg-muted/20">
