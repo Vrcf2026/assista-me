@@ -59,6 +59,9 @@ interface Ticket {
   tempo_gasto_minutos: number;
   solucao_aplicada: string | null;
   motivo_fecho: string | null;
+  equipamento: string | null;
+  localizacao: string | null;
+  contacto_local: string | null;
   created_at: string;
   updated_at: string;
   client?: { id: string; nome: string; tarifa_hora: number } | null;
