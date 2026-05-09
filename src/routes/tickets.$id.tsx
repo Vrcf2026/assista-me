@@ -213,6 +213,17 @@ function TicketDetail({ id }: { id: string }) {
           <p className="mt-1 text-sm whitespace-pre-wrap">{ticket.descricao}</p>
         </div>
 
+        {(ticket.equipamento || ticket.localizacao || ticket.contacto_local) && (
+          <div className="mt-4 pt-4 border-t">
+            <Label className="text-xs text-muted-foreground">Detalhes</Label>
+            <div className="mt-2 space-y-1 text-sm">
+              {ticket.equipamento && <div>🖥️ <span className="text-muted-foreground">Equipamento:</span> {ticket.equipamento}</div>}
+              {ticket.localizacao && <div>📍 <span className="text-muted-foreground">Localização:</span> {ticket.localizacao}</div>}
+              {ticket.contacto_local && <div>👤 <span className="text-muted-foreground">Contacto:</span> {ticket.contacto_local}</div>}
+            </div>
+          </div>
+        )}
+
         {ticket.estado === "fechado" && (
           <div className="mt-4 pt-4 border-t space-y-2">
             <div>
