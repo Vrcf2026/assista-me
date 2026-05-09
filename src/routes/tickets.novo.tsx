@@ -130,16 +130,8 @@ function NovoCliente() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Anexos (imagens ou PDF)</Label>
-            <Input
-              type="file"
-              multiple
-              accept="image/*,application/pdf"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-            />
-            {files.length > 0 && (
-              <p className="text-xs text-muted-foreground">{files.length} ficheiro(s) selecionado(s)</p>
-            )}
+            <Label>Anexos</Label>
+            <AttachmentPicker files={files} onChange={setFiles} />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Criar ticket"}</Button>
         </form>
