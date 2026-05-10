@@ -270,6 +270,225 @@ export type Database = {
         }
         Relationships: []
       }
+      preventiva_agendamentos: {
+        Row: {
+          ativo: boolean
+          client_id: string
+          created_at: string
+          id: string
+          proxima_data: string
+          template_id: string
+          ultima_data: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          client_id: string
+          created_at?: string
+          id?: string
+          proxima_data: string
+          template_id: string
+          ultima_data?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          client_id?: string
+          created_at?: string
+          id?: string
+          proxima_data?: string
+          template_id?: string
+          ultima_data?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventiva_agendamentos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventiva_agendamentos_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preventiva_checklist: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          descricao: string
+          execucao_id: string
+          foto_url: string | null
+          id: string
+          observacao: string | null
+          tarefa_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao: string
+          execucao_id: string
+          foto_url?: string | null
+          id?: string
+          observacao?: string | null
+          tarefa_id: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string
+          execucao_id?: string
+          foto_url?: string | null
+          id?: string
+          observacao?: string | null
+          tarefa_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventiva_checklist_execucao_id_fkey"
+            columns: ["execucao_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_execucoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventiva_checklist_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preventiva_execucoes: {
+        Row: {
+          agendamento_id: string
+          client_id: string
+          created_at: string
+          data_execucao: string
+          estado: string
+          id: string
+          minutos: number
+          observacoes: string | null
+          tecnico_id: string | null
+          template_id: string
+          tipo_intervencao: string
+        }
+        Insert: {
+          agendamento_id: string
+          client_id: string
+          created_at?: string
+          data_execucao?: string
+          estado?: string
+          id?: string
+          minutos?: number
+          observacoes?: string | null
+          tecnico_id?: string | null
+          template_id: string
+          tipo_intervencao?: string
+        }
+        Update: {
+          agendamento_id?: string
+          client_id?: string
+          created_at?: string
+          data_execucao?: string
+          estado?: string
+          id?: string
+          minutos?: number
+          observacoes?: string | null
+          tecnico_id?: string | null
+          template_id?: string
+          tipo_intervencao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventiva_execucoes_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventiva_execucoes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventiva_execucoes_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preventiva_tarefas: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          ordem: number
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          ordem?: number
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          ordem?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventiva_tarefas_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preventiva_templates: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          periodicidade: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          periodicidade: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          periodicidade?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
