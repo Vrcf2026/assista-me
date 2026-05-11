@@ -56,9 +56,11 @@ function Inner() {
   const [items, setItems] = useState<Item[]>([]);
   const [obs, setObs] = useState("");
   const [minutos, setMinutos] = useState(0);
-  const [running, setRunning] = useState(false);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [tick, setTick] = useState(0);
+  const [timeMode, setTimeMode] = useState<"manual" | "chrono" | "range">("manual");
+  const [chronoStart, setChronoStart] = useState<number | null>(null);
+  const [chronoElapsed, setChronoElapsed] = useState(0);
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
   const [busy, setBusy] = useState(false);
   const [openObsId, setOpenObsId] = useState<string | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
