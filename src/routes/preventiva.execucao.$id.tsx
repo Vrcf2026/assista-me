@@ -160,8 +160,7 @@ function Inner() {
     if (pendentes > 0 && !confirm(`Há ${pendentes} tarefa(s) por fazer. Concluir mesmo assim?`)) return;
     setBusy(true);
     try {
-      let finalMin = minutos;
-      if (running && startedAt) finalMin += Math.max(1, Math.floor((Date.now() - startedAt) / 60000));
+      const finalMin = computeMinutes();
 
       // Update execucao
       const { error } = await supabase.from("preventiva_execucoes").update({
