@@ -83,23 +83,50 @@ function Inner() {
   };
   useEffect(() => { void load(); }, [id]);
 
-  // Timer tick
+  // Cronómetro tick
   useEffect(() => {
-    if (!running) return;
-    const t = setInterval(() => setTick(x => x + 1), 1000);
-    return () => clearInterval(t);
-  }, [running]);
+    if (chronoStart == null) return;
+    setChronoElapsed(Date.now() - chronoStart);
+    const t = window.setInterval(() => setChronoElapsed(Date.now() - chronoStart), 1000);
+    return () => window.clearInterval(t);
+  }, [chronoStart]);
 
-  const liveMin = running && startedAt ? Math.floor((Date.now() - startedAt) / 60000) : 0;
-  const totalMin = minutos + liveMin;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const formatElapsed = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  };
+  const nowHHMM = () => {
+    const d = new Date();
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
-  const toggleTimer = () => {
-    if (running) {
-      setMinutos(m => m + Math.max(1, Math.floor((Date.now() - (startedAt ?? Date.now())) / 60000)));
-      setRunning(false); setStartedAt(null);
-    } else {
-      setStartedAt(Date.now()); setRunning(true);
+  const startChrono = () => setChronoStart(Date.now());
+  const stopChrono = () => {
+    if (chronoStart == null) return;
+    const mins = Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+    setChronoStart(null);
+    setChronoElapsed(0);
+    setMinutos(mins);
+    setTimeMode("manual");
+    toast.success(`${mins} min preenchidos no campo Manual`);
+  };
+
+  const computeMinutes = (): number => {
+    if (timeMode === "manual") return minutos || 0;
+    if (timeMode === "chrono") {
+      if (chronoStart != null) return Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+      return minutos || 0;
     }
+    if (timeMode === "range") {
+      if (!horaInicio || !horaFim) return 0;
+      const [h1, m1] = horaInicio.split(":").map(Number);
+      const [h2, m2] = horaFim.split(":").map(Number);
+      let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (mins <= 0) mins += 24 * 60;
+      return mins;
+    }
+    return 0;
   };
 
   const toggleItem = async (it: Item) => {
