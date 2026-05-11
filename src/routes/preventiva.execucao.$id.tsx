@@ -194,7 +194,7 @@ function Inner() {
 
   const saveObs = async () => {
     if (!exec) return;
-    await supabase.from("preventiva_execucoes").update({ observacoes: obs || null, minutos }).eq("id", id);
+    await supabase.from("preventiva_execucoes").update({ observacoes: obs || null, minutos: computeMinutes() }).eq("id", id);
     toast.success("Guardado");
   };
 
