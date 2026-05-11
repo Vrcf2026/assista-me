@@ -56,9 +56,11 @@ function Inner() {
   const [items, setItems] = useState<Item[]>([]);
   const [obs, setObs] = useState("");
   const [minutos, setMinutos] = useState(0);
-  const [running, setRunning] = useState(false);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [tick, setTick] = useState(0);
+  const [timeMode, setTimeMode] = useState<"manual" | "chrono" | "range">("manual");
+  const [chronoStart, setChronoStart] = useState<number | null>(null);
+  const [chronoElapsed, setChronoElapsed] = useState(0);
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
   const [busy, setBusy] = useState(false);
   const [openObsId, setOpenObsId] = useState<string | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -81,23 +83,50 @@ function Inner() {
   };
   useEffect(() => { void load(); }, [id]);
 
-  // Timer tick
+  // Cronómetro tick
   useEffect(() => {
-    if (!running) return;
-    const t = setInterval(() => setTick(x => x + 1), 1000);
-    return () => clearInterval(t);
-  }, [running]);
+    if (chronoStart == null) return;
+    setChronoElapsed(Date.now() - chronoStart);
+    const t = window.setInterval(() => setChronoElapsed(Date.now() - chronoStart), 1000);
+    return () => window.clearInterval(t);
+  }, [chronoStart]);
 
-  const liveMin = running && startedAt ? Math.floor((Date.now() - startedAt) / 60000) : 0;
-  const totalMin = minutos + liveMin;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const formatElapsed = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  };
+  const nowHHMM = () => {
+    const d = new Date();
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
-  const toggleTimer = () => {
-    if (running) {
-      setMinutos(m => m + Math.max(1, Math.floor((Date.now() - (startedAt ?? Date.now())) / 60000)));
-      setRunning(false); setStartedAt(null);
-    } else {
-      setStartedAt(Date.now()); setRunning(true);
+  const startChrono = () => setChronoStart(Date.now());
+  const stopChrono = () => {
+    if (chronoStart == null) return;
+    const mins = Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+    setChronoStart(null);
+    setChronoElapsed(0);
+    setMinutos(mins);
+    setTimeMode("manual");
+    toast.success(`${mins} min preenchidos no campo Manual`);
+  };
+
+  const computeMinutes = (): number => {
+    if (timeMode === "manual") return minutos || 0;
+    if (timeMode === "chrono") {
+      if (chronoStart != null) return Math.max(1, Math.round((Date.now() - chronoStart) / 60000));
+      return minutos || 0;
     }
+    if (timeMode === "range") {
+      if (!horaInicio || !horaFim) return 0;
+      const [h1, m1] = horaInicio.split(":").map(Number);
+      const [h2, m2] = horaFim.split(":").map(Number);
+      let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (mins <= 0) mins += 24 * 60;
+      return mins;
+    }
+    return 0;
   };
 
   const toggleItem = async (it: Item) => {
@@ -131,8 +160,7 @@ function Inner() {
     if (pendentes > 0 && !confirm(`Há ${pendentes} tarefa(s) por fazer. Concluir mesmo assim?`)) return;
     setBusy(true);
     try {
-      let finalMin = minutos;
-      if (running && startedAt) finalMin += Math.max(1, Math.floor((Date.now() - startedAt) / 60000));
+      const finalMin = computeMinutes();
 
       // Update execucao
       const { error } = await supabase.from("preventiva_execucoes").update({
@@ -166,7 +194,7 @@ function Inner() {
 
   const saveObs = async () => {
     if (!exec) return;
-    await supabase.from("preventiva_execucoes").update({ observacoes: obs || null, minutos }).eq("id", id);
+    await supabase.from("preventiva_execucoes").update({ observacoes: obs || null, minutos: computeMinutes() }).eq("id", id);
     toast.success("Guardado");
   };
 
@@ -198,19 +226,77 @@ function Inner() {
         </div>
       </Card>
 
-      <Card className="p-4 space-y-2">
+      <Card className="p-4 space-y-3">
         <Label>Observações gerais</Label>
         <Textarea rows={3} value={obs} onChange={e=>setObs(e.target.value)} disabled={isDone} />
-        <div className="flex items-center gap-2 flex-wrap">
-          <Label className="text-xs">Minutos:</Label>
-          <Input type="number" className="w-24" value={minutos} onChange={e=>setMinutos(parseInt(e.target.value) || 0)} disabled={isDone} />
-          <Button size="sm" variant={running ? "destructive" : "outline"} onClick={toggleTimer} disabled={isDone}>
-            {running ? <><Square className="h-3.5 w-3.5 mr-1" />Parar</> : <><Play className="h-3.5 w-3.5 mr-1" />Iniciar</>}
-          </Button>
-          {running && <span className="text-xs text-muted-foreground">+{liveMin}m (total {totalMin}m) <span className="hidden">{tick}</span></span>}
-          <Button size="sm" variant="ghost" onClick={() => void saveObs()} disabled={isDone}>Guardar</Button>
+
+        <div className="space-y-2">
+          <Label className="text-xs">Tempo de execução</Label>
+          <div className="flex gap-1 border rounded p-0.5 bg-background w-fit">
+            {(["manual", "chrono", "range"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setTimeMode(m)}
+                disabled={isDone}
+                className={`px-3 py-1 text-xs rounded ${timeMode === m ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
+              >
+                {m === "manual" ? "Manual" : m === "chrono" ? "Cronómetro" : "Início/Fim"}
+              </button>
+            ))}
+          </div>
+
+          {timeMode === "manual" && (
+            <div className="flex items-end gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Minutos</Label>
+                <Input type="number" min={0} className="w-32" value={minutos || ""} onChange={e => setMinutos(parseInt(e.target.value) || 0)} disabled={isDone} />
+              </div>
+            </div>
+          )}
+
+          {timeMode === "chrono" && (
+            <div className="flex items-center justify-between gap-3">
+              <div className="font-mono text-2xl tabular-nums">{formatElapsed(chronoElapsed)}</div>
+              <div className="flex gap-2">
+                {chronoStart == null ? (
+                  <Button type="button" size="sm" onClick={startChrono} disabled={isDone}><Play className="h-3.5 w-3.5 mr-1" />Iniciar</Button>
+                ) : (
+                  <Button type="button" size="sm" variant="destructive" onClick={stopChrono} disabled={isDone}><Square className="h-3.5 w-3.5 mr-1" />Parar</Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {timeMode === "range" && (
+            <div className="flex gap-3 flex-wrap">
+              <div className="space-y-1">
+                <Label className="text-xs">Início</Label>
+                <div className="flex gap-1">
+                  <Input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className="w-28" disabled={isDone} />
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setHoraInicio(nowHHMM())} disabled={isDone}>Agora</Button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fim</Label>
+                <div className="flex gap-1">
+                  <Input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className="w-28" disabled={isDone} />
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setHoraFim(nowHHMM())} disabled={isDone}>Agora</Button>
+                </div>
+              </div>
+              {horaInicio && horaFim && (
+                <div className="text-xs text-muted-foreground self-end pb-2">= {computeMinutes()} min</div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xs text-muted-foreground">Total: <span className="font-mono font-semibold text-foreground">{computeMinutes()} min</span></span>
+            <Button size="sm" variant="ghost" onClick={() => void saveObs()} disabled={isDone}>Guardar</Button>
+          </div>
         </div>
       </Card>
+
 
       <div className="space-y-2">
         {items.map(it => (
