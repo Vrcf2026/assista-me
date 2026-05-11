@@ -226,19 +226,77 @@ function Inner() {
         </div>
       </Card>
 
-      <Card className="p-4 space-y-2">
+      <Card className="p-4 space-y-3">
         <Label>Observações gerais</Label>
         <Textarea rows={3} value={obs} onChange={e=>setObs(e.target.value)} disabled={isDone} />
-        <div className="flex items-center gap-2 flex-wrap">
-          <Label className="text-xs">Minutos:</Label>
-          <Input type="number" className="w-24" value={minutos} onChange={e=>setMinutos(parseInt(e.target.value) || 0)} disabled={isDone} />
-          <Button size="sm" variant={running ? "destructive" : "outline"} onClick={toggleTimer} disabled={isDone}>
-            {running ? <><Square className="h-3.5 w-3.5 mr-1" />Parar</> : <><Play className="h-3.5 w-3.5 mr-1" />Iniciar</>}
-          </Button>
-          {running && <span className="text-xs text-muted-foreground">+{liveMin}m (total {totalMin}m) <span className="hidden">{tick}</span></span>}
-          <Button size="sm" variant="ghost" onClick={() => void saveObs()} disabled={isDone}>Guardar</Button>
+
+        <div className="space-y-2">
+          <Label className="text-xs">Tempo de execução</Label>
+          <div className="flex gap-1 border rounded p-0.5 bg-background w-fit">
+            {(["manual", "chrono", "range"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setTimeMode(m)}
+                disabled={isDone}
+                className={`px-3 py-1 text-xs rounded ${timeMode === m ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
+              >
+                {m === "manual" ? "Manual" : m === "chrono" ? "Cronómetro" : "Início/Fim"}
+              </button>
+            ))}
+          </div>
+
+          {timeMode === "manual" && (
+            <div className="flex items-end gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Minutos</Label>
+                <Input type="number" min={0} className="w-32" value={minutos || ""} onChange={e => setMinutos(parseInt(e.target.value) || 0)} disabled={isDone} />
+              </div>
+            </div>
+          )}
+
+          {timeMode === "chrono" && (
+            <div className="flex items-center justify-between gap-3">
+              <div className="font-mono text-2xl tabular-nums">{formatElapsed(chronoElapsed)}</div>
+              <div className="flex gap-2">
+                {chronoStart == null ? (
+                  <Button type="button" size="sm" onClick={startChrono} disabled={isDone}><Play className="h-3.5 w-3.5 mr-1" />Iniciar</Button>
+                ) : (
+                  <Button type="button" size="sm" variant="destructive" onClick={stopChrono} disabled={isDone}><Square className="h-3.5 w-3.5 mr-1" />Parar</Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {timeMode === "range" && (
+            <div className="flex gap-3 flex-wrap">
+              <div className="space-y-1">
+                <Label className="text-xs">Início</Label>
+                <div className="flex gap-1">
+                  <Input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className="w-28" disabled={isDone} />
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setHoraInicio(nowHHMM())} disabled={isDone}>Agora</Button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fim</Label>
+                <div className="flex gap-1">
+                  <Input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className="w-28" disabled={isDone} />
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setHoraFim(nowHHMM())} disabled={isDone}>Agora</Button>
+                </div>
+              </div>
+              {horaInicio && horaFim && (
+                <div className="text-xs text-muted-foreground self-end pb-2">= {computeMinutes()} min</div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xs text-muted-foreground">Total: <span className="font-mono font-semibold text-foreground">{computeMinutes()} min</span></span>
+            <Button size="sm" variant="ghost" onClick={() => void saveObs()} disabled={isDone}>Guardar</Button>
+          </div>
         </div>
       </Card>
+
 
       <div className="space-y-2">
         {items.map(it => (
