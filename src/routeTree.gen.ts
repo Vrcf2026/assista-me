@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as IndexRouteImport } from './routes/index'
@@ -47,6 +48,11 @@ const TicketsRoute = TicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreventivaRoute = PreventivaRouteImport.update({
+  id: '/preventiva',
+  path: '/preventiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -63,9 +69,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
-  id: '/preventiva/',
-  path: '/preventiva/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreventivaRoute,
 } as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
   id: '/novo',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
@@ -241,6 +248,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
@@ -272,6 +280,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
+    | '/preventiva'
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
+    | '/preventiva'
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
@@ -360,6 +370,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
@@ -368,7 +379,6 @@ export interface RootRouteChildren {
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
-  PreventivaIndexRoute: typeof PreventivaIndexRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
   ApiPublicSatisfacaoTokenRoute: typeof ApiPublicSatisfacaoTokenRoute
@@ -395,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preventiva': {
+      id: '/preventiva'
+      path: '/preventiva'
+      fullPath: '/preventiva'
+      preLoaderRoute: typeof PreventivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -418,10 +435,10 @@ declare module '@tanstack/react-router' {
     }
     '/preventiva/': {
       id: '/preventiva/'
-      path: '/preventiva'
+      path: '/'
       fullPath: '/preventiva/'
       preLoaderRoute: typeof PreventivaIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PreventivaRoute
     }
     '/tickets/novo': {
       id: '/tickets/novo'
@@ -585,6 +602,35 @@ const ClientesRouteWithChildren = ClientesRoute._addFileChildren(
   ClientesRouteChildren,
 )
 
+interface PreventivaTemplatesRouteChildren {
+  PreventivaTemplatesIdRoute: typeof PreventivaTemplatesIdRoute
+}
+
+const PreventivaTemplatesRouteChildren: PreventivaTemplatesRouteChildren = {
+  PreventivaTemplatesIdRoute: PreventivaTemplatesIdRoute,
+}
+
+const PreventivaTemplatesRouteWithChildren =
+  PreventivaTemplatesRoute._addFileChildren(PreventivaTemplatesRouteChildren)
+
+interface PreventivaRouteChildren {
+  PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
+  PreventivaTemplatesRoute: typeof PreventivaTemplatesRouteWithChildren
+  PreventivaIndexRoute: typeof PreventivaIndexRoute
+  PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
+}
+
+const PreventivaRouteChildren: PreventivaRouteChildren = {
+  PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
+  PreventivaTemplatesRoute: PreventivaTemplatesRouteWithChildren,
+  PreventivaIndexRoute: PreventivaIndexRoute,
+  PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
+}
+
+const PreventivaRouteWithChildren = PreventivaRoute._addFileChildren(
+  PreventivaRouteChildren,
+)
+
 interface TicketsRouteChildren {
   TicketsIdRoute: typeof TicketsIdRoute
   TicketsNovoRoute: typeof TicketsNovoRoute
@@ -602,6 +648,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
+  PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
@@ -610,7 +657,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTemplatesRoute: AdminTemplatesRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
-  PreventivaIndexRoute: PreventivaIndexRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
   ApiPublicSatisfacaoTokenRoute: ApiPublicSatisfacaoTokenRoute,
