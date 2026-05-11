@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { ShieldCheck, Play, History, Settings, CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/preventiva")({
+export const Route = createFileRoute("/preventiva/")({
   component: PreventivaPage,
 });
 
