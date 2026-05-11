@@ -11,10 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TicketsRouteImport } from './routes/tickets'
-import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
@@ -47,11 +47,6 @@ const TicketsRoute = TicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaRoute = PreventivaRouteImport.update({
-  id: '/preventiva',
-  path: '/preventiva',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -65,6 +60,11 @@ const ClientesRoute = ClientesRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
+  id: '/preventiva/',
+  path: '/preventiva/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
@@ -182,7 +182,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
-  '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
@@ -196,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
@@ -211,7 +211,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
-  '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
@@ -225,6 +224,7 @@ export interface FileRoutesByTo {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/preventiva': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
@@ -241,7 +241,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
-  '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
@@ -255,6 +254,7 @@ export interface FileRoutesById {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
@@ -272,7 +272,6 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
-    | '/preventiva'
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
@@ -286,6 +285,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
     | '/preventiva/templates/$id'
@@ -301,7 +301,6 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
-    | '/preventiva'
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
@@ -315,6 +314,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/preventiva'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
     | '/preventiva/templates/$id'
@@ -330,7 +330,6 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes'
     | '/login'
-    | '/preventiva'
     | '/tickets'
     | '/unsubscribe'
     | '/admin/emails'
@@ -344,6 +343,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
     | '/preventiva/templates/$id'
@@ -360,7 +360,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
-  PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
@@ -369,6 +368,7 @@ export interface RootRouteChildren {
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
+  PreventivaIndexRoute: typeof PreventivaIndexRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
   ApiPublicSatisfacaoTokenRoute: typeof ApiPublicSatisfacaoTokenRoute
@@ -395,13 +395,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva': {
-      id: '/preventiva'
-      path: '/preventiva'
-      fullPath: '/preventiva'
-      preLoaderRoute: typeof PreventivaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -421,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preventiva/': {
+      id: '/preventiva/'
+      path: '/preventiva'
+      fullPath: '/preventiva/'
+      preLoaderRoute: typeof PreventivaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets/novo': {
@@ -585,33 +585,6 @@ const ClientesRouteWithChildren = ClientesRoute._addFileChildren(
   ClientesRouteChildren,
 )
 
-interface PreventivaTemplatesRouteChildren {
-  PreventivaTemplatesIdRoute: typeof PreventivaTemplatesIdRoute
-}
-
-const PreventivaTemplatesRouteChildren: PreventivaTemplatesRouteChildren = {
-  PreventivaTemplatesIdRoute: PreventivaTemplatesIdRoute,
-}
-
-const PreventivaTemplatesRouteWithChildren =
-  PreventivaTemplatesRoute._addFileChildren(PreventivaTemplatesRouteChildren)
-
-interface PreventivaRouteChildren {
-  PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
-  PreventivaTemplatesRoute: typeof PreventivaTemplatesRouteWithChildren
-  PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
-}
-
-const PreventivaRouteChildren: PreventivaRouteChildren = {
-  PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
-  PreventivaTemplatesRoute: PreventivaTemplatesRouteWithChildren,
-  PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
-}
-
-const PreventivaRouteWithChildren = PreventivaRoute._addFileChildren(
-  PreventivaRouteChildren,
-)
-
 interface TicketsRouteChildren {
   TicketsIdRoute: typeof TicketsIdRoute
   TicketsNovoRoute: typeof TicketsNovoRoute
@@ -629,7 +602,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
-  PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
@@ -638,6 +610,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTemplatesRoute: AdminTemplatesRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
+  PreventivaIndexRoute: PreventivaIndexRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
   ApiPublicSatisfacaoTokenRoute: ApiPublicSatisfacaoTokenRoute,
@@ -650,3 +623,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
