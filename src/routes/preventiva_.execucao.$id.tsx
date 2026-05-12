@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft } from "lucide-react";
+import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft, History } from "lucide-react";
 
 export const Route = createFileRoute("/preventiva_/execucao/$id")({
   component: Page,
@@ -24,6 +24,15 @@ interface Item {
   foto_url: string | null;
   observacao: string | null;
   concluida_em: string | null;
+  minutos: number | null;
+}
+
+interface HistEntry {
+  data_execucao: string;
+  concluida: boolean;
+  minutos: number | null;
+  observacao: string | null;
+  foto_url: string | null;
 }
 
 interface ExecData {
@@ -76,12 +85,53 @@ function Inner() {
 
     const { data: ck } = await supabase
       .from("preventiva_checklist")
-      .select("id, descricao, concluida, foto_url, observacao, concluida_em")
+      .select("id, descricao, concluida, foto_url, observacao, concluida_em, minutos")
       .eq("execucao_id", id)
       .order("created_at");
     setItems((ck ?? []) as Item[]);
   };
   useEffect(() => { void load(); }, [id]);
+
+  // Histórico por descrição (lazy)
+  const [history, setHistory] = useState<Record<string, HistEntry[]>>({});
+  const [openHist, setOpenHist] = useState<Record<string, boolean>>({});
+  const minutosRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const toggleHistory = async (it: Item) => {
+    const isOpen = !!openHist[it.id];
+    setOpenHist(p => ({ ...p, [it.id]: !isOpen }));
+    if (isOpen || history[it.id] || !exec) return;
+    // fetch últimas 3 execuções concluidas com esta descrição para este cliente
+    const { data: ex } = await supabase
+      .from("preventiva_execucoes")
+      .select("id, data_execucao")
+      .eq("client_id", exec.client_id)
+      .eq("estado", "concluida")
+      .order("data_execucao", { ascending: false })
+      .limit(20);
+    const ids = (ex ?? []).map(e => e.id);
+    if (ids.length === 0) { setHistory(p => ({ ...p, [it.id]: [] })); return; }
+    const { data: ck } = await supabase
+      .from("preventiva_checklist")
+      .select("execucao_id, concluida, minutos, observacao, foto_url")
+      .in("execucao_id", ids)
+      .eq("descricao", it.descricao);
+    const byExec = new Map((ck ?? []).map(c => [c.execucao_id, c]));
+    const merged: HistEntry[] = (ex ?? [])
+      .filter(e => byExec.has(e.id))
+      .slice(0, 3)
+      .map(e => {
+        const c = byExec.get(e.id)!;
+        return {
+          data_execucao: e.data_execucao,
+          concluida: c.concluida,
+          minutos: c.minutos,
+          observacao: c.observacao,
+          foto_url: c.foto_url,
+        };
+      });
+    setHistory(p => ({ ...p, [it.id]: merged }));
+  };
 
   // Cronómetro tick
   useEffect(() => {
@@ -137,6 +187,14 @@ function Inner() {
     }).eq("id", it.id);
     if (error) return toast.error(error.message);
     setItems(prev => prev.map(x => x.id === it.id ? { ...x, concluida: next, concluida_em: next ? new Date().toISOString() : null } : x));
+    if (next) {
+      setTimeout(() => minutosRefs.current[it.id]?.focus(), 50);
+    }
+  };
+
+  const updateMinutos = async (it: Item, value: number | null) => {
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, minutos: value } : x));
+    await supabase.from("preventiva_checklist").update({ minutos: value }).eq("id", it.id);
   };
 
   const updateObs = async (it: Item, value: string) => {
@@ -160,7 +218,13 @@ function Inner() {
     if (pendentes > 0 && !confirm(`Há ${pendentes} tarefa(s) por fazer. Concluir mesmo assim?`)) return;
     setBusy(true);
     try {
-      const finalMin = computeMinutes();
+      let finalMin = computeMinutes();
+      const totalTarefas = items.reduce((s, i) => s + (i.minutos || 0), 0);
+      if (finalMin === 0 && totalTarefas > 0) {
+        if (confirm(`Usar o total das tarefas (${totalTarefas} min) como tempo da manutenção?`)) {
+          finalMin = totalTarefas;
+        }
+      }
 
       // Update execucao
       const { error } = await supabase.from("preventiva_execucoes").update({
@@ -312,7 +376,25 @@ function Inner() {
                 {it.concluida && <Check className="h-5 w-5" />}
               </button>
               <div className="flex-1 min-w-0">
-                <div className={`text-sm ${it.concluida ? "line-through text-muted-foreground" : ""}`}>{it.descricao}</div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className={`text-sm ${it.concluida ? "line-through text-muted-foreground" : ""}`}>{it.descricao}</div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Input
+                      ref={el => { minutosRefs.current[it.id] = el; }}
+                      type="number"
+                      min={0}
+                      placeholder="min"
+                      value={it.minutos ?? ""}
+                      onChange={e => {
+                        const v = e.target.value === "" ? null : parseInt(e.target.value);
+                        void updateMinutos(it, Number.isNaN(v as number) ? null : v);
+                      }}
+                      disabled={isDone}
+                      className="w-16 h-8 text-sm tabular-nums"
+                    />
+                    <span className="text-xs text-muted-foreground">min</span>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <input
                     ref={el => { fileRefs.current[it.id] = el; }}
@@ -325,6 +407,11 @@ function Inner() {
                   <Button size="sm" variant="ghost" onClick={() => setOpenObsId(openObsId === it.id ? null : it.id)} disabled={isDone}>
                     <MessageSquarePlus className="h-3.5 w-3.5 mr-1" />Nota
                   </Button>
+                  {it.concluida && (
+                    <Button size="sm" variant="ghost" onClick={() => void toggleHistory(it)}>
+                      <History className="h-3.5 w-3.5 mr-1" />{openHist[it.id] ? "Ocultar histórico" : "Ver histórico"}
+                    </Button>
+                  )}
                   {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
@@ -337,10 +424,32 @@ function Inner() {
                     disabled={isDone}
                   />
                 )}
+                {openHist[it.id] && (
+                  <div className="mt-2 border rounded p-2 bg-secondary/30 text-xs space-y-1">
+                    {!history[it.id] ? (
+                      <div className="text-muted-foreground">A carregar…</div>
+                    ) : history[it.id].length === 0 ? (
+                      <div className="text-muted-foreground">Sem execuções anteriores.</div>
+                    ) : history[it.id].map((h, idx) => (
+                      <div key={idx} className="flex items-center gap-2 flex-wrap">
+                        <span>{h.concluida ? "✅" : "⬜"}</span>
+                        <span className="tabular-nums w-12">{h.minutos != null ? `${h.minutos}min` : "—"}</span>
+                        {h.foto_url && <a href={h.foto_url} target="_blank" rel="noreferrer">📷</a>}
+                        <span className="flex-1 truncate text-muted-foreground">{h.observacao ?? ""}</span>
+                        <span className="text-muted-foreground">{new Date(h.data_execucao).toLocaleDateString("pt-PT")}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
         ))}
+        {items.length > 0 && (
+          <div className="text-xs text-muted-foreground text-right pr-1">
+            Tempo registado nas tarefas: <span className="font-mono font-semibold text-foreground">{items.reduce((s, i) => s + (i.minutos || 0), 0)} min</span>
+          </div>
+        )}
       </div>
 
       {!isDone && (

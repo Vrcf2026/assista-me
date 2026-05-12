@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, Play, History, Settings, CalendarClock } from "lucide-react";
+import { ShieldCheck, Play, FileText, Settings, CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/preventiva/")({
@@ -96,18 +96,33 @@ function Inner() {
         .single();
       if (error || !exec) throw error;
 
-      // Cria itens de checklist a partir das tarefas do template
-      const { data: tarefas } = await supabase
-        .from("preventiva_tarefas")
-        .select("id, descricao, ordem")
-        .eq("template_id", a.template_id)
+      // Tarefas: usa agendamento_tarefas activas se existirem; fallback ao template
+      const { data: agTarefas } = await supabase
+        .from("preventiva_agendamento_tarefas")
+        .select("descricao, ordem, tarefa_id, ativo")
+        .eq("agendamento_id", a.id)
+        .eq("ativo", true)
         .order("ordem");
-      if (tarefas && tarefas.length > 0) {
-        const items = tarefas.map(t => ({
+      let items: { execucao_id: string; tarefa_id: string | null; descricao: string }[] = [];
+      if (agTarefas && agTarefas.length > 0) {
+        items = agTarefas.map(t => ({
+          execucao_id: exec.id,
+          tarefa_id: t.tarefa_id ?? null,
+          descricao: t.descricao,
+        }));
+      } else {
+        const { data: tarefas } = await supabase
+          .from("preventiva_tarefas")
+          .select("id, descricao, ordem")
+          .eq("template_id", a.template_id)
+          .order("ordem");
+        items = (tarefas ?? []).map(t => ({
           execucao_id: exec.id,
           tarefa_id: t.id,
           descricao: t.descricao,
         }));
+      }
+      if (items.length > 0) {
         const { error: cErr } = await supabase.from("preventiva_checklist").insert(items);
         if (cErr) throw cErr;
       }
@@ -179,9 +194,16 @@ function Inner() {
                     <td className="py-2 pr-3 text-muted-foreground">{r.ultima_data ? formatDate(r.ultima_data) : "—"}</td>
                     <td className="py-2 pr-3">{estadoBadge(r.proxima_data)}</td>
                     <td className="py-2 pr-3 text-right">
-                      <Button size="sm" disabled={busy} onClick={() => void iniciar(r)}>
-                        <Play className="h-3.5 w-3.5 mr-1" />Iniciar
-                      </Button>
+                      <div className="flex gap-1 justify-end">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to="/preventiva/relatorio/$id" params={{ id: r.id }}>
+                            <FileText className="h-3.5 w-3.5 mr-1" />Relatório
+                          </Link>
+                        </Button>
+                        <Button size="sm" disabled={busy} onClick={() => void iniciar(r)}>
+                          <Play className="h-3.5 w-3.5 mr-1" />Iniciar
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

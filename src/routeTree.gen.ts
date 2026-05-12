@@ -28,6 +28,7 @@ import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.templates.$id'
+import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.relatorio.$id'
 import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -133,6 +134,11 @@ const PreventivaTemplatesIdRoute = PreventivaTemplatesIdRouteImport.update({
   path: '/preventiva/templates/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreventivaRelatorioIdRoute = PreventivaRelatorioIdRouteImport.update({
+  id: '/preventiva_/relatorio/$id',
+  path: '/preventiva/relatorio/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreventivaExecucaoIdRoute = PreventivaExecucaoIdRouteImport.update({
   id: '/preventiva_/execucao/$id',
   path: '/preventiva/execucao/$id',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
+  '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/preventiva': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
+  '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva_/execucao/$id': typeof PreventivaExecucaoIdRoute
+  '/preventiva_/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva_/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
+    | '/preventiva/relatorio/$id'
     | '/preventiva/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
     | '/api/public/satisfacao/$token'
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/preventiva'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
+    | '/preventiva/relatorio/$id'
     | '/preventiva/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
     | '/api/public/satisfacao/$token'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva_/execucao/$id'
+    | '/preventiva_/relatorio/$id'
     | '/preventiva_/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
     | '/api/public/satisfacao/$token'
@@ -382,6 +394,7 @@ export interface RootRouteChildren {
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
+  PreventivaRelatorioIdRoute: typeof PreventivaRelatorioIdRoute
   PreventivaTemplatesIdRoute: typeof PreventivaTemplatesIdRoute
   ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
   ApiPublicSatisfacaoTokenRoute: typeof ApiPublicSatisfacaoTokenRoute
@@ -527,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreventivaTemplatesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preventiva_/relatorio/$id': {
+      id: '/preventiva_/relatorio/$id'
+      path: '/preventiva/relatorio/$id'
+      fullPath: '/preventiva/relatorio/$id'
+      preLoaderRoute: typeof PreventivaRelatorioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preventiva_/execucao/$id': {
       id: '/preventiva_/execucao/$id'
       path: '/preventiva/execucao/$id'
@@ -648,6 +668,7 @@ const rootRouteChildren: RootRouteChildren = {
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
+  PreventivaRelatorioIdRoute: PreventivaRelatorioIdRoute,
   PreventivaTemplatesIdRoute: PreventivaTemplatesIdRoute,
   ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
   ApiPublicSatisfacaoTokenRoute: ApiPublicSatisfacaoTokenRoute,
