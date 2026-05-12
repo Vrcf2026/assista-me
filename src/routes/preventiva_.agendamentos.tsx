@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/preventiva/agendamentos")({
+export const Route = createFileRoute("/preventiva_/agendamentos")({
   component: Page,
 });
 

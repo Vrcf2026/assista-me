@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, X, ArrowLeft, Save } from "lucide-react";
 
-export const Route = createFileRoute("/preventiva/templates/$id")({
+export const Route = createFileRoute("/preventiva_/templates/$id")({
   component: Page,
 });
 

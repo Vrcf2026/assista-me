@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/preventiva/execucao/$id")({
+export const Route = createFileRoute("/preventiva_/execucao/$id")({
   component: Page,
 });
 
