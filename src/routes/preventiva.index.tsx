@@ -96,18 +96,33 @@ function Inner() {
         .single();
       if (error || !exec) throw error;
 
-      // Cria itens de checklist a partir das tarefas do template
-      const { data: tarefas } = await supabase
-        .from("preventiva_tarefas")
-        .select("id, descricao, ordem")
-        .eq("template_id", a.template_id)
+      // Tarefas: usa agendamento_tarefas activas se existirem; fallback ao template
+      const { data: agTarefas } = await supabase
+        .from("preventiva_agendamento_tarefas")
+        .select("descricao, ordem, tarefa_id, ativo")
+        .eq("agendamento_id", a.id)
+        .eq("ativo", true)
         .order("ordem");
-      if (tarefas && tarefas.length > 0) {
-        const items = tarefas.map(t => ({
+      let items: { execucao_id: string; tarefa_id: string | null; descricao: string }[] = [];
+      if (agTarefas && agTarefas.length > 0) {
+        items = agTarefas.map(t => ({
+          execucao_id: exec.id,
+          tarefa_id: t.tarefa_id ?? null,
+          descricao: t.descricao,
+        }));
+      } else {
+        const { data: tarefas } = await supabase
+          .from("preventiva_tarefas")
+          .select("id, descricao, ordem")
+          .eq("template_id", a.template_id)
+          .order("ordem");
+        items = (tarefas ?? []).map(t => ({
           execucao_id: exec.id,
           tarefa_id: t.id,
           descricao: t.descricao,
         }));
+      }
+      if (items.length > 0) {
         const { error: cErr } = await supabase.from("preventiva_checklist").insert(items);
         if (cErr) throw cErr;
       }
