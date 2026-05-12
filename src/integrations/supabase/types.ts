@@ -270,6 +270,51 @@ export type Database = {
         }
         Relationships: []
       }
+      preventiva_agendamento_tarefas: {
+        Row: {
+          agendamento_id: string
+          ativo: boolean
+          created_at: string
+          descricao: string
+          id: string
+          ordem: number
+          tarefa_id: string | null
+        }
+        Insert: {
+          agendamento_id: string
+          ativo?: boolean
+          created_at?: string
+          descricao: string
+          id?: string
+          ordem?: number
+          tarefa_id?: string | null
+        }
+        Update: {
+          agendamento_id?: string
+          ativo?: boolean
+          created_at?: string
+          descricao?: string
+          id?: string
+          ordem?: number
+          tarefa_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preventiva_agendamento_tarefas_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventiva_agendamento_tarefas_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "preventiva_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preventiva_agendamentos: {
         Row: {
           ativo: boolean
@@ -324,6 +369,7 @@ export type Database = {
           execucao_id: string
           foto_url: string | null
           id: string
+          minutos: number | null
           observacao: string | null
           tarefa_id: string
         }
@@ -335,6 +381,7 @@ export type Database = {
           execucao_id: string
           foto_url?: string | null
           id?: string
+          minutos?: number | null
           observacao?: string | null
           tarefa_id: string
         }
@@ -346,6 +393,7 @@ export type Database = {
           execucao_id?: string
           foto_url?: string | null
           id?: string
+          minutos?: number | null
           observacao?: string | null
           tarefa_id?: string
         }
