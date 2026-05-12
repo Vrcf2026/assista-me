@@ -376,7 +376,25 @@ function Inner() {
                 {it.concluida && <Check className="h-5 w-5" />}
               </button>
               <div className="flex-1 min-w-0">
-                <div className={`text-sm ${it.concluida ? "line-through text-muted-foreground" : ""}`}>{it.descricao}</div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className={`text-sm ${it.concluida ? "line-through text-muted-foreground" : ""}`}>{it.descricao}</div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Input
+                      ref={el => { minutosRefs.current[it.id] = el; }}
+                      type="number"
+                      min={0}
+                      placeholder="min"
+                      value={it.minutos ?? ""}
+                      onChange={e => {
+                        const v = e.target.value === "" ? null : parseInt(e.target.value);
+                        void updateMinutos(it, Number.isNaN(v as number) ? null : v);
+                      }}
+                      disabled={isDone}
+                      className="w-16 h-8 text-sm tabular-nums"
+                    />
+                    <span className="text-xs text-muted-foreground">min</span>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <input
                     ref={el => { fileRefs.current[it.id] = el; }}
@@ -389,6 +407,11 @@ function Inner() {
                   <Button size="sm" variant="ghost" onClick={() => setOpenObsId(openObsId === it.id ? null : it.id)} disabled={isDone}>
                     <MessageSquarePlus className="h-3.5 w-3.5 mr-1" />Nota
                   </Button>
+                  {it.concluida && (
+                    <Button size="sm" variant="ghost" onClick={() => void toggleHistory(it)}>
+                      <History className="h-3.5 w-3.5 mr-1" />{openHist[it.id] ? "Ocultar histórico" : "Ver histórico"}
+                    </Button>
+                  )}
                   {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
@@ -401,10 +424,32 @@ function Inner() {
                     disabled={isDone}
                   />
                 )}
+                {openHist[it.id] && (
+                  <div className="mt-2 border rounded p-2 bg-secondary/30 text-xs space-y-1">
+                    {!history[it.id] ? (
+                      <div className="text-muted-foreground">A carregar…</div>
+                    ) : history[it.id].length === 0 ? (
+                      <div className="text-muted-foreground">Sem execuções anteriores.</div>
+                    ) : history[it.id].map((h, idx) => (
+                      <div key={idx} className="flex items-center gap-2 flex-wrap">
+                        <span>{h.concluida ? "✅" : "⬜"}</span>
+                        <span className="tabular-nums w-12">{h.minutos != null ? `${h.minutos}min` : "—"}</span>
+                        {h.foto_url && <a href={h.foto_url} target="_blank" rel="noreferrer">📷</a>}
+                        <span className="flex-1 truncate text-muted-foreground">{h.observacao ?? ""}</span>
+                        <span className="text-muted-foreground">{new Date(h.data_execucao).toLocaleDateString("pt-PT")}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
         ))}
+        {items.length > 0 && (
+          <div className="text-xs text-muted-foreground text-right pr-1">
+            Tempo registado nas tarefas: <span className="font-mono font-semibold text-foreground">{items.reduce((s, i) => s + (i.minutos || 0), 0)} min</span>
+          </div>
+        )}
       </div>
 
       {!isDone && (
