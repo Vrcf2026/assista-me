@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft } from "lucide-react";
+import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft, History } from "lucide-react";
 
 export const Route = createFileRoute("/preventiva_/execucao/$id")({
   component: Page,
@@ -24,6 +24,15 @@ interface Item {
   foto_url: string | null;
   observacao: string | null;
   concluida_em: string | null;
+  minutos: number | null;
+}
+
+interface HistEntry {
+  data_execucao: string;
+  concluida: boolean;
+  minutos: number | null;
+  observacao: string | null;
+  foto_url: string | null;
 }
 
 interface ExecData {
