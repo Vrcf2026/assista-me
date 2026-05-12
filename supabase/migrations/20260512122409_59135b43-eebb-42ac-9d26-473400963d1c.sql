@@ -1,0 +1,1 @@
+ALTER TABLE public.preventiva_checklist ALTER COLUMN tarefa_id DROP NOT NULL;

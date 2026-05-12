@@ -371,7 +371,7 @@ export type Database = {
           id: string
           minutos: number | null
           observacao: string | null
-          tarefa_id: string
+          tarefa_id: string | null
         }
         Insert: {
           concluida?: boolean
@@ -383,7 +383,7 @@ export type Database = {
           id?: string
           minutos?: number | null
           observacao?: string | null
-          tarefa_id: string
+          tarefa_id?: string | null
         }
         Update: {
           concluida?: boolean
@@ -395,7 +395,7 @@ export type Database = {
           id?: string
           minutos?: number | null
           observacao?: string | null
-          tarefa_id?: string
+          tarefa_id?: string | null
         }
         Relationships: [
           {
