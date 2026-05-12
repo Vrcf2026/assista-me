@@ -85,12 +85,53 @@ function Inner() {
 
     const { data: ck } = await supabase
       .from("preventiva_checklist")
-      .select("id, descricao, concluida, foto_url, observacao, concluida_em")
+      .select("id, descricao, concluida, foto_url, observacao, concluida_em, minutos")
       .eq("execucao_id", id)
       .order("created_at");
     setItems((ck ?? []) as Item[]);
   };
   useEffect(() => { void load(); }, [id]);
+
+  // Histórico por descrição (lazy)
+  const [history, setHistory] = useState<Record<string, HistEntry[]>>({});
+  const [openHist, setOpenHist] = useState<Record<string, boolean>>({});
+  const minutosRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const toggleHistory = async (it: Item) => {
+    const isOpen = !!openHist[it.id];
+    setOpenHist(p => ({ ...p, [it.id]: !isOpen }));
+    if (isOpen || history[it.id] || !exec) return;
+    // fetch últimas 3 execuções concluidas com esta descrição para este cliente
+    const { data: ex } = await supabase
+      .from("preventiva_execucoes")
+      .select("id, data_execucao")
+      .eq("client_id", exec.client_id)
+      .eq("estado", "concluida")
+      .order("data_execucao", { ascending: false })
+      .limit(20);
+    const ids = (ex ?? []).map(e => e.id);
+    if (ids.length === 0) { setHistory(p => ({ ...p, [it.id]: [] })); return; }
+    const { data: ck } = await supabase
+      .from("preventiva_checklist")
+      .select("execucao_id, concluida, minutos, observacao, foto_url")
+      .in("execucao_id", ids)
+      .eq("descricao", it.descricao);
+    const byExec = new Map((ck ?? []).map(c => [c.execucao_id, c]));
+    const merged: HistEntry[] = (ex ?? [])
+      .filter(e => byExec.has(e.id))
+      .slice(0, 3)
+      .map(e => {
+        const c = byExec.get(e.id)!;
+        return {
+          data_execucao: e.data_execucao,
+          concluida: c.concluida,
+          minutos: c.minutos,
+          observacao: c.observacao,
+          foto_url: c.foto_url,
+        };
+      });
+    setHistory(p => ({ ...p, [it.id]: merged }));
+  };
 
   // Cronómetro tick
   useEffect(() => {
