@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, Play, History, Settings, CalendarClock } from "lucide-react";
+import { ShieldCheck, Play, FileText, Settings, CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/preventiva/")({
