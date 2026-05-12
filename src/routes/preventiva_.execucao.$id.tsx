@@ -187,6 +187,14 @@ function Inner() {
     }).eq("id", it.id);
     if (error) return toast.error(error.message);
     setItems(prev => prev.map(x => x.id === it.id ? { ...x, concluida: next, concluida_em: next ? new Date().toISOString() : null } : x));
+    if (next) {
+      setTimeout(() => minutosRefs.current[it.id]?.focus(), 50);
+    }
+  };
+
+  const updateMinutos = async (it: Item, value: number | null) => {
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, minutos: value } : x));
+    await supabase.from("preventiva_checklist").update({ minutos: value }).eq("id", it.id);
   };
 
   const updateObs = async (it: Item, value: string) => {
