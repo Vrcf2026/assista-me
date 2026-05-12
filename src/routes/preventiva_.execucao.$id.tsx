@@ -218,7 +218,13 @@ function Inner() {
     if (pendentes > 0 && !confirm(`Há ${pendentes} tarefa(s) por fazer. Concluir mesmo assim?`)) return;
     setBusy(true);
     try {
-      const finalMin = computeMinutes();
+      let finalMin = computeMinutes();
+      const totalTarefas = items.reduce((s, i) => s + (i.minutos || 0), 0);
+      if (finalMin === 0 && totalTarefas > 0) {
+        if (confirm(`Usar o total das tarefas (${totalTarefas} min) como tempo da manutenção?`)) {
+          finalMin = totalTarefas;
+        }
+      }
 
       // Update execucao
       const { error } = await supabase.from("preventiva_execucoes").update({
