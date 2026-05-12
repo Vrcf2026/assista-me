@@ -194,9 +194,16 @@ function Inner() {
                     <td className="py-2 pr-3 text-muted-foreground">{r.ultima_data ? formatDate(r.ultima_data) : "—"}</td>
                     <td className="py-2 pr-3">{estadoBadge(r.proxima_data)}</td>
                     <td className="py-2 pr-3 text-right">
-                      <Button size="sm" disabled={busy} onClick={() => void iniciar(r)}>
-                        <Play className="h-3.5 w-3.5 mr-1" />Iniciar
-                      </Button>
+                      <div className="flex gap-1 justify-end">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to="/preventiva/relatorio/$id" params={{ id: r.id }}>
+                            <FileText className="h-3.5 w-3.5 mr-1" />Relatório
+                          </Link>
+                        </Button>
+                        <Button size="sm" disabled={busy} onClick={() => void iniciar(r)}>
+                          <Play className="h-3.5 w-3.5 mr-1" />Iniciar
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
