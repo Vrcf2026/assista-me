@@ -9,7 +9,7 @@ import { PriorityBadge, StatusBadge, TipoBadge } from "@/components/StatusBadge"
 import { formatTicketNumber } from "@/lib/format";
 import { getCriticalSla, formatRemaining } from "@/lib/sla";
 import {
-  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight,
+  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
