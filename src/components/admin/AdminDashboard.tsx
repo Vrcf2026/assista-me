@@ -58,6 +58,7 @@ function timeAgo(date: Date, now: Date): string {
 export function AdminDashboard() {
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [satAvg, setSatAvg] = useState<{ count: number; avg: number }>({ count: 0, avg: 0 });
+  const [trabalhosStats, setTrabalhosStats] = useState<{ ativos: number; atrasados: number }>({ ativos: 0, atrasados: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { void load(); }, []);
