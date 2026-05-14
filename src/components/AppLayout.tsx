@@ -52,6 +52,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   <ShieldCheck className="h-4 w-4" />
                   <span className="hidden sm:inline">Preventiva</span>
                 </Link>
+                <Link to="/trabalhos" className={linkCls(isActive("/trabalhos"))}>
+                  <ClipboardList className="h-4 w-4" />
+                  <span className="hidden sm:inline">Trabalhos</span>
+                </Link>
                 <Link to="/clientes" className={linkCls(isActive("/clientes"))}>
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Clientes</span>
