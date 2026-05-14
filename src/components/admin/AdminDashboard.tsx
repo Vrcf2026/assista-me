@@ -365,6 +365,26 @@ export function AdminDashboard() {
         />
       </div>
 
+      <Link to="/trabalhos" className="block">
+        <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ClipboardList className="h-5 w-5 text-purple-500" />
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Trabalhos pendentes</div>
+                <div className="text-2xl font-bold mt-1">
+                  {trabalhosStats.ativos}
+                  {trabalhosStats.atrasados > 0 && (
+                    <span className="text-destructive text-base font-medium ml-2">({trabalhosStats.atrasados} atrasados)</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </Card>
+      </Link>
+
       {/* SECÇÃO 4 — Gráficos em tabs */}
       <Card className="p-5 shadow-sm">
         <Tabs defaultValue="semana">
