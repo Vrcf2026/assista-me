@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as LoginRouteImport } from './routes/login'
@@ -42,6 +43,11 @@ import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrabalhosRoute = TrabalhosRouteImport.update({
+  id: '/trabalhos',
+  path: '/trabalhos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsRoute = TicketsRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/preventiva'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/login'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/preventiva'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
+  TrabalhosRoute: typeof TrabalhosRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/unsubscribe'
       fullPath: '/unsubscribe'
       preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trabalhos': {
+      id: '/trabalhos'
+      path: '/trabalhos'
+      fullPath: '/trabalhos'
+      preLoaderRoute: typeof TrabalhosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets': {
@@ -658,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
+  TrabalhosRoute: TrabalhosRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
