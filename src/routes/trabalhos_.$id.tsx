@@ -99,7 +99,7 @@ function Inner() {
   };
   useEffect(() => { void load(); }, [id]);
 
-  const update = async (patch: Partial<Trabalho>) => {
+  const update = async (patch: Partial<Omit<Trabalho, "clients">>) => {
     if (!t) return;
     setT({ ...t, ...patch });
     await supabase.from("trabalhos").update(patch).eq("id", id);
