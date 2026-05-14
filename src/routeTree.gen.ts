@@ -10,12 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
+import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
@@ -42,6 +44,11 @@ import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrabalhosRoute = TrabalhosRouteImport.update({
+  id: '/trabalhos',
+  path: '/trabalhos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsRoute = TicketsRouteImport.update({
@@ -73,6 +80,11 @@ const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PreventivaRoute,
+} as any)
+const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
+  id: '/trabalhos_/$id',
+  path: '/trabalhos/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
   id: '/novo',
@@ -196,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -208,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -226,6 +240,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -238,6 +253,7 @@ export interface FileRoutesByTo {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -258,6 +274,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
+  '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -270,6 +287,7 @@ export interface FileRoutesById {
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/novo': typeof TicketsNovoRoute
+  '/trabalhos_/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva_/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -291,6 +309,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/preventiva'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -303,6 +322,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/trabalhos/$id'
     | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -321,6 +341,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/login'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -333,6 +354,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/trabalhos/$id'
     | '/preventiva'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -352,6 +374,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/preventiva'
     | '/tickets'
+    | '/trabalhos'
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
@@ -364,6 +387,7 @@ export interface FileRouteTypes {
     | '/satisfacao/$token'
     | '/tickets/$id'
     | '/tickets/novo'
+    | '/trabalhos_/$id'
     | '/preventiva/'
     | '/lovable/email/suppression'
     | '/preventiva_/execucao/$id'
@@ -384,6 +408,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
+  TrabalhosRoute: typeof TrabalhosRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
@@ -392,6 +417,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
+  TrabalhosIdRoute: typeof TrabalhosIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
   PreventivaRelatorioIdRoute: typeof PreventivaRelatorioIdRoute
@@ -412,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/unsubscribe'
       fullPath: '/unsubscribe'
       preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trabalhos': {
+      id: '/trabalhos'
+      path: '/trabalhos'
+      fullPath: '/trabalhos'
+      preLoaderRoute: typeof TrabalhosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets': {
@@ -455,6 +488,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/preventiva/'
       preLoaderRoute: typeof PreventivaIndexRouteImport
       parentRoute: typeof PreventivaRoute
+    }
+    '/trabalhos_/$id': {
+      id: '/trabalhos_/$id'
+      path: '/trabalhos/$id'
+      fullPath: '/trabalhos/$id'
+      preLoaderRoute: typeof TrabalhosIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/tickets/novo': {
       id: '/tickets/novo'
@@ -658,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
+  TrabalhosRoute: TrabalhosRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
@@ -666,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
+  TrabalhosIdRoute: TrabalhosIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
   PreventivaRelatorioIdRoute: PreventivaRelatorioIdRoute,

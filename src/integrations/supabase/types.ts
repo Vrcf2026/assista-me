@@ -872,6 +872,135 @@ export type Database = {
           },
         ]
       }
+      trabalho_checklist: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          descricao: string
+          id: string
+          ordem: number
+          trabalho_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          ordem?: number
+          trabalho_id: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          ordem?: number
+          trabalho_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabalho_checklist_trabalho_id_fkey"
+            columns: ["trabalho_id"]
+            isOneToOne: false
+            referencedRelation: "trabalhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trabalho_tempo: {
+        Row: {
+          created_at: string
+          data_trabalho: string
+          id: string
+          minutos: number
+          modo: string
+          trabalho_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_trabalho?: string
+          id?: string
+          minutos: number
+          modo?: string
+          trabalho_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_trabalho?: string
+          id?: string
+          minutos?: number
+          modo?: string
+          trabalho_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabalho_tempo_trabalho_id_fkey"
+            columns: ["trabalho_id"]
+            isOneToOne: false
+            referencedRelation: "trabalhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trabalhos: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          data_agendada: string | null
+          descricao: string | null
+          estado: string
+          id: string
+          minutos: number
+          notas: string | null
+          prioridade: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_agendada?: string | null
+          descricao?: string | null
+          estado?: string
+          id?: string
+          minutos?: number
+          notas?: string | null
+          prioridade?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_agendada?: string | null
+          descricao?: string | null
+          estado?: string
+          id?: string
+          minutos?: number
+          notas?: string | null
+          prioridade?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trabalhos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
