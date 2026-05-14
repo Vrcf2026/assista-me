@@ -86,6 +86,17 @@ export function AdminDashboard() {
       setSatAvg({ count: 0, avg: 0 });
     }
 
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: trab } = await supabase
+      .from("trabalhos")
+      .select("estado, data_agendada")
+      .in("estado", ["pendente", "agendado", "em_curso"]);
+    if (trab) {
+      const ativos = trab.length;
+      const atrasados = trab.filter((r) => r.data_agendada && r.data_agendada < today).length;
+      setTrabalhosStats({ ativos, atrasados });
+    }
+
     setLoading(false);
   }
 
