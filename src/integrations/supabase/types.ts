@@ -788,6 +788,47 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_credenciais: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notas: string | null
+          password: string
+          ticket_id: string
+          tipo: string
+          utilizador: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notas?: string | null
+          password: string
+          ticket_id: string
+          tipo?: string
+          utilizador?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notas?: string | null
+          password?: string
+          ticket_id?: string
+          tipo?: string
+          utilizador?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_credenciais_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_escalations: {
         Row: {
           created_at: string
@@ -819,6 +860,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ticket_escalations_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_notas_partilhadas: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          concluida_por: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string
+          id: string
+          ordem: number
+          ticket_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao: string
+          id?: string
+          ordem?: number
+          ticket_id: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string
+          id?: string
+          ordem?: number
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_notas_partilhadas_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
@@ -929,9 +1014,12 @@ export type Database = {
           estado: Database["public"]["Enums"]["ticket_status"]
           fechado_em: string | null
           id: string
+          internal_notes: string | null
           localizacao: string | null
           motivo_fecho: Database["public"]["Enums"]["close_reason"] | null
+          num_ordem_oficina: string | null
           numero: number
+          pedido_por: string | null
           prioridade: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada: string | null
           tecnico_responsavel: string | null
@@ -951,9 +1039,12 @@ export type Database = {
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
           id?: string
+          internal_notes?: string | null
           localizacao?: string | null
           motivo_fecho?: Database["public"]["Enums"]["close_reason"] | null
+          num_ordem_oficina?: string | null
           numero?: number
+          pedido_por?: string | null
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null
@@ -973,9 +1064,12 @@ export type Database = {
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
           id?: string
+          internal_notes?: string | null
           localizacao?: string | null
           motivo_fecho?: Database["public"]["Enums"]["close_reason"] | null
+          num_ordem_oficina?: string | null
           numero?: number
+          pedido_por?: string | null
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null

@@ -27,8 +27,10 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download } from "lucide-react";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Eye, EyeOff, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
@@ -64,6 +66,9 @@ interface Ticket {
   equipamento: string | null;
   localizacao: string | null;
   contacto_local: string | null;
+  pedido_por: string | null;
+  num_ordem_oficina: string | null;
+  internal_notes: string | null;
   created_at: string;
   updated_at: string;
   client?: { id: string; nome: string; tarifa_hora: number } | null;
@@ -216,6 +221,10 @@ function TicketDetail({ id }: { id: string }) {
                 Cliente: <Link to="/clientes/$id" params={{ id: ticket.client.id }} className="text-primary hover:underline">{ticket.client.nome}</Link>
               </p>
             )}
+            <PedidoPorField ticket={ticket} isAdmin={isAdmin} onChange={load} />
+            {isAdmin && (
+              <OrdemOficinaInline ticket={ticket} onChange={load} />
+            )}
             <TicketTagsEditor ticketId={ticket.id} canEdit={isAdmin} />
           </div>
           {isAdmin && (
@@ -262,6 +271,9 @@ function TicketDetail({ id }: { id: string }) {
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
+      {/* Credenciais seguras — só admin VRCF */}
+      {isAdmin && <CredentialsPanel ticketId={ticket.id} />}
+
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
 
@@ -301,20 +313,16 @@ function TicketDetail({ id }: { id: string }) {
         </Card>
       )}
 
-      {/* Conversation */}
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold mb-3">Conversação</h3>
-        <CommentList
-          comments={comments}
-          attachments={attachments}
-          isAdmin={isAdmin}
-          currentUserId={user?.id}
-          onOpenAttachment={openAttachment}
-        />
-        <div className="mt-4 pt-4 border-t">
-          <NewCommentForm ticketId={id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={load} />
-        </div>
-      </Card>
+      {/* Notas + Conversação em tabs */}
+      <NotesTabsCard
+        ticket={ticket}
+        comments={comments}
+        attachments={attachments}
+        isAdmin={isAdmin}
+        currentUserId={user?.id}
+        onOpenAttachment={openAttachment}
+        onChange={load}
+      />
 
       {isAdmin && (
         <HeaderEscalateDialog
@@ -1111,5 +1119,576 @@ function NewCommentForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+// ============== Pedido por ==============
+function PedidoPorField({ ticket, isAdmin, onChange }: { ticket: Ticket; isAdmin: boolean; onChange: () => void }) {
+  const [name, setName] = useState<string>("—");
+  const [editing, setEditing] = useState(false);
+  const [clientUsers, setClientUsers] = useState<{ user_id: string; nome: string | null; email: string | null }[]>([]);
+  const [val, setVal] = useState<string>(ticket.pedido_por ?? "");
+
+  useEffect(() => {
+    setVal(ticket.pedido_por ?? "");
+    if (!ticket.pedido_por) { setName("—"); return; }
+    void supabase.from("profiles").select("nome, email").eq("user_id", ticket.pedido_por).maybeSingle()
+      .then(({ data }) => setName(data?.nome || data?.email || "—"));
+  }, [ticket.pedido_por]);
+
+  useEffect(() => {
+    if (!isAdmin || !editing) return;
+    void (async () => {
+      const { data: links } = await supabase.from("client_users").select("user_id").eq("client_id", ticket.client_id);
+      const ids = (links ?? []).map((l) => l.user_id);
+      if (ids.length === 0) { setClientUsers([]); return; }
+      const { data: profs } = await supabase.from("profiles").select("user_id, nome, email").in("user_id", ids);
+      setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+    })();
+  }, [isAdmin, editing, ticket.client_id]);
+
+  const save = async () => {
+    const { error } = await supabase.from("tickets").update({ pedido_por: val || null }).eq("id", ticket.id);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido por actualizado");
+    setEditing(false);
+    onChange();
+  };
+
+  return (
+    <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+      <span>Pedido por:</span>
+      {!editing ? (
+        <>
+          <span className="text-foreground font-medium">{name}</span>
+          {isAdmin && (
+            <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => setEditing(true)}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+        </>
+      ) : (
+        <div className="flex items-center gap-1">
+          <Select value={val || "_none_"} onValueChange={(v) => setVal(v === "_none_" ? "" : v)}>
+            <SelectTrigger className="h-7 w-56"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none_">— Nenhum —</SelectItem>
+              {clientUsers.map((u) => (
+                <SelectItem key={u.user_id} value={u.user_id}>{u.nome ?? u.email ?? u.user_id}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={save}><Check className="h-3 w-3" /></Button>
+          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setVal(ticket.pedido_por ?? ""); setEditing(false); }}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== Ordem oficina (admin) ==============
+function OrdemOficinaInline({ ticket, onChange }: { ticket: Ticket; onChange: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(ticket.num_ordem_oficina ?? "");
+
+  useEffect(() => { setVal(ticket.num_ordem_oficina ?? ""); }, [ticket.num_ordem_oficina]);
+
+  const save = async () => {
+    const { error } = await supabase.from("tickets").update({ num_ordem_oficina: val.trim() || null }).eq("id", ticket.id);
+    if (error) return toast.error(error.message);
+    toast.success("Ordem oficina guardada");
+    setEditing(false);
+    onChange();
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1 text-sm">
+        <Package className="h-3.5 w-3.5 text-muted-foreground" />
+        <Input value={val} onChange={(e) => setVal(e.target.value)} placeholder="Nº ordem" className="h-7 w-32" autoFocus />
+        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={save}><Check className="h-3 w-3" /></Button>
+        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setVal(ticket.num_ordem_oficina ?? ""); setEditing(false); }}>
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="text-sm">
+      {ticket.num_ordem_oficina ? (
+        <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1">
+          <Badge variant="secondary" className="cursor-pointer">
+            <Package className="h-3 w-3 mr-1" /> Ordem #{ticket.num_ordem_oficina}
+          </Badge>
+        </button>
+      ) : (
+        <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+          <Package className="h-3 w-3" /> + Adicionar ordem oficina
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============== Credentials (admin only) ==============
+interface Credencial {
+  id: string;
+  ticket_id: string;
+  tipo: "email" | "vpn" | "windows" | "router" | "outro";
+  utilizador: string | null;
+  password: string;
+  notas: string | null;
+  created_at: string;
+}
+
+const TIPO_CRED_LABEL: Record<string, string> = { email: "Email", vpn: "VPN", windows: "Windows", router: "Router", outro: "Outro" };
+const TIPO_CRED_CLS: Record<string, string> = {
+  email: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
+  vpn: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
+  windows: "bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-500/30",
+  router: "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30",
+  outro: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30",
+};
+
+function CredentialsPanel({ ticketId }: { ticketId: string }) {
+  const { user } = useAuth();
+  const [items, setItems] = useState<Credencial[]>([]);
+  const [reveal, setReveal] = useState<Record<string, boolean>>({});
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Credencial | null>(null);
+
+  const load = async () => {
+    const { data } = await supabase.from("ticket_credenciais").select("*").eq("ticket_id", ticketId).order("created_at");
+    setItems((data ?? []) as Credencial[]);
+  };
+  useEffect(() => { void load(); }, [ticketId]);
+
+  const remove = async (id: string) => {
+    if (!confirm("Apagar esta credencial?")) return;
+    const { error } = await supabase.from("ticket_credenciais").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Credencial removida");
+    void load();
+  };
+
+  const openNew = () => { setEditing(null); setOpen(true); };
+  const openEdit = (c: Credencial) => { setEditing(c); setOpen(true); };
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <KeyRound className="h-3.5 w-3.5" /> Credenciais
+        </h3>
+        <Button size="sm" onClick={openNew}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar credencial</Button>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Sem credenciais registadas.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-muted-foreground border-b">
+                <th className="text-left py-2 pr-2">Tipo</th>
+                <th className="text-left py-2 pr-2">Utilizador</th>
+                <th className="text-left py-2 pr-2">Password</th>
+                <th className="text-left py-2 pr-2">Notas</th>
+                <th className="text-right py-2">Acções</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((c) => (
+                <tr key={c.id} className="border-b last:border-b-0">
+                  <td className="py-2 pr-2">
+                    <Badge variant="outline" className={TIPO_CRED_CLS[c.tipo]}>{TIPO_CRED_LABEL[c.tipo]}</Badge>
+                  </td>
+                  <td className="py-2 pr-2 font-mono text-xs">{c.utilizador || "—"}</td>
+                  <td className="py-2 pr-2">
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono text-xs">{reveal[c.id] ? c.password : "••••••••"}</span>
+                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setReveal((r) => ({ ...r, [c.id]: !r[c.id] }))}>
+                        {reveal[c.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      </Button>
+                      {reveal[c.id] && (
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => { void navigator.clipboard.writeText(c.password); toast.success("Copiado"); }}>
+                          Copiar
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 pr-2 text-xs text-muted-foreground max-w-[240px] truncate">{c.notas || "—"}</td>
+                  <td className="py-2 text-right">
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => openEdit(c)}><Pencil className="h-3 w-3" /></Button>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => void remove(c.id)}><Trash2 className="h-3 w-3" /></Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <CredentialDialog
+        open={open}
+        onOpenChange={setOpen}
+        ticketId={ticketId}
+        userId={user?.id}
+        editing={editing}
+        onSaved={() => { setOpen(false); void load(); }}
+      />
+    </Card>
+  );
+}
+
+function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSaved }: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  ticketId: string;
+  userId: string | undefined;
+  editing: Credencial | null;
+  onSaved: () => void;
+}) {
+  const [tipo, setTipo] = useState<Credencial["tipo"]>("outro");
+  const [utilizador, setUtilizador] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [notas, setNotas] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    if (editing) {
+      setTipo(editing.tipo); setUtilizador(editing.utilizador ?? ""); setPassword(editing.password); setNotas(editing.notas ?? "");
+    } else {
+      setTipo("outro"); setUtilizador(""); setPassword(""); setNotas("");
+    }
+    setShowPw(false);
+  }, [open, editing]);
+
+  const gerarPw = () => {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*";
+    let p = "";
+    const arr = new Uint32Array(12);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < 12; i++) p += chars[arr[i] % chars.length];
+    setPassword(p);
+    setShowPw(true);
+  };
+
+  const save = async () => {
+    if (!password.trim()) { toast.error("Password obrigatória"); return; }
+    setBusy(true);
+    try {
+      if (editing) {
+        const { error } = await supabase.from("ticket_credenciais")
+          .update({ tipo, utilizador: utilizador.trim() || null, password, notas: notas.trim() || null })
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("ticket_credenciais").insert({
+          ticket_id: ticketId, tipo, utilizador: utilizador.trim() || null, password,
+          notas: notas.trim() || null, created_by: userId ?? null,
+        });
+        if (error) throw error;
+      }
+      toast.success("Credencial guardada");
+      onSaved();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{editing ? "Editar credencial" : "Nova credencial"}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Tipo</Label>
+            <Select value={tipo} onValueChange={(v) => setTipo(v as Credencial["tipo"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="vpn">VPN</SelectItem>
+                <SelectItem value="windows">Windows</SelectItem>
+                <SelectItem value="router">Router</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Utilizador / Email</Label>
+            <Input value={utilizador} onChange={(e) => setUtilizador(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Password</Label>
+            <div className="flex gap-2">
+              <Input
+                type={showPw ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="font-mono"
+              />
+              <Button type="button" variant="outline" size="icon" onClick={() => setShowPw((v) => !v)}>
+                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button type="button" variant="outline" onClick={gerarPw}>Gerar</Button>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Notas</Label>
+            <Textarea value={notas} onChange={(e) => setNotas(e.target.value)} rows={3} placeholder="Ex: alterar após resolução" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={save} disabled={busy}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============== Notes tabs ==============
+function NotesTabsCard({
+  ticket, comments, attachments, isAdmin, currentUserId, onOpenAttachment, onChange,
+}: {
+  ticket: Ticket;
+  comments: Comment[];
+  attachments: Attachment[];
+  isAdmin: boolean;
+  currentUserId: string | undefined;
+  onOpenAttachment: (a: Attachment) => void | Promise<void>;
+  onChange: () => void;
+}) {
+  const [isClientAdmin, setIsClientAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!currentUserId || isAdmin) { setIsClientAdmin(false); return; }
+    void supabase.from("client_users")
+      .select("is_client_admin").eq("user_id", currentUserId).eq("client_id", ticket.client_id).maybeSingle()
+      .then(({ data }) => setIsClientAdmin(!!data?.is_client_admin));
+  }, [currentUserId, ticket.client_id, isAdmin]);
+
+  const showSharedTab = isAdmin || isClientAdmin;
+
+  return (
+    <Card className="p-4">
+      <Tabs defaultValue="conversa">
+        <TabsList>
+          <TabsTrigger value="conversa">Conversa</TabsTrigger>
+          {isAdmin && <TabsTrigger value="internas">Notas internas</TabsTrigger>}
+          {showSharedTab && <TabsTrigger value="partilhado">Partilhado com cliente</TabsTrigger>}
+        </TabsList>
+
+        <TabsContent value="conversa" className="mt-4">
+          <CommentList
+            comments={comments}
+            attachments={attachments}
+            isAdmin={isAdmin}
+            currentUserId={currentUserId}
+            onOpenAttachment={onOpenAttachment}
+          />
+          <div className="mt-4 pt-4 border-t">
+            <NewCommentForm ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={onChange} />
+          </div>
+        </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="internas" className="mt-4">
+            <InternalNotesPanel ticket={ticket} onChange={onChange} />
+          </TabsContent>
+        )}
+
+        {showSharedTab && (
+          <TabsContent value="partilhado" className="mt-4">
+            <SharedChecklistPanel ticketId={ticket.id} canEdit={isAdmin} />
+          </TabsContent>
+        )}
+      </Tabs>
+    </Card>
+  );
+}
+
+function InternalNotesPanel({ ticket, onChange }: { ticket: Ticket; onChange: () => void }) {
+  const [val, setVal] = useState(ticket.internal_notes ?? "");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setVal(ticket.internal_notes ?? ""); }, [ticket.internal_notes]);
+
+  const save = async () => {
+    setBusy(true);
+    const { error } = await supabase.from("tickets").update({ internal_notes: val }).eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Notas internas guardadas");
+    onChange();
+  };
+
+  return (
+    <div className="space-y-2">
+      <Textarea
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        rows={10}
+        placeholder="Notas internas — só visíveis pela equipa VRCF"
+        className="bg-yellow-500/5 border-yellow-500/30 focus-visible:ring-yellow-500/30"
+      />
+      <div className="flex justify-end">
+        <Button size="sm" onClick={save} disabled={busy}>Guardar</Button>
+      </div>
+    </div>
+  );
+}
+
+interface NotaPartilhada {
+  id: string;
+  descricao: string;
+  concluida: boolean;
+  concluida_em: string | null;
+  ordem: number;
+}
+
+function SharedChecklistPanel({ ticketId, canEdit }: { ticketId: string; canEdit: boolean }) {
+  const { user } = useAuth();
+  const [items, setItems] = useState<NotaPartilhada[]>([]);
+  const [novo, setNovo] = useState("");
+
+  const load = async () => {
+    const { data } = await supabase.from("ticket_notas_partilhadas")
+      .select("id, descricao, concluida, concluida_em, ordem")
+      .eq("ticket_id", ticketId).order("ordem").order("created_at");
+    setItems((data ?? []) as NotaPartilhada[]);
+  };
+  useEffect(() => { void load(); }, [ticketId]);
+
+  const add = async (texto: string) => {
+    const t = texto.trim();
+    if (!t) return;
+    const maxOrdem = items.reduce((m, i) => Math.max(m, i.ordem), 0);
+    const { error } = await supabase.from("ticket_notas_partilhadas").insert({
+      ticket_id: ticketId, descricao: t, ordem: maxOrdem + 1, created_by: user?.id ?? null,
+    });
+    if (error) return toast.error(error.message);
+    setNovo("");
+    void load();
+  };
+
+  const toggle = async (it: NotaPartilhada) => {
+    const novoVal = !it.concluida;
+    const { error } = await supabase.from("ticket_notas_partilhadas")
+      .update({ concluida: novoVal, concluida_em: novoVal ? new Date().toISOString() : null })
+      .eq("id", it.id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const editDesc = async (id: string, descricao: string) => {
+    const { error } = await supabase.from("ticket_notas_partilhadas").update({ descricao }).eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("ticket_notas_partilhadas").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const total = items.length;
+  const done = items.filter((i) => i.concluida).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  return (
+    <div className="space-y-3">
+      {total > 0 && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{done} de {total} concluídos</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
+
+      <ul className="space-y-1.5">
+        {items.map((it) => (
+          <ChecklistRow key={it.id} item={it} canEdit={canEdit} onToggle={() => void toggle(it)} onEdit={(d) => void editDesc(it.id, d)} onRemove={() => void remove(it.id)} />
+        ))}
+        {items.length === 0 && <li className="text-sm text-muted-foreground">Sem itens.</li>}
+      </ul>
+
+      {canEdit && (
+        <div className="flex gap-2 pt-2 border-t">
+          <Input
+            value={novo}
+            onChange={(e) => setNovo(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void add(novo); } }}
+            placeholder="Novo item — ENTER para adicionar"
+          />
+          <Button size="sm" onClick={() => void add(novo)} disabled={!novo.trim()}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChecklistRow({ item, canEdit, onToggle, onEdit, onRemove }: {
+  item: NotaPartilhada;
+  canEdit: boolean;
+  onToggle: () => void;
+  onEdit: (d: string) => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(item.descricao);
+  useEffect(() => { setVal(item.descricao); }, [item.descricao]);
+
+  return (
+    <li className="flex items-center gap-2 group">
+      <Checkbox checked={item.concluida} onCheckedChange={onToggle} />
+      {editing && canEdit ? (
+        <>
+          <Input
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); onEdit(val); setEditing(false); }
+              if (e.key === "Escape") { setVal(item.descricao); setEditing(false); }
+            }}
+            className="h-8 flex-1"
+            autoFocus
+          />
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { onEdit(val); setEditing(false); }}>
+            <Check className="h-3 w-3" />
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setVal(item.descricao); setEditing(false); }}>
+            <X className="h-3 w-3" />
+          </Button>
+        </>
+      ) : (
+        <>
+          <span
+            className={`flex-1 text-sm ${item.concluida ? "line-through text-muted-foreground" : ""} ${canEdit ? "cursor-text" : ""}`}
+            onClick={() => canEdit && setEditing(true)}
+          >
+            {item.descricao}
+          </span>
+          {item.concluida_em && (
+            <span className="text-xs text-muted-foreground">{formatDateTime(item.concluida_em)}</span>
+          )}
+          {canEdit && (
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-destructive" onClick={onRemove}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </>
+      )}
+    </li>
   );
 }

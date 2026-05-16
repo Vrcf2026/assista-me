@@ -64,6 +64,7 @@ function NovoCliente() {
           client_id: client.id,
           titulo, descricao, prioridade,
           created_by: user.id,
+          pedido_por: user.id,
         })
         .select("id, numero")
         .single();
@@ -198,6 +199,7 @@ function NovoAdmin() {
         .from("tickets").insert({
           client_id: clientId, titulo, descricao, prioridade, tipo_intervencao: tipo,
           created_by: createdBy,
+          pedido_por: assignToUser && assignedUserId ? assignedUserId : null,
           equipamento: equipamento.trim() || null,
           localizacao: (tipo === "presencial" || tipo === "preventiva") ? (localizacao.trim() || null) : null,
           contacto_local: tipo === "presencial" ? (contactoLocal.trim() || null) : null,
