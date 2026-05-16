@@ -148,6 +148,45 @@ function Inner() {
     }
   };
 
+  const propagarTarefas = async () => {
+    if (!propagar) return;
+    try {
+      const ags = propagar.agendamentos.map(a => a.id);
+      const { data: existentes } = await supabase
+        .from("preventiva_agendamento_tarefas")
+        .select("agendamento_id")
+        .in("agendamento_id", ags);
+      const comCustom = new Set((existentes ?? []).map(r => r.agendamento_id));
+      const rows: { agendamento_id: string; tarefa_id: string; descricao: string; ordem: number; ativo: boolean }[] = [];
+      for (const ag of ags) {
+        if (!comCustom.has(ag)) continue;
+        const { data: ordens } = await supabase
+          .from("preventiva_agendamento_tarefas")
+          .select("ordem").eq("agendamento_id", ag).order("ordem", { ascending: false }).limit(1);
+        let ord = ordens?.[0]?.ordem ?? 0;
+        for (let i = 0; i < propagar.ids.length; i++) {
+          ord += 1;
+          rows.push({
+            agendamento_id: ag,
+            tarefa_id: propagar.ids[i],
+            descricao: propagar.descricoes[i],
+            ordem: ord,
+            ativo: true,
+          });
+        }
+      }
+      if (rows.length) {
+        const { error } = await supabase.from("preventiva_agendamento_tarefas").insert(rows);
+        if (error) throw error;
+      }
+      toast.success(rows.length ? `Tarefas propagadas a ${comCustom.size} agendamento(s)` : "Sem agendamentos personalizados a actualizar");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao propagar");
+    } finally {
+      setPropagar(null);
+    }
+  };
+
   const visiveis = tarefas.filter(t => !t._delete);
 
   return (
