@@ -68,6 +68,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   <Receipt className="h-4 w-4" />
                   <span className="hidden lg:inline">Faturação</span>
                 </Link>
+                <Link to="/admin/relatorios" className={linkCls(isActive("/admin/relatorios"))}>
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden lg:inline">Relatórios</span>
+                </Link>
                 <Link to="/admin/tags" className={linkCls(isActive("/admin/tags"))}>
                   <Tag className="h-4 w-4" />
                   <span className="hidden lg:inline">Tags</span>
