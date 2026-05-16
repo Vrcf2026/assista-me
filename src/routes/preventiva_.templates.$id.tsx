@@ -241,6 +241,24 @@ function Inner() {
       <div className="sticky bottom-4 flex justify-end">
         <Button onClick={() => void save()} disabled={busy}><Save className="h-4 w-4 mr-1" />Guardar template</Button>
       </div>
+
+      <AlertDialog open={!!propagar} onOpenChange={(v) => { if (!v) setPropagar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Propagar tarefas aos agendamentos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Foram adicionadas {propagar?.ids.length ?? 0} tarefa(s) ao template.
+              Existem {propagar?.agendamentos.length ?? 0} agendamento(s) que usam este template.
+              Queres acrescentar as novas tarefas aos que já têm checklist personalizada?
+              (Os agendamentos sem personalização já vão usar a versão actualizada do template automaticamente.)
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não, só no template</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void propagarTarefas()}>Sim, adicionar a todos</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
