@@ -911,6 +911,94 @@ export type Database = {
           },
         ]
       }
+      ticket_orcamento_itens: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          orcamento_id: string
+          ordem: number
+          quantidade: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          orcamento_id: string
+          ordem?: number
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          ordem?: number
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_orcamento_itens_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_orcamentos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          estado: string
+          id: string
+          notas: string | null
+          observacao_resposta: string | null
+          respondido_em: string | null
+          respondido_por: string | null
+          ticket_id: string
+          validade: string | null
+          versao: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          observacao_resposta?: string | null
+          respondido_em?: string | null
+          respondido_por?: string | null
+          ticket_id: string
+          validade?: string | null
+          versao?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          observacao_resposta?: string | null
+          respondido_em?: string | null
+          respondido_por?: string | null
+          ticket_id?: string
+          validade?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_orcamentos_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_satisfaction: {
         Row: {
           comentario: string | null

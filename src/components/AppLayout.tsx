@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone, FileText } from "lucide-react";
+import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone, FileText, Monitor } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -84,6 +84,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   <Mail className="h-4 w-4" />
                   <span className="hidden lg:inline">Emails</span>
                 </Link>
+                <a href="/painel" target="_blank" rel="noreferrer" className={linkCls(false)}>
+                  <Monitor className="h-4 w-4" />
+                  <span className="hidden lg:inline">Painel</span>
+                </a>
               </>
             ) : (
               <>

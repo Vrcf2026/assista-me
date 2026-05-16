@@ -32,6 +32,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
+import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 
@@ -322,6 +323,11 @@ function TicketDetail({ id }: { id: string }) {
         currentUserId={user?.id}
         onOpenAttachment={openAttachment}
         onChange={load}
+      />
+
+      <OrcamentosPanel
+        ticket={{ id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id, created_by: (ticket as any).created_by ?? null }}
+        isAdmin={isAdmin}
       />
 
       {isAdmin && (
