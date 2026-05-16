@@ -37,6 +37,7 @@ function Inner() {
   const [periodicidade, setPeriodicidade] = useState("mensal");
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [busy, setBusy] = useState(false);
+  const [propagar, setPropagar] = useState<{ ids: string[]; descricoes: string[]; agendamentos: { id: string }[] } | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const load = async () => {
