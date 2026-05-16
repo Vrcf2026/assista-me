@@ -645,3 +645,82 @@ export async function gerarArquivoCliente(clientId: string, dataInicio: string, 
 
   save(doc, "interno", `arquivo-${client.nome}-${dataInicio}-${dataFim}.pdf`);
 }
+
+// ============ PDF — Orçamento ============
+export async function gerarOrcamentoPDF(orcamentoId: string) {
+  const { data: orc } = await supabase
+    .from("ticket_orcamentos")
+    .select("*, ticket:tickets(numero, titulo, client:clients(nome, nif))")
+    .eq("id", orcamentoId)
+    .single();
+  if (!orc) throw new Error("Orçamento não encontrado");
+  const { data: itens } = await supabase
+    .from("ticket_orcamento_itens")
+    .select("*")
+    .eq("orcamento_id", orcamentoId)
+    .order("ordem");
+
+  const ticket = (orc as any).ticket;
+  const client = ticket?.client;
+
+  const doc = new jsPDF();
+  addHeader(doc, `Orçamento v${(orc as any).versao}`, `Ticket #${String(ticket?.numero ?? "").padStart(4, "0")} — ${ticket?.titulo ?? ""}`);
+
+  let y = 32;
+  infoBox(doc, y, [
+    { label: "Cliente", value: client?.nome ?? "—" },
+    ...(client?.nif ? [{ label: "NIF", value: client.nif }] : []),
+    { label: "Data", value: formatDate((orc as any).created_at) },
+    ...((orc as any).validade ? [{ label: "Válido até", value: formatDate((orc as any).validade) }] : []),
+    { label: "Estado", value: ((orc as any).estado as string).toUpperCase() },
+  ]);
+  y = getY(doc);
+
+  const rows = (itens ?? []).map((it: any) => [
+    it.descricao,
+    String(Number(it.quantidade)),
+    formatCurrency(Number(it.valor_unitario)),
+    formatCurrency(Number(it.quantidade) * Number(it.valor_unitario)),
+  ]);
+  const total = (itens ?? []).reduce((s: number, it: any) => s + Number(it.quantidade) * Number(it.valor_unitario), 0);
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Descrição", "Qtd", "Unit.", "Total"]],
+    body: rows,
+    headStyles: { fillColor: [231, 119, 34] },
+    styles: { fontSize: 9 },
+    columnStyles: {
+      1: { halign: "right", cellWidth: 20 },
+      2: { halign: "right", cellWidth: 28 },
+      3: { halign: "right", cellWidth: 32, fontStyle: "bold" },
+    },
+  });
+  y = getY(doc);
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(231, 119, 34);
+  doc.text(`Total: ${formatCurrency(total)}`, 196, y + 4, { align: "right" });
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  y += 14;
+
+  if ((orc as any).notas) {
+    y = section(doc, "Notas", y);
+    doc.setFontSize(9);
+    const lines = doc.splitTextToSize((orc as any).notas as string, 180);
+    doc.text(lines, 14, y);
+    y += lines.length * 4 + 4;
+  }
+
+  y = section(doc, "Termos", y);
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text("• Validade do orçamento: 15 dias a contar da data de emissão.", 14, y); y += 4;
+  doc.text("• Valores apresentados com IVA incluído à taxa em vigor.", 14, y); y += 4;
+  doc.text("• Pagamento na conclusão dos trabalhos.", 14, y);
+  doc.setTextColor(0, 0, 0);
+
+  save(doc, "cliente", `orcamento-${ticket?.numero ?? orcamentoId.slice(0, 6)}-v${(orc as any).versao}.pdf`);
+}
