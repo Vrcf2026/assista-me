@@ -64,6 +64,7 @@ function NovoCliente() {
           client_id: client.id,
           titulo, descricao, prioridade,
           created_by: user.id,
+          pedido_por: user.id,
         })
         .select("id, numero")
         .single();
