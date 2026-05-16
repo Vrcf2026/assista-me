@@ -104,14 +104,18 @@ function Inner() {
         }
       }
       // Insert new
-      const novas = visiveis.filter(t => t._new && t.descricao.trim()).map((t, i) => ({
+      const novasOrig = visiveis.filter(t => t._new && t.descricao.trim());
+      const novas = novasOrig.map((t, i) => ({
         template_id: id,
         descricao: t.descricao.trim(),
         ordem: visiveis.findIndex(x => x === t) + 1 || (i + 1),
       }));
+      let inseridas: { id: string; descricao: string; ordem: number }[] = [];
       if (novas.length) {
-        const { error: iErr } = await supabase.from("preventiva_tarefas").insert(novas);
+        const { data: ins, error: iErr } = await supabase
+          .from("preventiva_tarefas").insert(novas).select("id, descricao, ordem");
         if (iErr) throw iErr;
+        inseridas = (ins ?? []) as { id: string; descricao: string; ordem: number }[];
       }
       // Delete
       const ids = tarefas.filter(t => t._delete && t.id).map(t => t.id!);
@@ -122,6 +126,21 @@ function Inner() {
 
       toast.success("Template guardado");
       void load();
+
+      // Propagação opcional: se foram adicionadas tarefas e há agendamentos, perguntar
+      if (inseridas.length > 0) {
+        const { data: ags } = await supabase
+          .from("preventiva_agendamentos")
+          .select("id")
+          .eq("template_id", id);
+        if (ags && ags.length > 0) {
+          setPropagar({
+            ids: inseridas.map(t => t.id),
+            descricoes: inseridas.map(t => t.descricao),
+            agendamentos: ags as { id: string }[],
+          });
+        }
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Erro a guardar");
     } finally {
