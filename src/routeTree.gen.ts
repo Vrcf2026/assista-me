@@ -15,6 +15,7 @@ import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as CampanhasRouteImport } from './routes/campanhas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
 import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
@@ -25,6 +26,7 @@ import { Route as PreventivaAgendamentosRouteImport } from './routes/preventiva_
 import { Route as PreventivaTemplatesRouteImport } from './routes/preventiva.templates'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
+import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
@@ -33,6 +35,7 @@ import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.
 import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.relatorio.$id'
 import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as CampanhasExecucaoClienteIdRouteImport } from './routes/campanhas_.execucao.$clienteId'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -69,6 +72,11 @@ const LoginRoute = LoginRouteImport.update({
 const ClientesRoute = ClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CampanhasRoute = CampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -121,6 +129,11 @@ const ClientesIdRoute = ClientesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ClientesRoute,
 } as any)
+const CampanhasIdRoute = CampanhasIdRouteImport.update({
+  id: '/campanhas_/$id',
+  path: '/campanhas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
   id: '/admin/templates',
   path: '/admin/templates',
@@ -161,6 +174,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampanhasExecucaoClienteIdRoute =
+  CampanhasExecucaoClienteIdRouteImport.update({
+    id: '/campanhas_/execucao/$clienteId',
+    path: '/campanhas/execucao/$clienteId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -204,6 +223,7 @@ const ApiPublicHooksAutoCloseTicketsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
@@ -214,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
@@ -223,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
@@ -237,6 +259,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/tickets': typeof TicketsRouteWithChildren
@@ -246,6 +269,7 @@ export interface FileRoutesByTo {
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
@@ -255,6 +279,7 @@ export interface FileRoutesByTo {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva': typeof PreventivaIndexRoute
+  '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
@@ -270,6 +295,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/preventiva': typeof PreventivaRouteWithChildren
@@ -280,6 +306,7 @@ export interface FileRoutesById {
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/campanhas_/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
@@ -289,6 +316,7 @@ export interface FileRoutesById {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos_/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/campanhas_/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva_/execucao/$id': typeof PreventivaExecucaoIdRoute
   '/preventiva_/relatorio/$id': typeof PreventivaRelatorioIdRoute
@@ -305,6 +333,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/campanhas'
     | '/clientes'
     | '/login'
     | '/preventiva'
@@ -315,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
+    | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
     | '/preventiva/templates'
@@ -324,6 +354,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva/'
+    | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
     | '/preventiva/relatorio/$id'
@@ -338,6 +369,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/campanhas'
     | '/clientes'
     | '/login'
     | '/tickets'
@@ -347,6 +379,7 @@ export interface FileRouteTypes {
     | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
+    | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
     | '/preventiva/templates'
@@ -356,6 +389,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva'
+    | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
     | '/preventiva/relatorio/$id'
@@ -370,6 +404,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/campanhas'
     | '/clientes'
     | '/login'
     | '/preventiva'
@@ -380,6 +415,7 @@ export interface FileRouteTypes {
     | '/admin/faturacao'
     | '/admin/tags'
     | '/admin/templates'
+    | '/campanhas_/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
     | '/preventiva/templates'
@@ -389,6 +425,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos_/$id'
     | '/preventiva/'
+    | '/campanhas_/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva_/execucao/$id'
     | '/preventiva_/relatorio/$id'
@@ -404,6 +441,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CampanhasRoute: typeof CampanhasRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
@@ -414,10 +452,12 @@ export interface RootRouteChildren {
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
+  CampanhasIdRoute: typeof CampanhasIdRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   TrabalhosIdRoute: typeof TrabalhosIdRoute
+  CampanhasExecucaoClienteIdRoute: typeof CampanhasExecucaoClienteIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
   PreventivaRelatorioIdRoute: typeof PreventivaRelatorioIdRoute
@@ -473,6 +513,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes'
       preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campanhas': {
+      id: '/campanhas'
+      path: '/campanhas'
+      fullPath: '/campanhas'
+      preLoaderRoute: typeof CampanhasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -545,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesIdRouteImport
       parentRoute: typeof ClientesRoute
     }
+    '/campanhas_/$id': {
+      id: '/campanhas_/$id'
+      path: '/campanhas/$id'
+      fullPath: '/campanhas/$id'
+      preLoaderRoute: typeof CampanhasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/templates': {
       id: '/admin/templates'
       path: '/admin/templates'
@@ -599,6 +653,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campanhas_/execucao/$clienteId': {
+      id: '/campanhas_/execucao/$clienteId'
+      path: '/campanhas/execucao/$clienteId'
+      fullPath: '/campanhas/execucao/$clienteId'
+      preLoaderRoute: typeof CampanhasExecucaoClienteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/send': {
@@ -694,6 +755,7 @@ const TicketsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CampanhasRoute: CampanhasRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
@@ -704,10 +766,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFaturacaoRoute: AdminFaturacaoRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
+  CampanhasIdRoute: CampanhasIdRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   TrabalhosIdRoute: TrabalhosIdRoute,
+  CampanhasExecucaoClienteIdRoute: CampanhasExecucaoClienteIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
   PreventivaRelatorioIdRoute: PreventivaRelatorioIdRoute,

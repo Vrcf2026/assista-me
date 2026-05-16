@@ -9,7 +9,7 @@ import { PriorityBadge, StatusBadge, TipoBadge } from "@/components/StatusBadge"
 import { formatTicketNumber } from "@/lib/format";
 import { getCriticalSla, formatRemaining } from "@/lib/sla";
 import {
-  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList,
+  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList, Megaphone,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
@@ -59,6 +59,7 @@ export function AdminDashboard() {
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [satAvg, setSatAvg] = useState<{ count: number; avg: number }>({ count: 0, avg: 0 });
   const [trabalhosStats, setTrabalhosStats] = useState<{ ativos: number; atrasados: number }>({ ativos: 0, atrasados: 0 });
+  const [campanhasStats, setCampanhasStats] = useState<{ ativas: number; pendentes: number }>({ ativas: 0, pendentes: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { void load(); }, []);
@@ -96,6 +97,22 @@ export function AdminDashboard() {
       const atrasados = trab.filter((r) => r.data_agendada && r.data_agendada < today).length;
       setTrabalhosStats({ ativos, atrasados });
     }
+
+    const { data: campAtivas } = await supabase
+      .from("campanhas")
+      .select("id")
+      .eq("estado", "ativa");
+    const ativasIds = (campAtivas ?? []).map((c) => c.id);
+    let pendentes = 0;
+    if (ativasIds.length > 0) {
+      const { count } = await supabase
+        .from("campanha_clientes")
+        .select("id", { count: "exact", head: true })
+        .in("campanha_id", ativasIds)
+        .in("estado", ["pendente", "agendado", "em_curso"]);
+      pendentes = count ?? 0;
+    }
+    setCampanhasStats({ ativas: ativasIds.length, pendentes });
 
     setLoading(false);
   }
@@ -365,25 +382,47 @@ export function AdminDashboard() {
         />
       </div>
 
-      <Link to="/trabalhos" className="block">
-        <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ClipboardList className="h-5 w-5 text-purple-500" />
-              <div>
-                <div className="text-xs uppercase tracking-wide text-muted-foreground">Trabalhos pendentes</div>
-                <div className="text-2xl font-bold mt-1">
-                  {trabalhosStats.ativos}
-                  {trabalhosStats.atrasados > 0 && (
-                    <span className="text-destructive text-base font-medium ml-2">({trabalhosStats.atrasados} atrasados)</span>
-                  )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link to="/trabalhos" className="block">
+          <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ClipboardList className="h-5 w-5 text-purple-500" />
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Trabalhos pendentes</div>
+                  <div className="text-2xl font-bold mt-1">
+                    {trabalhosStats.ativos}
+                    {trabalhosStats.atrasados > 0 && (
+                      <span className="text-destructive text-base font-medium ml-2">({trabalhosStats.atrasados} atrasados)</span>
+                    )}
+                  </div>
                 </div>
               </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </div>
-        </Card>
-      </Link>
+          </Card>
+        </Link>
+
+        <Link to="/campanhas" className="block">
+          <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Megaphone className="h-5 w-5 text-blue-500" />
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Campanhas activas</div>
+                  <div className="text-2xl font-bold mt-1">
+                    {campanhasStats.ativas}
+                    {campanhasStats.pendentes > 0 && (
+                      <span className="text-muted-foreground text-base font-medium ml-2">({campanhasStats.pendentes} pendentes)</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Card>
+        </Link>
+      </div>
 
       {/* SECÇÃO 4 — Gráficos em tabs */}
       <Card className="p-5 shadow-sm">
