@@ -325,6 +325,11 @@ function TicketDetail({ id }: { id: string }) {
         onChange={load}
       />
 
+      <OrcamentosPanel
+        ticket={{ id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id, created_by: (ticket as any).created_by ?? null }}
+        isAdmin={isAdmin}
+      />
+
       {isAdmin && (
         <HeaderEscalateDialog
           open={headerEscalateOpen}
