@@ -271,6 +271,9 @@ function TicketDetail({ id }: { id: string }) {
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
+      {/* Credenciais seguras — só admin VRCF */}
+      {isAdmin && <CredentialsPanel ticketId={ticket.id} />}
+
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
 
@@ -310,20 +313,16 @@ function TicketDetail({ id }: { id: string }) {
         </Card>
       )}
 
-      {/* Conversation */}
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold mb-3">Conversação</h3>
-        <CommentList
-          comments={comments}
-          attachments={attachments}
-          isAdmin={isAdmin}
-          currentUserId={user?.id}
-          onOpenAttachment={openAttachment}
-        />
-        <div className="mt-4 pt-4 border-t">
-          <NewCommentForm ticketId={id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={load} />
-        </div>
-      </Card>
+      {/* Notas + Conversação em tabs */}
+      <NotesTabsCard
+        ticket={ticket}
+        comments={comments}
+        attachments={attachments}
+        isAdmin={isAdmin}
+        currentUserId={user?.id}
+        onOpenAttachment={openAttachment}
+        onChange={load}
+      />
 
       {isAdmin && (
         <HeaderEscalateDialog
