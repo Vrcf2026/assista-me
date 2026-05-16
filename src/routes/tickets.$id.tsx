@@ -66,6 +66,9 @@ interface Ticket {
   equipamento: string | null;
   localizacao: string | null;
   contacto_local: string | null;
+  pedido_por: string | null;
+  num_ordem_oficina: string | null;
+  internal_notes: string | null;
   created_at: string;
   updated_at: string;
   client?: { id: string; nome: string; tarifa_hora: number } | null;
