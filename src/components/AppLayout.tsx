@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone } from "lucide-react";
+import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -67,6 +67,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <Link to="/admin/faturacao" className={linkCls(isActive("/admin/faturacao"))}>
                   <Receipt className="h-4 w-4" />
                   <span className="hidden lg:inline">Faturação</span>
+                </Link>
+                <Link to="/admin/relatorios" className={linkCls(isActive("/admin/relatorios"))}>
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden lg:inline">Relatórios</span>
                 </Link>
                 <Link to="/admin/tags" className={linkCls(isActive("/admin/tags"))}>
                   <Tag className="h-4 w-4" />

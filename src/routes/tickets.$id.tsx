@@ -27,7 +27,9 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock } from "lucide-react";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 
@@ -167,9 +169,26 @@ function TicketDetail({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
-      <Button asChild variant="ghost" size="sm">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-1" /> Exportar</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => { void gerarRelatorioTicketCliente(ticket.id).then(() => toast.success("PDF gerado")).catch((e) => toast.error(e.message)); }}>
+              <Download className="h-4 w-4 mr-2" />PDF Cliente
+            </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem onClick={() => { void gerarRelatorioTicketInterno(ticket.id).then(() => toast.success("PDF gerado")).catch((e) => toast.error(e.message)); }}>
+                <Download className="h-4 w-4 mr-2" />PDF Interno
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Header card */}
       <Card className="p-6">
