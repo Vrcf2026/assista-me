@@ -29,6 +29,7 @@ import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
+import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.templates.$id'
@@ -144,6 +145,11 @@ const AdminTagsRoute = AdminTagsRouteImport.update({
   path: '/admin/tags',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
+  id: '/admin/relatorios',
+  path: '/admin/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminFaturacaoRoute = AdminFaturacaoRouteImport.update({
   id: '/admin/faturacao',
   path: '/admin/faturacao',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/campanhas/$id': typeof CampanhasIdRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/campanhas/$id': typeof CampanhasIdRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/campanhas_/$id': typeof CampanhasIdRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
+    | '/admin/relatorios'
     | '/admin/tags'
     | '/admin/templates'
     | '/campanhas/$id'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
+    | '/admin/relatorios'
     | '/admin/tags'
     | '/admin/templates'
     | '/campanhas/$id'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/admin/emails'
     | '/admin/faturacao'
+    | '/admin/relatorios'
     | '/admin/tags'
     | '/admin/templates'
     | '/campanhas_/$id'
@@ -450,6 +462,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
+  AdminRelatoriosRoute: typeof AdminRelatoriosRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   CampanhasIdRoute: typeof CampanhasIdRoute
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTagsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/relatorios': {
+      id: '/admin/relatorios'
+      path: '/admin/relatorios'
+      fullPath: '/admin/relatorios'
+      preLoaderRoute: typeof AdminRelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/faturacao': {
       id: '/admin/faturacao'
       path: '/admin/faturacao'
@@ -764,6 +784,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
+  AdminRelatoriosRoute: AdminRelatoriosRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
   CampanhasIdRoute: CampanhasIdRoute,
