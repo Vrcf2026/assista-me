@@ -440,9 +440,6 @@ export async function gerarRelatorioMensalInterno(mes: number, ano: number) {
     }).filter(Boolean) as any[],
     headStyles: { fillColor: [231, 119, 34] },
     styles: { fontSize: 9 },
-    didParseCell: async (data) => {
-      // optional row tinting omitted for simplicity
-    },
   });
 
   // Página 2 — detalhe
