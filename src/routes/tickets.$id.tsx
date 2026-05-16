@@ -221,6 +221,10 @@ function TicketDetail({ id }: { id: string }) {
                 Cliente: <Link to="/clientes/$id" params={{ id: ticket.client.id }} className="text-primary hover:underline">{ticket.client.nome}</Link>
               </p>
             )}
+            <PedidoPorField ticket={ticket} isAdmin={isAdmin} onChange={load} />
+            {isAdmin && (
+              <OrdemOficinaInline ticket={ticket} onChange={load} />
+            )}
             <TicketTagsEditor ticketId={ticket.id} canEdit={isAdmin} />
           </div>
           {isAdmin && (
