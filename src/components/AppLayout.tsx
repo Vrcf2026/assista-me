@@ -84,6 +84,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   <Mail className="h-4 w-4" />
                   <span className="hidden lg:inline">Emails</span>
                 </Link>
+                <a href="/painel" target="_blank" rel="noreferrer" className={linkCls(false)}>
+                  <Monitor className="h-4 w-4" />
+                  <span className="hidden lg:inline">Painel</span>
+                </a>
               </>
             ) : (
               <>
