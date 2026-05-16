@@ -68,6 +68,179 @@ export type Database = {
           },
         ]
       }
+      campanha_checklist: {
+        Row: {
+          campanha_cliente_id: string
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          descricao: string
+          foto_url: string | null
+          id: string
+          minutos: number | null
+          observacao: string | null
+          ordem: number
+          tarefa_id: string | null
+        }
+        Insert: {
+          campanha_cliente_id: string
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao: string
+          foto_url?: string | null
+          id?: string
+          minutos?: number | null
+          observacao?: string | null
+          ordem?: number
+          tarefa_id?: string | null
+        }
+        Update: {
+          campanha_cliente_id?: string
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string
+          foto_url?: string | null
+          id?: string
+          minutos?: number | null
+          observacao?: string | null
+          ordem?: number
+          tarefa_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campanha_checklist_campanha_cliente_id_fkey"
+            columns: ["campanha_cliente_id"]
+            isOneToOne: false
+            referencedRelation: "campanha_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campanha_checklist_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "campanha_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campanha_clientes: {
+        Row: {
+          campanha_id: string
+          client_id: string
+          concluido_em: string | null
+          created_at: string
+          data_agendada: string | null
+          estado: string
+          id: string
+          minutos: number
+          notas: string | null
+        }
+        Insert: {
+          campanha_id: string
+          client_id: string
+          concluido_em?: string | null
+          created_at?: string
+          data_agendada?: string | null
+          estado?: string
+          id?: string
+          minutos?: number
+          notas?: string | null
+        }
+        Update: {
+          campanha_id?: string
+          client_id?: string
+          concluido_em?: string | null
+          created_at?: string
+          data_agendada?: string | null
+          estado?: string
+          id?: string
+          minutos?: number
+          notas?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campanha_clientes_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campanha_clientes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campanha_tarefas: {
+        Row: {
+          campanha_id: string
+          created_at: string
+          descricao: string
+          id: string
+          ordem: number
+        }
+        Insert: {
+          campanha_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          ordem?: number
+        }
+        Update: {
+          campanha_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campanha_tarefas_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campanhas: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          estado: string
+          id: string
+          prazo: string | null
+          prioridade: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          estado?: string
+          id?: string
+          prazo?: string | null
+          prioridade?: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          estado?: string
+          id?: string
+          prazo?: string | null
+          prioridade?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       client_users: {
         Row: {
           client_id: string
