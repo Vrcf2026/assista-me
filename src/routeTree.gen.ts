@@ -13,6 +13,7 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
@@ -63,6 +64,11 @@ const TicketsRoute = TicketsRouteImport.update({
 const PreventivaRoute = PreventivaRouteImport.update({
   id: '/preventiva',
   path: '/preventiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/painel': typeof PainelRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/painel'
     | '/preventiva'
     | '/tickets'
     | '/trabalhos'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/painel'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/painel'
     | '/preventiva'
     | '/tickets'
     | '/trabalhos'
@@ -456,6 +468,7 @@ export interface RootRouteChildren {
   CampanhasRoute: typeof CampanhasRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PainelRoute: typeof PainelRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
   TrabalhosRoute: typeof TrabalhosRoute
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       path: '/preventiva'
       fullPath: '/preventiva'
       preLoaderRoute: typeof PreventivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -778,6 +798,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampanhasRoute: CampanhasRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
+  PainelRoute: PainelRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
   TrabalhosRoute: TrabalhosRoute,
