@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, X, ArrowLeft, Save } from "lucide-react";
 
@@ -36,6 +37,7 @@ function Inner() {
   const [periodicidade, setPeriodicidade] = useState("mensal");
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [busy, setBusy] = useState(false);
+  const [propagar, setPropagar] = useState<{ ids: string[]; descricoes: string[]; agendamentos: { id: string }[] } | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const load = async () => {
@@ -102,14 +104,18 @@ function Inner() {
         }
       }
       // Insert new
-      const novas = visiveis.filter(t => t._new && t.descricao.trim()).map((t, i) => ({
+      const novasOrig = visiveis.filter(t => t._new && t.descricao.trim());
+      const novas = novasOrig.map((t, i) => ({
         template_id: id,
         descricao: t.descricao.trim(),
         ordem: visiveis.findIndex(x => x === t) + 1 || (i + 1),
       }));
+      let inseridas: { id: string; descricao: string; ordem: number }[] = [];
       if (novas.length) {
-        const { error: iErr } = await supabase.from("preventiva_tarefas").insert(novas);
+        const { data: ins, error: iErr } = await supabase
+          .from("preventiva_tarefas").insert(novas).select("id, descricao, ordem");
         if (iErr) throw iErr;
+        inseridas = (ins ?? []) as { id: string; descricao: string; ordem: number }[];
       }
       // Delete
       const ids = tarefas.filter(t => t._delete && t.id).map(t => t.id!);
@@ -120,10 +126,64 @@ function Inner() {
 
       toast.success("Template guardado");
       void load();
+
+      // Propagação opcional: se foram adicionadas tarefas e há agendamentos, perguntar
+      if (inseridas.length > 0) {
+        const { data: ags } = await supabase
+          .from("preventiva_agendamentos")
+          .select("id")
+          .eq("template_id", id);
+        if (ags && ags.length > 0) {
+          setPropagar({
+            ids: inseridas.map(t => t.id),
+            descricoes: inseridas.map(t => t.descricao),
+            agendamentos: ags as { id: string }[],
+          });
+        }
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Erro a guardar");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const propagarTarefas = async () => {
+    if (!propagar) return;
+    try {
+      const ags = propagar.agendamentos.map(a => a.id);
+      const { data: existentes } = await supabase
+        .from("preventiva_agendamento_tarefas")
+        .select("agendamento_id")
+        .in("agendamento_id", ags);
+      const comCustom = new Set((existentes ?? []).map(r => r.agendamento_id));
+      const rows: { agendamento_id: string; tarefa_id: string; descricao: string; ordem: number; ativo: boolean }[] = [];
+      for (const ag of ags) {
+        if (!comCustom.has(ag)) continue;
+        const { data: ordens } = await supabase
+          .from("preventiva_agendamento_tarefas")
+          .select("ordem").eq("agendamento_id", ag).order("ordem", { ascending: false }).limit(1);
+        let ord = ordens?.[0]?.ordem ?? 0;
+        for (let i = 0; i < propagar.ids.length; i++) {
+          ord += 1;
+          rows.push({
+            agendamento_id: ag,
+            tarefa_id: propagar.ids[i],
+            descricao: propagar.descricoes[i],
+            ordem: ord,
+            ativo: true,
+          });
+        }
+      }
+      if (rows.length) {
+        const { error } = await supabase.from("preventiva_agendamento_tarefas").insert(rows);
+        if (error) throw error;
+      }
+      toast.success(rows.length ? `Tarefas propagadas a ${comCustom.size} agendamento(s)` : "Sem agendamentos personalizados a actualizar");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao propagar");
+    } finally {
+      setPropagar(null);
     }
   };
 
@@ -181,6 +241,24 @@ function Inner() {
       <div className="sticky bottom-4 flex justify-end">
         <Button onClick={() => void save()} disabled={busy}><Save className="h-4 w-4 mr-1" />Guardar template</Button>
       </div>
+
+      <AlertDialog open={!!propagar} onOpenChange={(v) => { if (!v) setPropagar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Propagar tarefas aos agendamentos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Foram adicionadas {propagar?.ids.length ?? 0} tarefa(s) ao template.
+              Existem {propagar?.agendamentos.length ?? 0} agendamento(s) que usam este template.
+              Queres acrescentar as novas tarefas aos que já têm checklist personalizada?
+              (Os agendamentos sem personalização já vão usar a versão actualizada do template automaticamente.)
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não, só no template</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void propagarTarefas()}>Sim, adicionar a todos</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
