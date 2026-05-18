@@ -15,7 +15,7 @@ import { ArrowLeft, Plus, Trash2, Play } from "lucide-react";
 import { toast } from "sonner";
 import { formatMinutes } from "@/lib/format";
 
-export const Route = createFileRoute("/campanhas_/$id")({
+export const Route = createFileRoute("/campanhas/$id")({
   component: Page,
 });
 
@@ -331,7 +331,7 @@ function Inner() {
                   <TableCell>
                     <div className="flex gap-1">
                       <Button asChild size="sm" variant="outline">
-                        <Link to="/campanhas_/execucao/$clienteId" params={{ clienteId: r.id }}>
+                        <Link to="/campanhas/execucao/$clienteId" params={{ clienteId: r.id }}>
                           <Play className="h-3 w-3 mr-1" />Executar
                         </Link>
                       </Button>

@@ -137,7 +137,7 @@ function Inner() {
                 return (
                   <TableRow key={r.id}>
                     <TableCell>
-                      <Link to="/campanhas_/$id" params={{ id: r.id }} className="text-sm hover:underline text-primary font-medium">
+                      <Link to="/campanhas/$id" params={{ id: r.id }} className="text-sm hover:underline text-primary font-medium">
                         {r.titulo}
                       </Link>
                     </TableCell>
@@ -166,7 +166,7 @@ function Inner() {
                     </TableCell>
                     <TableCell>
                       <Button asChild size="sm" variant="outline">
-                        <Link to="/campanhas_/$id" params={{ id: r.id }}>Abrir <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                        <Link to="/campanhas/$id" params={{ id: r.id }}>Abrir <ArrowRight className="h-3 w-3 ml-1" /></Link>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -177,7 +177,7 @@ function Inner() {
         )}
       </Card>
 
-      <NovaCampDialog open={openNovo} onClose={() => setOpenNovo(false)} onCreated={(id) => { setOpenNovo(false); navigate({ to: "/campanhas_/$id", params: { id } }); }} />
+      <NovaCampDialog open={openNovo} onClose={() => setOpenNovo(false)} onCreated={(id) => { setOpenNovo(false); navigate({ to: "/campanhas/$id", params: { id } }); }} />
     </div>
   );
 }
