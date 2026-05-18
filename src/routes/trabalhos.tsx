@@ -174,7 +174,7 @@ function Inner() {
                     </TableCell>
                     <TableCell className="text-sm truncate max-w-[180px]">{r.clients?.nome ?? "—"}</TableCell>
                     <TableCell>
-                      <Link to="/trabalhos_/$id" params={{ id: r.id }} className="text-sm hover:underline text-primary">
+                      <Link to="/trabalhos/$id" params={{ id: r.id }} className="text-sm hover:underline text-primary">
                         {r.titulo}
                       </Link>
                     </TableCell>
@@ -195,7 +195,7 @@ function Inner() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button asChild size="sm" variant="outline">
-                          <Link to="/trabalhos_/$id" params={{ id: r.id }}>Abrir <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                          <Link to="/trabalhos/$id" params={{ id: r.id }}>Abrir <ArrowRight className="h-3 w-3 ml-1" /></Link>
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => void apagar(r.id)}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -210,7 +210,7 @@ function Inner() {
         )}
       </Card>
 
-      <NovoTrabalhoSheet open={openNovo} onClose={() => setOpenNovo(false)} onCreated={(id) => { setOpenNovo(false); navigate({ to: "/trabalhos_/$id", params: { id } }); }} />
+      <NovoTrabalhoSheet open={openNovo} onClose={() => setOpenNovo(false)} onCreated={(id) => { setOpenNovo(false); navigate({ to: "/trabalhos/$id", params: { id } }); }} />
     </div>
   );
 }

@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Camera, Check, MessageSquarePlus, Play, Square } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/campanhas_/execucao/$clienteId")({
+export const Route = createFileRoute("/campanhas/execucao/$clienteId")({
   component: Page,
 });
 
@@ -178,7 +178,7 @@ function Inner() {
 
       toast.success("Cliente concluído");
       if (cc.campanhas) {
-        navigate({ to: "/campanhas_/$id", params: { id: cc.campanha_id } });
+        navigate({ to: "/campanhas/$id", params: { id: cc.campanha_id } });
       } else {
         navigate({ to: "/campanhas" });
       }
@@ -196,7 +196,7 @@ function Inner() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-24">
-      <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/campanhas_/$id", params: { id: cc.campanha_id } })}>
+      <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/campanhas/$id", params: { id: cc.campanha_id } })}>
         <ArrowLeft className="h-4 w-4 mr-1" />Voltar à campanha
       </Button>
 
