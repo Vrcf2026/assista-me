@@ -975,7 +975,7 @@ function NewCommentForm({
         .maybeSingle();
       if (t) {
         const ticketLite = { id: t.id, numero: t.numero, titulo: t.titulo, client_id: t.client_id };
-        if (isAdmin && !sendInternal) {
+        if (isAdmin && !sendInternal && !sendAdminOnly) {
           void notifyNovoComentario(ticketLite, mensagem, "Equipa VRCF", comment.id);
         }
         if (!isAdmin) {
@@ -989,7 +989,7 @@ function NewCommentForm({
         }
       }
 
-      setMensagem(""); setFiles([]); setInternal(false);
+      setMensagem(""); setFiles([]); setInternal(false); setAdminOnly(false);
       resetTime();
       onSent();
     } catch (err) {
