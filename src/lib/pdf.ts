@@ -804,32 +804,67 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   y += 6;
 
   // ===== Tabela de itens =====
-  const rows = (itens ?? []).map((it: any, idx: number) => [
-    String(idx + 1),
-    it.descricao,
-    String(Number(it.quantidade)),
-    formatCurrency(Number(it.valor_unitario)),
-    formatCurrency(Number(it.quantidade) * Number(it.valor_unitario)),
-  ]);
-  const total = (itens ?? []).reduce((s: number, it: any) => s + Number(it.quantidade) * Number(it.valor_unitario), 0);
+  const ivaIncluido = o.iva_incluido !== false; // default true
+  let subtotal = 0;
+  let totalIva = 0;
+  let total = 0;
+  const rows = (itens ?? []).map((it: any, idx: number) => {
+    const qtd = Number(it.quantidade);
+    const vUnit = Number(it.valor_unitario);
+    const taxa = Number(it.iva_taxa ?? 23) / 100;
+    const bruto = qtd * vUnit;
+    let liq: number;
+    let iva: number;
+    let linhaTotal: number;
+    if (ivaIncluido) {
+      liq = bruto / (1 + taxa);
+      iva = bruto - liq;
+      linhaTotal = bruto;
+    } else {
+      liq = bruto;
+      iva = bruto * taxa;
+      linhaTotal = bruto + iva;
+    }
+    subtotal += liq;
+    totalIva += iva;
+    total += linhaTotal;
+    return [
+      String(idx + 1),
+      it.descricao,
+      String(qtd),
+      formatCurrency(vUnit),
+      `${Number(it.iva_taxa ?? 23)}%`,
+      formatCurrency(linhaTotal),
+    ];
+  });
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Descrição", "Qtd.", "Preço Unit.", "Total"]],
+    head: [["#", "Descrição", "Qtd.", "Preço Unit.", "IVA", "Total"]],
     body: rows,
     headStyles: { fillColor: [231, 119, 34], textColor: [255, 255, 255] },
     styles: { fontSize: 9, cellPadding: 3 },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     columnStyles: {
-      0: { cellWidth: 12, halign: "center" },
-      2: { cellWidth: 20, halign: "right" },
-      3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 34, halign: "right", fontStyle: "bold" },
+      0: { cellWidth: 10, halign: "center" },
+      2: { cellWidth: 18, halign: "right" },
+      3: { cellWidth: 28, halign: "right" },
+      4: { cellWidth: 16, halign: "right" },
+      5: { cellWidth: 30, halign: "right", fontStyle: "bold" },
     },
   });
   y = getY(doc);
 
-  // ===== Total destacado =====
+  // ===== Totais =====
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Subtotal:`, 150, y + 5, { align: "right" });
+  doc.text(formatCurrency(subtotal), 196, y + 5, { align: "right" });
+  doc.text(`IVA:`, 150, y + 10, { align: "right" });
+  doc.text(formatCurrency(totalIva), 196, y + 10, { align: "right" });
+  y += 14;
+
   doc.setFillColor(36, 41, 61);
   doc.rect(120, y, 76, 12, "F");
   doc.setTextColor(255, 255, 255);
@@ -842,7 +877,12 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
 
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
-  doc.text("Valores com IVA incluído à taxa legal em vigor.", 14, y);
+  doc.text(
+    ivaIncluido
+      ? "Valores apresentados com IVA incluído à taxa indicada por linha."
+      : "Valores apresentados sem IVA. O IVA acresce à taxa indicada por linha.",
+    14, y,
+  );
   doc.setTextColor(0, 0, 0);
   y += 8;
 
@@ -865,8 +905,10 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     : "Os produtos fornecidos beneficiam de garantia legal de 6 meses, nos termos do Código Comercial.";
 
   const termos: [string, string][] = [
-    ["1. Validade", "O presente orçamento é válido por 15 dias úteis a contar da data de emissão."],
-    ["2. IVA", "Todos os valores apresentados incluem IVA à taxa legal em vigor."],
+    ["1. Validade", "O presente orçamento é válido por 15 dias úteis a contar da data de emissão, salvo ruptura de stock."],
+    ["2. IVA", ivaIncluido
+      ? "Os valores apresentados incluem IVA à taxa indicada por linha."
+      : "Aos valores apresentados acresce IVA à taxa indicada por linha."],
     ["3. Condições de pagamento", condPag],
     ["4. Garantia de produtos", garantia],
     ["5. Garantia de serviços", "A mão de obra tem garantia de 90 dias após a conclusão dos trabalhos."],

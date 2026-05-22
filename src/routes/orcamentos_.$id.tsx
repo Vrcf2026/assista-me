@@ -32,6 +32,7 @@ interface Orcamento {
   estado: "rascunho" | "enviado" | "aprovado" | "recusado" | "expirado";
   validade: string;
   condicao_pagamento: "pronto" | "50_50";
+  iva_incluido: boolean;
   notas: string | null;
   trabalho_id: string | null;
   created_at: string;
@@ -42,7 +43,10 @@ interface ItemDraft {
   descricao: string;
   quantidade: number;
   valor_unitario: number;
+  iva_taxa: number;
 }
+
+const IVA_TAXAS = [0, 6, 13, 23] as const;
 
 const ESTADOS = ["rascunho", "enviado", "aprovado", "recusado", "expirado"] as const;
 const ESTADO_LABEL: Record<typeof ESTADOS[number], string> = {
@@ -63,9 +67,6 @@ function Page() {
   return <AppLayout><Inner /></AppLayout>;
 }
 
-function totalDe(itens: { quantidade: number; valor_unitario: number }[]) {
-  return itens.reduce((s, i) => s + Number(i.quantidade) * Number(i.valor_unitario), 0);
-}
 
 function Inner() {
   const { id } = Route.useParams();
@@ -101,8 +102,9 @@ function Inner() {
             descricao: i.descricao,
             quantidade: Number(i.quantidade),
             valor_unitario: Number(i.valor_unitario),
+            iva_taxa: Number(i.iva_taxa ?? 23),
           }))
-        : [{ descricao: "", quantidade: 1, valor_unitario: 0 }],
+        : [{ descricao: "", quantidade: 1, valor_unitario: 0, iva_taxa: 23 }],
     );
   }, [id]);
 
@@ -120,7 +122,7 @@ function Inner() {
   };
 
   const addLinha = () => {
-    setItens((prev) => [...prev, { descricao: "", quantidade: 1, valor_unitario: 0 }]);
+    setItens((prev) => [...prev, { descricao: "", quantidade: 1, valor_unitario: 0, iva_taxa: 23 }]);
     setTimeout(() => {
       const last = Object.keys(inputsRef.current).filter((k) => k.startsWith("desc-")).pop();
       if (last) inputsRef.current[last]?.focus();
@@ -153,7 +155,7 @@ function Inner() {
         cliente_nif: clienteMode === "ocasional" ? orc.cliente_nif : null,
         estado: orc.estado,
         validade: orc.validade,
-        condicao_pagamento: orc.condicao_pagamento,
+        iva_incluido: orc.iva_incluido,
         notas: orc.notas,
       };
       const { error: e1 } = await supabase.from("orcamentos").update(payload).eq("id", orc.id);
@@ -168,6 +170,7 @@ function Inner() {
           descricao: it.descricao,
           quantidade: it.quantidade || 0,
           valor_unitario: it.valor_unitario || 0,
+          iva_taxa: it.iva_taxa ?? 23,
         }));
         const { error: e2 } = await supabase.from("orcamento_itens").insert(rows);
         if (e2) throw e2;
@@ -208,7 +211,26 @@ function Inner() {
     void load();
   };
 
-  const total = totalDe(itens);
+  // Cálculo de totais
+  // Se "iva_incluido": valor_unitario JÁ inclui IVA → subtotal = total/(1+iva), iva = total - subtotal
+  // Se NÃO incluído: valor_unitario é líquido → iva = subtotal * taxa, total = subtotal + iva
+  let subtotal = 0;
+  let totalIva = 0;
+  let total = 0;
+  for (const it of itens) {
+    const bruto = Number(it.quantidade) * Number(it.valor_unitario);
+    const taxa = Number(it.iva_taxa ?? 23) / 100;
+    if (orc.iva_incluido) {
+      const liq = bruto / (1 + taxa);
+      subtotal += liq;
+      totalIva += bruto - liq;
+      total += bruto;
+    } else {
+      subtotal += bruto;
+      totalIva += bruto * taxa;
+      total += bruto * (1 + taxa);
+    }
+  }
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -304,50 +326,76 @@ function Inner() {
         </div>
       </Card>
 
-      <Card className="p-5 space-y-2">
-        <h3 className="text-sm font-semibold">Condições de pagamento</h3>
-        <p className="text-xs text-muted-foreground">As duas opções abaixo são incluídas automaticamente no rodapé do PDF:</p>
-        <ul className="text-sm list-disc pl-5 space-y-1">
-          <li>10% desconto a pronto pagamento na adjudicação</li>
-          <li>50% na adjudicação + 50% na entrega/conclusão</li>
-        </ul>
-      </Card>
-
       <Card className="p-5 space-y-3">
-        <h3 className="text-sm font-semibold">Itens</h3>
-        <div className="border rounded-md overflow-hidden">
-          <div className="grid grid-cols-[40px_1fr_90px_120px_120px_40px] gap-2 px-3 py-2 bg-muted text-xs font-medium">
-            <div>#</div><div>Descrição</div><div>Qtd</div><div>Valor unit.</div><div>Total</div><div></div>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h3 className="text-sm font-semibold">Itens</h3>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs">Valores</Label>
+            <Select
+              value={orc.iva_incluido ? "incluido" : "sem"}
+              onValueChange={(v) => updateOrc("iva_incluido", v === "incluido")}
+            >
+              <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="incluido">Com IVA incluído</SelectItem>
+                <SelectItem value="sem">Sem IVA (acresce no total)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          {itens.map((it, idx) => (
-            <div key={idx} className="grid grid-cols-[40px_1fr_90px_120px_120px_40px] gap-2 px-3 py-2 border-t items-center">
-              <div className="text-xs text-muted-foreground">{idx + 1}</div>
-              <Input
-                ref={(el) => { inputsRef.current[`desc-${idx}`] = el; }}
-                value={it.descricao}
-                onChange={(e) => updateItem(idx, { descricao: e.target.value })}
-                onKeyDown={(e) => handleEnter(e, idx, "desc")}
-                placeholder="Descrição do item ou serviço"
-              />
-              <Input
-                ref={(el) => { inputsRef.current[`qtd-${idx}`] = el; }}
-                type="number" step="0.5" value={it.quantidade}
-                onChange={(e) => updateItem(idx, { quantidade: parseFloat(e.target.value) || 0 })}
-                onKeyDown={(e) => handleEnter(e, idx, "qtd")}
-              />
-              <Input
-                ref={(el) => { inputsRef.current[`val-${idx}`] = el; }}
-                type="number" step="0.01" value={it.valor_unitario}
-                onChange={(e) => updateItem(idx, { valor_unitario: parseFloat(e.target.value) || 0 })}
-                onKeyDown={(e) => handleEnter(e, idx, "val")}
-              />
-              <div className="text-sm font-mono">{formatCurrency(it.quantidade * it.valor_unitario)}</div>
-              <Button size="icon" variant="ghost" onClick={() => removeLinha(idx)}><X className="h-4 w-4" /></Button>
+        </div>
+        <div className="border rounded-md overflow-hidden">
+          <div className="grid grid-cols-[32px_1fr_70px_110px_80px_110px_36px] gap-2 px-3 py-2 bg-muted text-[11px] font-medium">
+            <div>#</div><div>Descrição</div><div>Qtd</div><div>Valor unit.</div><div>IVA</div><div>Total linha</div><div></div>
+          </div>
+          {itens.map((it, idx) => {
+            const bruto = Number(it.quantidade) * Number(it.valor_unitario);
+            const taxa = Number(it.iva_taxa ?? 23) / 100;
+            const totalLinha = orc.iva_incluido ? bruto : bruto * (1 + taxa);
+            return (
+              <div key={idx} className="grid grid-cols-[32px_1fr_70px_110px_80px_110px_36px] gap-2 px-3 py-2 border-t items-center">
+                <div className="text-xs text-muted-foreground">{idx + 1}</div>
+                <Input
+                  ref={(el) => { inputsRef.current[`desc-${idx}`] = el; }}
+                  value={it.descricao}
+                  onChange={(e) => updateItem(idx, { descricao: e.target.value })}
+                  onKeyDown={(e) => handleEnter(e, idx, "desc")}
+                  placeholder="Descrição do item ou serviço"
+                />
+                <Input
+                  ref={(el) => { inputsRef.current[`qtd-${idx}`] = el; }}
+                  type="number" step="0.5" value={it.quantidade}
+                  onChange={(e) => updateItem(idx, { quantidade: parseFloat(e.target.value) || 0 })}
+                  onKeyDown={(e) => handleEnter(e, idx, "qtd")}
+                />
+                <Input
+                  ref={(el) => { inputsRef.current[`val-${idx}`] = el; }}
+                  type="number" step="0.01" value={it.valor_unitario}
+                  onChange={(e) => updateItem(idx, { valor_unitario: parseFloat(e.target.value) || 0 })}
+                  onKeyDown={(e) => handleEnter(e, idx, "val")}
+                />
+                <Select
+                  value={String(it.iva_taxa ?? 23)}
+                  onValueChange={(v) => updateItem(idx, { iva_taxa: Number(v) })}
+                >
+                  <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {IVA_TAXAS.map((t) => <SelectItem key={t} value={String(t)}>{t}%</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="text-sm font-mono">{formatCurrency(totalLinha)}</div>
+                <Button size="icon" variant="ghost" onClick={() => removeLinha(idx)}><X className="h-4 w-4" /></Button>
+              </div>
+            );
+          })}
+          <div className="px-3 py-2 border-t bg-muted/30 space-y-1">
+            <div className="flex justify-between items-center">
+              <Button size="sm" variant="outline" onClick={addLinha}><Plus className="h-4 w-4 mr-1" />Linha</Button>
+              <div className="text-right text-sm space-y-0.5">
+                <div className="text-muted-foreground">Subtotal: <span className="font-mono">{formatCurrency(subtotal)}</span></div>
+                <div className="text-muted-foreground">IVA: <span className="font-mono">{formatCurrency(totalIva)}</span></div>
+                <div className="text-lg font-bold">Total: {formatCurrency(total)}</div>
+              </div>
             </div>
-          ))}
-          <div className="px-3 py-2 border-t flex justify-between items-center bg-muted/30">
-            <Button size="sm" variant="outline" onClick={addLinha}><Plus className="h-4 w-4 mr-1" />Linha</Button>
-            <div className="text-lg font-bold">Total: {formatCurrency(total)}</div>
           </div>
         </div>
       </Card>

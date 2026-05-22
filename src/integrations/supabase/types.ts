@@ -448,6 +448,7 @@ export type Database = {
           created_at: string
           descricao: string
           id: string
+          iva_taxa: number
           orcamento_id: string
           ordem: number
           quantidade: number
@@ -457,6 +458,7 @@ export type Database = {
           created_at?: string
           descricao: string
           id?: string
+          iva_taxa?: number
           orcamento_id: string
           ordem?: number
           quantidade?: number
@@ -466,6 +468,7 @@ export type Database = {
           created_at?: string
           descricao?: string
           id?: string
+          iva_taxa?: number
           orcamento_id?: string
           ordem?: number
           quantidade?: number
@@ -492,6 +495,7 @@ export type Database = {
           created_by: string | null
           estado: string
           id: string
+          iva_incluido: boolean
           notas: string | null
           numero: number
           tipo_cliente: string
@@ -508,6 +512,7 @@ export type Database = {
           created_by?: string | null
           estado?: string
           id?: string
+          iva_incluido?: boolean
           notas?: string | null
           numero?: number
           tipo_cliente?: string
@@ -524,6 +529,7 @@ export type Database = {
           created_by?: string | null
           estado?: string
           id?: string
+          iva_incluido?: boolean
           notas?: string | null
           numero?: number
           tipo_cliente?: string
