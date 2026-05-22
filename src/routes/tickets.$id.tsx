@@ -328,6 +328,7 @@ function TicketDetail({ id }: { id: string }) {
         comments={comments}
         attachments={attachments}
         isAdmin={isAdmin}
+        isClientAdmin={isClientAdmin}
         currentUserId={user?.id}
         onOpenAttachment={openAttachment}
         onChange={load}
