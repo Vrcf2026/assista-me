@@ -15,7 +15,7 @@ import { ArrowLeft, Plus, Trash2, Play } from "lucide-react";
 import { toast } from "sonner";
 import { formatMinutes } from "@/lib/format";
 
-export const Route = createFileRoute("/campanhas/$id")({
+export const Route = createFileRoute("/campanhas_/$id")({
   component: Page,
 });
 
