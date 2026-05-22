@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   List,
@@ -26,8 +27,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/vrcf-logo.png";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { BRANDS, getBrand, type Marca } from "@/lib/brand";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; external?: boolean };
 
@@ -54,10 +56,31 @@ const administracao: Item[] = [
 ];
 
 export function AppSidebar() {
-  const { role } = useAuth();
+  const { user, role } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Para utilizadores de cliente, descobre a marca do(s) seu(s) cliente(s) e usa essa.
+  const [clientMarca, setClientMarca] = useState<Marca | null>(null);
+  useEffect(() => {
+    if (!user || role === "admin") { setClientMarca(null); return; }
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from("client_users")
+        .select("clients(marca)")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      const m = (data as { clients?: { marca?: string } } | null)?.clients?.marca;
+      setClientMarca(m === "spacedata" ? "spacedata" : "vrcf");
+    })();
+    return () => { cancelled = true; };
+  }, [user, role]);
+
+  const brand = role === "admin" ? BRANDS.vrcf : getBrand(clientMarca ?? "vrcf");
 
   const isActive = (url: string) =>
     url === "/" ? pathname === "/" : pathname === url || pathname.startsWith(url + "/");
@@ -92,15 +115,15 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-3 px-2 py-3">
           <img
-            src={logo}
-            alt="VRCF"
+            src={brand.logo}
+            alt={brand.shortName}
             className={collapsed ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"}
           />
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="font-bold text-sidebar-foreground tracking-tight">VRCF</span>
+              <span className="font-bold text-sidebar-foreground tracking-tight">{brand.shortName}</span>
               <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
-                Informática &amp; Segurança
+                {brand.tagline}
               </span>
             </div>
           )}
