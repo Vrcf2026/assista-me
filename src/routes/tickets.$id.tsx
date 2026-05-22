@@ -112,6 +112,14 @@ function TicketDetail({ id }: { id: string }) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [headerEscalateOpen, setHeaderEscalateOpen] = useState(false);
+  const [isClientAdmin, setIsClientAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id || isAdmin) { setIsClientAdmin(false); return; }
+    void supabase.from("client_users")
+      .select("is_client_admin").eq("user_id", user.id).eq("client_id", ticket?.client_id ?? "").maybeSingle()
+      .then(({ data }) => setIsClientAdmin(!!data?.is_client_admin));
+  }, [user?.id, ticket?.client_id, isAdmin]);
 
   const load = async () => {
     setLoading(true);
