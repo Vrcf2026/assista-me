@@ -67,9 +67,6 @@ function Page() {
   return <AppLayout><Inner /></AppLayout>;
 }
 
-function totalDe(itens: { quantidade: number; valor_unitario: number }[]) {
-  return itens.reduce((s, i) => s + Number(i.quantidade) * Number(i.valor_unitario), 0);
-}
 
 function Inner() {
   const { id } = Route.useParams();
