@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone, FileText, Monitor, FileSpreadsheet } from "lucide-react";
+import { LogOut, Ticket, Users, LayoutDashboard, Mail, Tag, MessageSquare, List, Receipt, ShieldCheck, ClipboardList, Megaphone, FileText, Monitor } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppLayout({ children }: { children: ReactNode }) {
