@@ -94,6 +94,7 @@ function NovoCliente() {
           is_internal: false,
         });
       }
+      await saveDraftCredentials(invokeCreds, ticket.id, creds);
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       void notifyTicketCriado(
         { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id, created_by: user.id },
