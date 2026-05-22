@@ -96,7 +96,7 @@ function section(doc: jsPDF, titulo: string, y?: number) {
 async function loadTicketData(ticketId: string) {
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("*, client:clients(id, nome, nif, tarifa_hora)")
+    .select("*, client:clients(id, nome, nif, tarifa_hora, marca)")
     .eq("id", ticketId)
     .single();
   if (!ticket) throw new Error("Ticket não encontrado");
