@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN tipo_cliente TEXT NOT NULL DEFAULT 'empresa' CHECK (tipo_cliente IN ('particular','empresa'));
