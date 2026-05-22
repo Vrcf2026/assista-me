@@ -495,7 +495,11 @@ function NovoAdmin() {
               onChange={(e) => setEquipamento(e.target.value)}
               placeholder="Ex: Servidor srv3diso, PC receção, Router principal"
               maxLength={200}
+              list="admin-sistemas-passados"
             />
+            <datalist id="admin-sistemas-passados">
+              {sistemasPassados.map((s) => <option key={s} value={s} />)}
+            </datalist>
           </div>
 
           {(tipo === "presencial" || tipo === "preventiva") && (
@@ -526,6 +530,9 @@ function NovoAdmin() {
             <Label>Anexos</Label>
             <AttachmentPicker files={files} onChange={setFiles} />
           </div>
+
+          <CredentialsCollapsible items={creds} onChange={setCreds} />
+
 
           <div className="space-y-2 rounded-md border p-3 bg-muted/20">
             <label className="flex items-center gap-2 text-sm cursor-pointer">
