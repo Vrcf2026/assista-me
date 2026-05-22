@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Download, Pencil, Check, X, FileText } from "lucide-react";
+import { Plus, Trash2, Download, Pencil, Check, X, FileText, ExternalLink } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { gerarOrcamentoPDF } from "@/lib/pdf";
 import { notifyNovoComentario } from "@/lib/email/notify-ticket-event";
