@@ -115,6 +115,12 @@ export function AdminDashboard() {
     }
     setCampanhasStats({ ativas: ativasIds.length, pendentes });
 
+    const { count: orcCount } = await supabase
+      .from("orcamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("estado", "enviado");
+    setOrcamentosPendentes(orcCount ?? 0);
+
     setLoading(false);
   }
 
