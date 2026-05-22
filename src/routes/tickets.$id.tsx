@@ -1124,8 +1124,14 @@ function NewCommentForm({
           />
           {isAdmin && (
             <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox checked={internal} onCheckedChange={(v) => setInternal(!!v)} />
+              <Checkbox checked={internal} onCheckedChange={(v) => { setInternal(!!v); if (v) setAdminOnly(false); }} />
               <Lock className="h-3.5 w-3.5" /> Nota interna
+            </label>
+          )}
+          {(isAdmin || isClientAdmin) && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer" title="Visível apenas para VRCF e admins do cliente">
+              <Checkbox checked={adminOnly} disabled={internal} onCheckedChange={(v) => setAdminOnly(!!v)} />
+              <Lock className="h-3.5 w-3.5 text-amber-600" /> Partilhar só com admin
             </label>
           )}
           {isAdmin && templates.length > 0 && (
