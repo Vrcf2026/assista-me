@@ -794,16 +794,18 @@ function CommentList({
 }
 
 function NewCommentForm({
-  ticketId, clientId, isAdmin, onSent,
+  ticketId, clientId, isAdmin, isClientAdmin, onSent,
 }: {
   ticketId: string;
   clientId: string;
   isAdmin: boolean;
+  isClientAdmin: boolean;
   onSent: () => void;
 }) {
   const { user } = useAuth();
   const [mensagem, setMensagem] = useState("");
   const [internal, setInternal] = useState(false);
+  const [adminOnly, setAdminOnly] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
