@@ -3,15 +3,21 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatMinutes, formatCurrency, calcValor, TIPO_LABELS, ESTADO_LABELS } from "@/lib/format";
 import { ESTADO_FATURACAO_LABELS } from "@/lib/billing";
-import { BRANDS, getBrand, type BrandConfig } from "@/lib/brand";
+import { BRANDS, getBrand, loadBrandLogoDataUrl, type BrandConfig } from "@/lib/brand";
 
 type Tipo = "cliente" | "interno";
 
 // Marca activa do PDF que está a ser gerado.
 // Cada gerador (gerarRelatorio*, etc.) chama setActiveBrand() no início.
 let activeBrand: BrandConfig = BRANDS.vrcf;
-function setActiveBrand(marca?: string | null) {
+let activeLogoDataUrl: string | null = null;
+async function setActiveBrand(marca?: string | null) {
   activeBrand = getBrand(marca);
+  try {
+    activeLogoDataUrl = await loadBrandLogoDataUrl(activeBrand);
+  } catch {
+    activeLogoDataUrl = null;
+  }
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -23,15 +29,23 @@ function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
   const [r, g, b] = hexToRgb(activeBrand.color);
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 210, 25, "F");
+  // Logo (à esquerda, dentro da barra escura)
+  let textX = 14;
+  if (activeLogoDataUrl) {
+    try {
+      doc.addImage(activeLogoDataUrl, "PNG", 14, 4, 17, 17);
+      textX = 35;
+    } catch { /* ignore */ }
+  }
   doc.setTextColor(r, g, b);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(activeBrand.fullName, 14, 10);
+  doc.text(activeBrand.fullName, textX, 10);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(titulo, 14, 17);
-  if (subtitulo) doc.text(subtitulo, 14, 22);
+  doc.text(titulo, textX, 17);
+  if (subtitulo) doc.text(subtitulo, textX, 22);
   doc.setTextColor(0, 0, 0);
 }
 
