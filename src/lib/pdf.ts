@@ -936,7 +936,10 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   if (y > 200) { doc.addPage(); y = 20; }
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(231, 119, 34);
+  {
+    const [r, g, b] = hexToRgb(activeBrand.color);
+    doc.setTextColor(r, g, b);
+  }
   doc.text("Termos e condições", 14, y);
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
