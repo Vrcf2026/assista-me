@@ -846,7 +846,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   }
 
   doc.setFontSize(9);
-  doc.text("IBAN: PT50 0007 0200 0000 5140 0080 2", 14, y);
+  doc.text(`IBAN: ${activeBrand.iban}`, 14, y);
   y += 6;
 
   // ===== Tabela de itens =====
