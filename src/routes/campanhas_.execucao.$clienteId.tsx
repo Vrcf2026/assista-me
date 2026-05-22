@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Camera, Check, MessageSquarePlus, Play, Square } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/campanhas/execucao/$clienteId")({
+export const Route = createFileRoute("/campanhas_/execucao/$clienteId")({
   component: Page,
 });
 
