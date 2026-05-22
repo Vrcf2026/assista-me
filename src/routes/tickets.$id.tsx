@@ -81,6 +81,7 @@ interface Comment {
   user_id: string;
   mensagem: string;
   is_internal: boolean;
+  client_admin_only: boolean;
   visto_em: string | null;
   created_at: string;
 }
