@@ -197,6 +197,29 @@ export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: T
         </div>
       )}
 
+      {(isAdmin || isClienteAdmin) && principais.length > 0 && (
+        <div className="pt-2 border-t space-y-2">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Orçamentos principais do cliente</h4>
+          <div className="border rounded-md divide-y">
+            {principais.map((p) => (
+              <div key={p.id} className="px-3 py-2 flex items-center gap-3 text-sm">
+                <Link to="/orcamentos/$id" params={{ id: p.id }} className="font-mono text-primary hover:underline">
+                  ORC-{String(p.numero).padStart(4, "0")}
+                </Link>
+                <span className="text-xs text-muted-foreground">{formatDate(p.created_at)}</span>
+                <span className="text-xs px-2 py-0.5 rounded border bg-secondary">{p.estado}</span>
+                <span className="text-xs text-muted-foreground flex-1">
+                  {p.validade ? `Válido até ${formatDate(p.validade)}` : ""}
+                </span>
+                <Link to="/orcamentos/$id" params={{ id: p.id }} className="text-muted-foreground hover:text-foreground">
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {editing && (
         <OrcamentoEditor
           open={editorOpen}
