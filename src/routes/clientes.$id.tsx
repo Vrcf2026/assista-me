@@ -36,13 +36,44 @@ interface ClientFull {
   id: string;
   nome: string;
   nif: string | null;
-  tipo_contrato: "avenca" | "pontual";
+  tipo_cliente: "particular" | "empresa";
+  tipo_contrato: "avenca" | "pontual" | "nenhum";
   tarifa_hora: number;
   horas_pacote: number | null;
   horas_pacote_anual: number | null;
   contrato_inicio: string | null;
   contrato_fim: string | null;
   dias_fecho_automatico: number | null;
+  morada: string | null;
+  email_geral: string | null;
+}
+
+interface TrabalhoRow {
+  id: string;
+  titulo: string;
+  estado: string;
+  prioridade: string;
+  minutos: number;
+  data_agendada: string | null;
+  created_at: string;
+}
+
+interface OrcamentoRow {
+  id: string;
+  numero: number;
+  estado: string;
+  validade: string | null;
+  created_at: string;
+}
+
+interface CampanhaRow {
+  id: string;
+  campanha_id: string;
+  estado: string;
+  minutos: number;
+  data_agendada: string | null;
+  concluido_em: string | null;
+  campanha_titulo: string | null;
 }
 
 interface TicketRow {
