@@ -1461,6 +1461,10 @@ function CredentialsPanel({ ticketId, isAdmin, ticketNumero, ticketTitulo, clien
       />
       <FulfillCredentialDialog
         request={fulfillReq}
+        ticketId={ticketId}
+        ticketNumero={ticketNumero}
+        ticketTitulo={ticketTitulo}
+        clienteNome={clienteNome}
         onOpenChange={(v) => !v && setFulfillReq(null)}
         onDone={() => { setFulfillReq(null); void load(); }}
       />
