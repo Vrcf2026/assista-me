@@ -347,6 +347,10 @@ function NovoAdmin() {
         });
       }
 
+      await saveDraftCredentials(invokeCreds, ticket.id, creds);
+
+
+
       // Optional time entry — entra na avença/faturação
       if (logTime && minutos > 0) {
         const { data: estado } = await supabase.rpc("calcular_estado_faturacao", {
