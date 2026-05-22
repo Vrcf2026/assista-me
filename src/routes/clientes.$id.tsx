@@ -59,8 +59,10 @@ interface TrabalhoRow {
 }
 
 interface OrcamentoRow {
-  id: string;
-  numero: number;
+  key: string;
+  origem: "principal" | "ticket";
+  ref: string; // ex: ORC-0001  ou  T#0012 v2
+  link: { kind: "orcamento"; id: string } | { kind: "ticket"; id: string };
   estado: string;
   validade: string | null;
   created_at: string;
