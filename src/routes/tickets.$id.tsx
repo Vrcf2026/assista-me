@@ -1002,9 +1002,9 @@ function NewCommentForm({
       <Textarea
         value={mensagem}
         onChange={(e) => setMensagem(e.target.value)}
-        placeholder={isAdmin && internal ? "Nota interna (não visível pelo cliente)…" : "Escreva uma mensagem…"}
+        placeholder={isAdmin && internal ? "Nota interna (não visível pelo cliente)…" : adminOnly ? "Mensagem visível só para VRCF e admins do cliente…" : "Escreva uma mensagem…"}
         rows={3}
-        className={isAdmin && internal ? "bg-internal-note" : ""}
+        className={isAdmin && internal ? "bg-internal-note" : adminOnly ? "bg-amber-500/5" : ""}
       />
 
       {isAdmin && (
