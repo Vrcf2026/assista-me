@@ -281,8 +281,8 @@ function TicketDetail({ id }: { id: string }) {
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
-      {/* Credenciais seguras — só admin VRCF */}
-      {isAdmin && <CredentialsPanel ticketId={ticket.id} />}
+      {/* Credenciais seguras — admin VRCF e admin do cliente */}
+      {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} />}
 
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
@@ -1286,6 +1286,17 @@ interface Credencial {
   created_at: string;
 }
 
+interface CredRequest {
+  id: string;
+  ticket_id: string;
+  tipo: string;
+  nota: string | null;
+  created_at: string;
+  fulfilled_at: string | null;
+  cancelled_at: string | null;
+  fulfilled_credential_id: string | null;
+}
+
 const TIPO_CRED_LABEL: Record<string, string> = { email: "Email", vpn: "VPN", windows: "Windows", router: "Router", outro: "Outro" };
 const TIPO_CRED_CLS: Record<string, string> = {
   email: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
@@ -1295,39 +1306,101 @@ const TIPO_CRED_CLS: Record<string, string> = {
   outro: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30",
 };
 
-function CredentialsPanel({ ticketId }: { ticketId: string }) {
-  const { user } = useAuth();
+async function invokeCreds(action: string, payload: Record<string, unknown> = {}) {
+  const { data, error } = await supabase.functions.invoke("ticket-credentials", {
+    body: { action, ...payload },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+function CredentialsPanel({ ticketId, isAdmin }: { ticketId: string; isAdmin: boolean }) {
   const [items, setItems] = useState<Credencial[]>([]);
+  const [requests, setRequests] = useState<CredRequest[]>([]);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Credencial | null>(null);
+  const [reqDialogOpen, setReqDialogOpen] = useState(false);
+  const [fulfillReq, setFulfillReq] = useState<CredRequest | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const { data } = await supabase.from("ticket_credenciais").select("*").eq("ticket_id", ticketId).order("created_at");
-    setItems((data ?? []) as Credencial[]);
+    try {
+      const res = await invokeCreds("list", { ticketId });
+      setItems((res?.items ?? []) as Credencial[]);
+      const { data: reqs } = await supabase
+        .from("ticket_credential_requests")
+        .select("*").eq("ticket_id", ticketId)
+        .order("created_at", { ascending: false });
+      setRequests((reqs ?? []) as CredRequest[]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro a carregar credenciais");
+    } finally { setLoading(false); }
   };
   useEffect(() => { void load(); }, [ticketId]);
 
   const remove = async (id: string) => {
     if (!confirm("Apagar esta credencial?")) return;
-    const { error } = await supabase.from("ticket_credenciais").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Credencial removida");
-    void load();
+    try { await invokeCreds("delete", { credentialId: id }); toast.success("Removida"); void load(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+  };
+
+  const cancelRequest = async (id: string) => {
+    if (!confirm("Cancelar este pedido de credencial?")) return;
+    try { await invokeCreds("cancelRequest", { requestId: id }); toast.success("Cancelado"); void load(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
   };
 
   const openNew = () => { setEditing(null); setOpen(true); };
   const openEdit = (c: Credencial) => { setEditing(c); setOpen(true); };
+
+  const pendingRequests = requests.filter((r) => !r.fulfilled_at && !r.cancelled_at);
 
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <KeyRound className="h-3.5 w-3.5" /> Credenciais
+          <span className="text-xs font-normal text-muted-foreground">🔒 encriptado</span>
         </h3>
-        <Button size="sm" onClick={openNew}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar credencial</Button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button size="sm" variant="outline" onClick={() => setReqDialogOpen(true)}>
+              🔒 Pedir ao cliente
+            </Button>
+          )}
+          <Button size="sm" onClick={openNew}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
+        </div>
       </div>
-      {items.length === 0 ? (
+
+      {pendingRequests.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {pendingRequests.map((r) => (
+            <div key={r.id} className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-medium">🔒 Pedido de credencial: {TIPO_CRED_LABEL[r.tipo] ?? r.tipo}</div>
+                  {r.nota && <p className="text-xs text-muted-foreground mt-1">{r.nota}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">A aguardar resposta do cliente — {new Date(r.created_at).toLocaleString("pt-PT")}</p>
+                </div>
+                <div className="flex gap-1">
+                  {!isAdmin && (
+                    <Button size="sm" onClick={() => setFulfillReq(r)}>Fornecer</Button>
+                  )}
+                  {isAdmin && (
+                    <Button size="sm" variant="ghost" onClick={() => void cancelRequest(r.id)}>Cancelar</Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-muted-foreground">A carregar…</p>
+      ) : items.length === 0 ? (
         <p className="text-sm text-muted-foreground">Sem credenciais registadas.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -1377,19 +1450,28 @@ function CredentialsPanel({ ticketId }: { ticketId: string }) {
         open={open}
         onOpenChange={setOpen}
         ticketId={ticketId}
-        userId={user?.id}
         editing={editing}
         onSaved={() => { setOpen(false); void load(); }}
+      />
+      <RequestCredentialDialog
+        open={reqDialogOpen}
+        onOpenChange={setReqDialogOpen}
+        ticketId={ticketId}
+        onCreated={() => { setReqDialogOpen(false); void load(); }}
+      />
+      <FulfillCredentialDialog
+        request={fulfillReq}
+        onOpenChange={(v) => !v && setFulfillReq(null)}
+        onDone={() => { setFulfillReq(null); void load(); }}
       />
     </Card>
   );
 }
 
-function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSaved }: {
+function CredentialDialog({ open, onOpenChange, ticketId, editing, onSaved }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   ticketId: string;
-  userId: string | undefined;
   editing: Credencial | null;
   onSaved: () => void;
 }) {
@@ -1424,18 +1506,14 @@ function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSav
     if (!password.trim()) { toast.error("Password obrigatória"); return; }
     setBusy(true);
     try {
-      if (editing) {
-        const { error } = await supabase.from("ticket_credenciais")
-          .update({ tipo, utilizador: utilizador.trim() || null, password, notas: notas.trim() || null })
-          .eq("id", editing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("ticket_credenciais").insert({
-          ticket_id: ticketId, tipo, utilizador: utilizador.trim() || null, password,
-          notas: notas.trim() || null, created_by: userId ?? null,
-        });
-        if (error) throw error;
-      }
+      await invokeCreds(editing ? "update" : "create", {
+        ticketId,
+        credentialId: editing?.id,
+        tipo,
+        utilizador: utilizador.trim() || null,
+        password,
+        notas: notas.trim() || null,
+      });
       toast.success("Credencial guardada");
       onSaved();
     } catch (err) {
@@ -1488,6 +1566,129 @@ function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSav
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={save} disabled={busy}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RequestCredentialDialog({ open, onOpenChange, ticketId, onCreated }: {
+  open: boolean; onOpenChange: (v: boolean) => void; ticketId: string; onCreated: () => void;
+}) {
+  const [tipo, setTipo] = useState<string>("outro");
+  const [nota, setNota] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (open) { setTipo("outro"); setNota(""); } }, [open]);
+  const submit = async () => {
+    setBusy(true);
+    try {
+      await invokeCreds("request", { ticketId, tipo, nota: nota.trim() || null });
+      toast.success("Pedido enviado ao cliente");
+      onCreated();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>🔒 Pedir credencial ao cliente</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Tipo de credencial</Label>
+            <Select value={tipo} onValueChange={setTipo}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="vpn">VPN</SelectItem>
+                <SelectItem value="windows">Windows</SelectItem>
+                <SelectItem value="router">Router</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Nota para o cliente (opcional)</Label>
+            <Textarea value={nota} onChange={(e) => setNota(e.target.value)} rows={3} placeholder="Ex: preciso do acesso ao firewall principal" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O cliente verá um cartão no painel de credenciais e poderá fornecer a password de forma segura — nunca passará por comentários nem emails.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={submit} disabled={busy}>Enviar pedido</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FulfillCredentialDialog({ request, onOpenChange, onDone }: {
+  request: CredRequest | null; onOpenChange: (v: boolean) => void; onDone: () => void;
+}) {
+  const [utilizador, setUtilizador] = useState("");
+  const [password, setPassword] = useState("");
+  const [notas, setNotas] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (request) { setUtilizador(""); setPassword(""); setNotas(""); setShowPw(false); } }, [request]);
+  const submit = async () => {
+    if (!request || !password.trim()) { toast.error("Password obrigatória"); return; }
+    setBusy(true);
+    try {
+      await invokeCreds("fulfill", {
+        requestId: request.id,
+        utilizador: utilizador.trim() || null,
+        password,
+        notas: notas.trim() || null,
+      });
+      toast.success("Credencial enviada em segurança");
+      onDone();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <Dialog open={!!request} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>🔒 Fornecer credencial</DialogTitle>
+        </DialogHeader>
+        {request && (
+          <div className="space-y-3">
+            <div className="rounded-md bg-muted/40 p-3 text-sm">
+              <div className="font-medium">{TIPO_CRED_LABEL[request.tipo] ?? request.tipo}</div>
+              {request.nota && <p className="text-xs text-muted-foreground mt-1">{request.nota}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Utilizador / Email (opcional)</Label>
+              <Input value={utilizador} onChange={(e) => setUtilizador(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Password</Label>
+              <div className="flex gap-2">
+                <Input
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="font-mono"
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => setShowPw((v) => !v)}>
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notas (opcional)</Label>
+              <Textarea value={notas} onChange={(e) => setNotas(e.target.value)} rows={2} />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              🔒 A password fica encriptada na base de dados e é apagada automaticamente quando o ticket fechar.
+            </p>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={submit} disabled={busy}>Enviar com segurança</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

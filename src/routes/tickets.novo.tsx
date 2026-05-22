@@ -16,6 +16,14 @@ import { ArrowLeft } from "lucide-react";
 import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { CredentialsCollapsible, type CredentialDraft, saveDraftCredentials } from "@/components/CredentialsCollapsible";
+
+async function invokeCreds(action: string, payload: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke("ticket-credentials", { body: { action, ...payload } });
+  if (error) throw new Error(error.message);
+  if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+  return data;
+}
 
 export const Route = createFileRoute("/tickets/novo")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -43,6 +51,7 @@ function NovoCliente() {
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
   const [files, setFiles] = useState<File[]>([]);
+  const [creds, setCreds] = useState<CredentialDraft[]>([]);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -85,6 +94,7 @@ function NovoCliente() {
           is_internal: false,
         });
       }
+      await saveDraftCredentials(invokeCreds, ticket.id, creds);
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       void notifyTicketCriado(
         { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id, created_by: user.id },
@@ -134,6 +144,7 @@ function NovoCliente() {
             <Label>Anexos</Label>
             <AttachmentPicker files={files} onChange={setFiles} />
           </div>
+          <CredentialsCollapsible items={creds} onChange={setCreds} />
           <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Criar ticket"}</Button>
         </form>
       </Card>
