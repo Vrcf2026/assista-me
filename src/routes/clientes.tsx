@@ -137,7 +137,7 @@ function ClientesList() {
                       <td className="px-4 py-2 text-muted-foreground">{c.nif ?? "—"}</td>
                       <td className="px-4 py-2">
                         <span className="text-xs px-2 py-0.5 rounded border bg-secondary">
-                          {c.tipo_contrato === "avenca" ? "Avença" : "Pontual"}
+                          {c.tipo_contrato === "avenca" ? "Avença" : c.tipo_contrato === "pontual" ? "Pontual" : "Sem contrato"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-right font-mono text-xs">{formatCurrency(Number(c.tarifa_hora))}/h</td>
