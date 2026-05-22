@@ -291,17 +291,23 @@ function NovoAdmin() {
       .then(({ data }) => setClients((data ?? []) as { id: string; nome: string }[]));
   }, []);
 
-  // Load users of the selected client
+  // Load users + past sistemas of the selected client
   useEffect(() => {
-    if (!clientId) { setClientUsers([]); return; }
+    if (!clientId) { setClientUsers([]); setSistemasPassados([]); return; }
     void (async () => {
       const { data: links } = await supabase
         .from("client_users").select("user_id").eq("client_id", clientId);
       const ids = (links ?? []).map((l) => l.user_id);
-      if (ids.length === 0) { setClientUsers([]); return; }
-      const { data: profs } = await supabase
-        .from("profiles").select("user_id, nome, email").in("user_id", ids);
-      setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+      if (ids.length === 0) { setClientUsers([]); } else {
+        const { data: profs } = await supabase
+          .from("profiles").select("user_id, nome, email").in("user_id", ids);
+        setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+      }
+      const { data: pastTickets } = await supabase
+        .from("tickets").select("equipamento").eq("client_id", clientId)
+        .not("equipamento", "is", null).order("created_at", { ascending: false }).limit(50);
+      const uniq = Array.from(new Set((pastTickets ?? []).map((t) => (t.equipamento ?? "").trim()).filter(Boolean)));
+      setSistemasPassados(uniq.slice(0, 15));
     })();
     setAssignedUserId("");
     setAssignToUser(false);
