@@ -888,7 +888,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     startY: y,
     head: [["#", "Descrição", "Qtd.", "Preço Unit.", "IVA", "Total"]],
     body: rows,
-    headStyles: { fillColor: [231, 119, 34], textColor: [255, 255, 255] },
+    headStyles: { fillColor: hexToRgb(activeBrand.color), textColor: [255, 255, 255] },
     styles: { fontSize: 9, cellPadding: 3 },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     columnStyles: {
