@@ -34,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
-import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
+import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
