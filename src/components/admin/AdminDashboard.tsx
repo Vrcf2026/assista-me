@@ -60,6 +60,7 @@ export function AdminDashboard() {
   const [satAvg, setSatAvg] = useState<{ count: number; avg: number }>({ count: 0, avg: 0 });
   const [trabalhosStats, setTrabalhosStats] = useState<{ ativos: number; atrasados: number }>({ ativos: 0, atrasados: 0 });
   const [campanhasStats, setCampanhasStats] = useState<{ ativas: number; pendentes: number }>({ ativas: 0, pendentes: 0 });
+  const [orcamentosPendentes, setOrcamentosPendentes] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { void load(); }, []);
