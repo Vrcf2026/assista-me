@@ -67,6 +67,7 @@ function totalDe(itens: Pick<Item, "quantidade" | "valor_unitario">[]) {
 export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: TicketLite; isAdmin: boolean; isClienteAdmin?: boolean }) {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [itensByOrc, setItensByOrc] = useState<Record<string, Item[]>>({});
+  const [principais, setPrincipais] = useState<Array<{ id: string; numero: number; estado: string; validade: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   // editor
