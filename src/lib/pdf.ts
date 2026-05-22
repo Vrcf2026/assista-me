@@ -3,15 +3,21 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatMinutes, formatCurrency, calcValor, TIPO_LABELS, ESTADO_LABELS } from "@/lib/format";
 import { ESTADO_FATURACAO_LABELS } from "@/lib/billing";
-import { BRANDS, getBrand, type BrandConfig } from "@/lib/brand";
+import { BRANDS, getBrand, loadBrandLogoDataUrl, type BrandConfig } from "@/lib/brand";
 
 type Tipo = "cliente" | "interno";
 
 // Marca activa do PDF que está a ser gerado.
 // Cada gerador (gerarRelatorio*, etc.) chama setActiveBrand() no início.
 let activeBrand: BrandConfig = BRANDS.vrcf;
-function setActiveBrand(marca?: string | null) {
+let activeLogoDataUrl: string | null = null;
+async function setActiveBrand(marca?: string | null) {
   activeBrand = getBrand(marca);
+  try {
+    activeLogoDataUrl = await loadBrandLogoDataUrl(activeBrand);
+  } catch {
+    activeLogoDataUrl = null;
+  }
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -23,15 +29,23 @@ function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
   const [r, g, b] = hexToRgb(activeBrand.color);
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 210, 25, "F");
+  // Logo (à esquerda, dentro da barra escura)
+  let textX = 14;
+  if (activeLogoDataUrl) {
+    try {
+      doc.addImage(activeLogoDataUrl, "PNG", 14, 4, 17, 17);
+      textX = 35;
+    } catch { /* ignore */ }
+  }
   doc.setTextColor(r, g, b);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(activeBrand.fullName, 14, 10);
+  doc.text(activeBrand.fullName, textX, 10);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(titulo, 14, 17);
-  if (subtitulo) doc.text(subtitulo, 14, 22);
+  doc.text(titulo, textX, 17);
+  if (subtitulo) doc.text(subtitulo, textX, 22);
   doc.setTextColor(0, 0, 0);
 }
 
@@ -131,7 +145,7 @@ async function loadTicketData(ticketId: string) {
 
 export async function gerarRelatorioTicketCliente(ticketId: string) {
   const { ticket, comments, entries, satisfaction } = await loadTicketData(ticketId);
-  setActiveBrand(ticket.client?.marca);
+  await setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório de Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -195,7 +209,7 @@ export async function gerarRelatorioTicketCliente(ticketId: string) {
 
 export async function gerarRelatorioTicketInterno(ticketId: string) {
   const { ticket, comments, entries, satisfaction, pmap } = await loadTicketData(ticketId);
-  setActiveBrand(ticket.client?.marca);
+  await setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório Interno — Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -290,7 +304,7 @@ export async function gerarRelatorioMensalCliente(clientId: string, mes: number,
   const { inicio, fim } = monthRange(mes, ano);
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
-  setActiveBrand((client as { marca?: string }).marca);
+  await setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -523,7 +537,7 @@ export async function gerarRelatorioMensalInterno(mes: number, ano: number) {
 export async function gerarArquivoCliente(clientId: string, dataInicio: string, dataFim: string) {
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
-  setActiveBrand((client as { marca?: string }).marca);
+  await setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -682,7 +696,7 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 
   const ticket = (orc as any).ticket;
   const client = ticket?.client;
-  setActiveBrand(client?.marca);
+  await setActiveBrand(client?.marca);
 
   const doc = new jsPDF();
   addHeader(doc, `Orçamento v${(orc as any).versao}`, `Ticket #${String(ticket?.numero ?? "").padStart(4, "0")} — ${ticket?.titulo ?? ""}`);
@@ -754,7 +768,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     .eq("id", orcamentoId)
     .single();
   if (error || !orc) throw new Error(error?.message ?? "Orçamento não encontrado");
-  setActiveBrand(((orc as any).clients?.marca) ?? "vrcf");
+  await setActiveBrand(((orc as any).clients?.marca) ?? "vrcf");
 
   const { data: itens } = await supabase
     .from("orcamento_itens")
@@ -770,14 +784,24 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   const doc = new jsPDF();
 
   // ===== Cabeçalho (estilo claro, igual ao modelo) =====
+  let headerTextX = 14;
+  if (activeLogoDataUrl) {
+    try {
+      doc.addImage(activeLogoDataUrl, "PNG", 14, 10, 16, 16);
+      headerTextX = 34;
+    } catch { /* ignore */ }
+  }
   doc.setTextColor(36, 41, 61);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(activeBrand.fullName, 14, 18);
+  doc.text(activeBrand.fullName, headerTextX, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  doc.text("Rua Luis Calado Nunes 15 LJ B  ·  NIF: 515237205  ·  911564243  ·  geral@vrcf.pt", 14, 24);
+  doc.text(
+    `${activeBrand.address}  ·  NIF: ${activeBrand.nif}  ·  ${activeBrand.contactPhone}  ·  ${activeBrand.contactEmail}`,
+    headerTextX, 24,
+  );
   doc.setDrawColor(200, 200, 200);
   doc.line(14, 28, 196, 28);
 
@@ -822,7 +846,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   }
 
   doc.setFontSize(9);
-  doc.text("IBAN: PT50 0007 0200 0000 5140 0080 2", 14, y);
+  doc.text(`IBAN: ${activeBrand.iban}`, 14, y);
   y += 6;
 
   // ===== Tabela de itens =====
@@ -864,7 +888,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     startY: y,
     head: [["#", "Descrição", "Qtd.", "Preço Unit.", "IVA", "Total"]],
     body: rows,
-    headStyles: { fillColor: [231, 119, 34], textColor: [255, 255, 255] },
+    headStyles: { fillColor: hexToRgb(activeBrand.color), textColor: [255, 255, 255] },
     styles: { fontSize: 9, cellPadding: 3 },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     columnStyles: {
@@ -912,7 +936,10 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   if (y > 200) { doc.addPage(); y = 20; }
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(231, 119, 34);
+  {
+    const [r, g, b] = hexToRgb(activeBrand.color);
+    doc.setTextColor(r, g, b);
+  }
   doc.text("Termos e condições", 14, y);
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
@@ -951,14 +978,15 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
 
   // ===== Rodapé =====
   const totalPages = doc.getNumberOfPages();
+  const [fr, fg, fb] = hexToRgb(activeBrand.color);
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setDrawColor(231, 119, 34);
+    doc.setDrawColor(fr, fg, fb);
     doc.line(14, 284, 196, 284);
     doc.setFontSize(7);
     doc.setTextColor(120, 120, 120);
     doc.text(
-      `VRCF — Informática & Segurança · NIF: 515237205 · 911564243 · geral@vrcf.pt · Documento gerado em ${new Date().toLocaleString("pt-PT")}`,
+      `${activeBrand.fullName} · NIF: ${activeBrand.nif} · ${activeBrand.contactPhone} · ${activeBrand.contactEmail} · Documento gerado em ${new Date().toLocaleString("pt-PT")}`,
       14, 288,
     );
     doc.text(`Página ${i} de ${totalPages}`, 196, 288, { align: "right" });
