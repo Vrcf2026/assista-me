@@ -336,6 +336,7 @@ function TicketDetail({ id }: { id: string }) {
       <OrcamentosPanel
         ticket={{ id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id, created_by: (ticket as any).created_by ?? null }}
         isAdmin={isAdmin}
+        isClienteAdmin={isClientAdmin}
       />
 
       {isAdmin && (
