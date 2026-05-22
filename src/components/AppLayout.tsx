@@ -56,6 +56,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   <ClipboardList className="h-4 w-4" />
                   <span className="hidden sm:inline">Trabalhos</span>
                 </Link>
+                <Link to="/orcamentos" className={linkCls(isActive("/orcamentos"))}>
+                  <Receipt className="h-4 w-4" />
+                  <span className="hidden sm:inline">Orçamentos</span>
+                </Link>
                 <Link to="/campanhas" className={linkCls(isActive("/campanhas"))}>
                   <Megaphone className="h-4 w-4" />
                   <span className="hidden sm:inline">Campanhas</span>
