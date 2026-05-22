@@ -29,7 +29,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Eye, EyeOff, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
