@@ -25,13 +25,16 @@ interface Client {
   id: string;
   nome: string;
   nif: string | null;
-  tipo_contrato: "avenca" | "pontual";
+  tipo_cliente: "particular" | "empresa";
+  tipo_contrato: "avenca" | "pontual" | "nenhum";
   tarifa_hora: number;
   horas_pacote: number | null;
   horas_pacote_anual: number | null;
   contrato_inicio: string | null;
   contrato_fim: string | null;
   dias_fecho_automatico: number | null;
+  morada: string | null;
+  email_geral: string | null;
 }
 
 function ClientesPage() {
