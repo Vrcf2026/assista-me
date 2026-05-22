@@ -281,8 +281,8 @@ function TicketDetail({ id }: { id: string }) {
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
-      {/* Credenciais seguras — só admin VRCF */}
-      {isAdmin && <CredentialsPanel ticketId={ticket.id} />}
+      {/* Credenciais seguras — admin VRCF e admin do cliente */}
+      {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} />}
 
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
