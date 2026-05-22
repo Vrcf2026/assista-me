@@ -50,7 +50,7 @@ async function resolveRecipients(
 }
 
 export async function notifyTicketCriado(ticket: TicketLite, prioridade: string) {
-  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  const { emails, clienteNome, marca } = await resolveRecipients(ticket.client_id, ticket.created_by);
   for (const r of emails) {
     await sendTransactionalEmail({
       templateName: "ticket-criado",
@@ -62,6 +62,7 @@ export async function notifyTicketCriado(ticket: TicketLite, prioridade: string)
         ticketTitulo: ticket.titulo,
         prioridade,
         ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+        marca,
       },
     });
   }
@@ -73,7 +74,7 @@ export async function notifyNovoComentario(
   autor: string,
   commentId: string,
 ) {
-  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  const { emails, clienteNome, marca } = await resolveRecipients(ticket.client_id, ticket.created_by);
   for (const r of emails) {
     await sendTransactionalEmail({
       templateName: "ticket-novo-comentario",
@@ -86,6 +87,7 @@ export async function notifyNovoComentario(
         autor,
         mensagem,
         ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+        marca,
       },
     });
   }
@@ -96,7 +98,7 @@ export async function notifyTicketFechado(
   motivoFecho: string,
   solucaoAplicada: string | null,
 ) {
-  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  const { emails, clienteNome, marca } = await resolveRecipients(ticket.client_id, ticket.created_by);
   for (const r of emails) {
     await sendTransactionalEmail({
       templateName: "ticket-fechado",
@@ -109,6 +111,7 @@ export async function notifyTicketFechado(
         motivoFecho,
         solucaoAplicada,
         ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+        marca,
       },
     });
   }
@@ -118,7 +121,7 @@ export async function notifyTicketFechado(
  * Cria registo de satisfação (token único) e envia email ao criador do ticket.
  */
 export async function notifyTicketSatisfacao(ticket: TicketLite) {
-  const { emails, clienteNome } = await resolveRecipients(ticket.client_id, ticket.created_by);
+  const { emails, clienteNome, marca } = await resolveRecipients(ticket.client_id, ticket.created_by);
   // Apenas ao criador, não a todos os admins do cliente
   const recipient = emails[0];
   if (!recipient) return;
@@ -140,6 +143,7 @@ export async function notifyTicketSatisfacao(ticket: TicketLite) {
       ticketNumero: ticket.numero,
       ticketTitulo: ticket.titulo,
       satisfacaoUrl: `${SITE_URL}/satisfacao/${token}`,
+      marca,
     },
   });
 }
