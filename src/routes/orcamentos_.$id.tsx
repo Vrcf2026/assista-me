@@ -125,7 +125,7 @@ function Inner() {
   };
 
   const addLinha = () => {
-    setItens((prev) => [...prev, { descricao: "", quantidade: 1, valor_unitario: 0 }]);
+    setItens((prev) => [...prev, { descricao: "", quantidade: 1, valor_unitario: 0, iva_taxa: 23 }]);
     setTimeout(() => {
       const last = Object.keys(inputsRef.current).filter((k) => k.startsWith("desc-")).pop();
       if (last) inputsRef.current[last]?.focus();
