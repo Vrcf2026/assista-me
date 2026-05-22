@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Download, Pencil, Check, X, FileText } from "lucide-react";
+import { Plus, Trash2, Download, Pencil, Check, X, FileText, ExternalLink } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { gerarOrcamentoPDF } from "@/lib/pdf";
 import { notifyNovoComentario } from "@/lib/email/notify-ticket-event";
@@ -66,6 +67,7 @@ function totalDe(itens: Pick<Item, "quantidade" | "valor_unitario">[]) {
 export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: TicketLite; isAdmin: boolean; isClienteAdmin?: boolean }) {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [itensByOrc, setItensByOrc] = useState<Record<string, Item[]>>({});
+  const [principais, setPrincipais] = useState<Array<{ id: string; numero: number; estado: string; validade: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   // editor
@@ -98,8 +100,17 @@ export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: T
     } else {
       setItensByOrc({});
     }
+    // Orçamentos principais (tabela `orcamentos`) ligados a este cliente
+    if (isAdmin || isClienteAdmin) {
+      const { data: princ } = await supabase
+        .from("orcamentos")
+        .select("id, numero, estado, validade, created_at")
+        .eq("client_id", ticket.client_id)
+        .order("created_at", { ascending: false });
+      setPrincipais((princ ?? []) as any);
+    }
     setLoading(false);
-  }, [ticket.id]);
+  }, [ticket.id, ticket.client_id, isAdmin, isClienteAdmin]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -183,6 +194,29 @@ export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: T
               </div>
             );
           })}
+        </div>
+      )}
+
+      {(isAdmin || isClienteAdmin) && principais.length > 0 && (
+        <div className="pt-2 border-t space-y-2">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Orçamentos principais do cliente</h4>
+          <div className="border rounded-md divide-y">
+            {principais.map((p) => (
+              <div key={p.id} className="px-3 py-2 flex items-center gap-3 text-sm">
+                <Link to="/orcamentos/$id" params={{ id: p.id }} className="font-mono text-primary hover:underline">
+                  ORC-{String(p.numero).padStart(4, "0")}
+                </Link>
+                <span className="text-xs text-muted-foreground">{formatDate(p.created_at)}</span>
+                <span className="text-xs px-2 py-0.5 rounded border bg-secondary">{p.estado}</span>
+                <span className="text-xs text-muted-foreground flex-1">
+                  {p.validade ? `Válido até ${formatDate(p.validade)}` : ""}
+                </span>
+                <Link to="/orcamentos/$id" params={{ id: p.id }} className="text-muted-foreground hover:text-foreground">
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

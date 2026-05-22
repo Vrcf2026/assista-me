@@ -59,8 +59,10 @@ interface TrabalhoRow {
 }
 
 interface OrcamentoRow {
-  id: string;
-  numero: number;
+  key: string;
+  origem: "principal" | "ticket";
+  ref: string; // ex: ORC-0001  ou  T#0012 v2
+  link: { kind: "orcamento"; id: string } | { kind: "ticket"; id: string };
   estado: string;
   validade: string | null;
   created_at: string;
@@ -103,7 +105,7 @@ function ClienteDetail({ id }: { id: string }) {
   useEffect(() => {
     void (async () => {
       setLoading(true);
-      const [cRes, tRes, trRes, orcRes, cpRes] = await Promise.all([
+      const [cRes, tRes, trRes, orcRes, torcRes, cpRes] = await Promise.all([
         supabase.from("clients").select("*").eq("id", id).maybeSingle(),
         supabase
           .from("tickets")
@@ -121,6 +123,11 @@ function ClienteDetail({ id }: { id: string }) {
           .eq("client_id", id)
           .order("created_at", { ascending: false }),
         supabase
+          .from("ticket_orcamentos")
+          .select("id, versao, estado, validade, created_at, ticket_id, tickets!inner(numero, client_id)")
+          .eq("tickets.client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
           .from("campanha_clientes")
           .select("id, campanha_id, estado, minutos, data_agendada, concluido_em, campanhas(titulo)")
           .eq("client_id", id)
@@ -129,7 +136,27 @@ function ClienteDetail({ id }: { id: string }) {
       setClient(cRes.data as ClientFull | null);
       setTickets((tRes.data ?? []) as TicketRow[]);
       setTrabalhos((trRes.data ?? []) as TrabalhoRow[]);
-      setOrcamentos((orcRes.data ?? []) as OrcamentoRow[]);
+      const orcPrincipais: OrcamentoRow[] = (orcRes.data ?? []).map((o: any) => ({
+        key: `p-${o.id}`,
+        origem: "principal",
+        ref: `ORC-${String(o.numero).padStart(4, "0")}`,
+        link: { kind: "orcamento", id: o.id },
+        estado: o.estado,
+        validade: o.validade,
+        created_at: o.created_at,
+      }));
+      const orcTickets: OrcamentoRow[] = (torcRes.data ?? []).map((o: any) => ({
+        key: `t-${o.id}`,
+        origem: "ticket",
+        ref: `T#${String(o.tickets?.numero ?? 0).padStart(4, "0")} v${o.versao}`,
+        link: { kind: "ticket", id: o.ticket_id },
+        estado: o.estado,
+        validade: o.validade,
+        created_at: o.created_at,
+      }));
+      setOrcamentos(
+        [...orcPrincipais, ...orcTickets].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+      );
       setCampanhas(((cpRes.data ?? []) as Array<{
         id: string; campanha_id: string; estado: string; minutos: number;
         data_agendada: string | null; concluido_em: string | null;
@@ -361,7 +388,8 @@ function ClienteDetail({ id }: { id: string }) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Nº</th>
+                  <th className="px-3 py-2 font-medium">Referência</th>
+                  <th className="px-3 py-2 font-medium">Origem</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
                   <th className="px-3 py-2 font-medium">Validade</th>
                   <th className="px-3 py-2 font-medium">Criado</th>
@@ -369,11 +397,22 @@ function ClienteDetail({ id }: { id: string }) {
               </thead>
               <tbody>
                 {orcamentos.map((o) => (
-                  <tr key={o.id} className="border-t hover:bg-secondary/50">
+                  <tr key={o.key} className="border-t hover:bg-secondary/50">
                     <td className="px-3 py-1.5">
-                      <Link to="/orcamentos/$id" params={{ id: o.id }} className="font-mono text-primary hover:underline">
-                        ORC-{String(o.numero).padStart(4, "0")}
-                      </Link>
+                      {o.link.kind === "orcamento" ? (
+                        <Link to="/orcamentos/$id" params={{ id: o.link.id }} className="font-mono text-primary hover:underline">
+                          {o.ref}
+                        </Link>
+                      ) : (
+                        <Link to="/tickets/$id" params={{ id: o.link.id }} className="font-mono text-primary hover:underline">
+                          {o.ref}
+                        </Link>
+                      )}
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <span className={`text-[10px] px-2 py-0.5 rounded border ${o.origem === "principal" ? "bg-primary/10 border-primary/30 text-primary" : "bg-muted border-border text-muted-foreground"}`}>
+                        {o.origem === "principal" ? "Principal" : "Ticket"}
+                      </span>
                     </td>
                     <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{o.estado}</span></td>
                     <td className="px-3 py-1.5 text-xs text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-PT") : "—"}</td>
