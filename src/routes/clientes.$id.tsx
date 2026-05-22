@@ -388,7 +388,8 @@ function ClienteDetail({ id }: { id: string }) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Nº</th>
+                  <th className="px-3 py-2 font-medium">Referência</th>
+                  <th className="px-3 py-2 font-medium">Origem</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
                   <th className="px-3 py-2 font-medium">Validade</th>
                   <th className="px-3 py-2 font-medium">Criado</th>
@@ -396,11 +397,22 @@ function ClienteDetail({ id }: { id: string }) {
               </thead>
               <tbody>
                 {orcamentos.map((o) => (
-                  <tr key={o.id} className="border-t hover:bg-secondary/50">
+                  <tr key={o.key} className="border-t hover:bg-secondary/50">
                     <td className="px-3 py-1.5">
-                      <Link to="/orcamentos/$id" params={{ id: o.id }} className="font-mono text-primary hover:underline">
-                        ORC-{String(o.numero).padStart(4, "0")}
-                      </Link>
+                      {o.link.kind === "orcamento" ? (
+                        <Link to="/orcamentos/$id" params={{ id: o.link.id }} className="font-mono text-primary hover:underline">
+                          {o.ref}
+                        </Link>
+                      ) : (
+                        <Link to="/tickets/$id" params={{ id: o.link.id }} className="font-mono text-primary hover:underline">
+                          {o.ref}
+                        </Link>
+                      )}
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <span className={`text-[10px] px-2 py-0.5 rounded border ${o.origem === "principal" ? "bg-primary/10 border-primary/30 text-primary" : "bg-muted border-border text-muted-foreground"}`}>
+                        {o.origem === "principal" ? "Principal" : "Ticket"}
+                      </span>
                     </td>
                     <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{o.estado}</span></td>
                     <td className="px-3 py-1.5 text-xs text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-PT") : "—"}</td>
