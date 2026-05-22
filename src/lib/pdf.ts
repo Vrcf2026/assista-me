@@ -905,8 +905,10 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     : "Os produtos fornecidos beneficiam de garantia legal de 6 meses, nos termos do Código Comercial.";
 
   const termos: [string, string][] = [
-    ["1. Validade", "O presente orçamento é válido por 15 dias úteis a contar da data de emissão."],
-    ["2. IVA", "Todos os valores apresentados incluem IVA à taxa legal em vigor."],
+    ["1. Validade", "O presente orçamento é válido por 15 dias úteis a contar da data de emissão, salvo ruptura de stock."],
+    ["2. IVA", ivaIncluido
+      ? "Os valores apresentados incluem IVA à taxa indicada por linha."
+      : "Aos valores apresentados acresce IVA à taxa indicada por linha."],
     ["3. Condições de pagamento", condPag],
     ["4. Garantia de produtos", garantia],
     ["5. Garantia de serviços", "A mão de obra tem garantia de 90 dias após a conclusão dos trabalhos."],
