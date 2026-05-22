@@ -32,6 +32,7 @@ interface Orcamento {
   estado: "rascunho" | "enviado" | "aprovado" | "recusado" | "expirado";
   validade: string;
   condicao_pagamento: "pronto" | "50_50";
+  iva_incluido: boolean;
   notas: string | null;
   trabalho_id: string | null;
   created_at: string;
@@ -42,7 +43,10 @@ interface ItemDraft {
   descricao: string;
   quantidade: number;
   valor_unitario: number;
+  iva_taxa: number;
 }
+
+const IVA_TAXAS = [0, 6, 13, 23] as const;
 
 const ESTADOS = ["rascunho", "enviado", "aprovado", "recusado", "expirado"] as const;
 const ESTADO_LABEL: Record<typeof ESTADOS[number], string> = {
