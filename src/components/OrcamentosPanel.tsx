@@ -100,8 +100,17 @@ export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: T
     } else {
       setItensByOrc({});
     }
+    // Orçamentos principais (tabela `orcamentos`) ligados a este cliente
+    if (isAdmin || isClienteAdmin) {
+      const { data: princ } = await supabase
+        .from("orcamentos")
+        .select("id, numero, estado, validade, created_at")
+        .eq("client_id", ticket.client_id)
+        .order("created_at", { ascending: false });
+      setPrincipais((princ ?? []) as any);
+    }
     setLoading(false);
-  }, [ticket.id]);
+  }, [ticket.id, ticket.client_id, isAdmin, isClienteAdmin]);
 
   useEffect(() => { void load(); }, [load]);
 
