@@ -670,7 +670,7 @@ export async function gerarArquivoCliente(clientId: string, dataInicio: string, 
 export async function gerarOrcamentoPDF(orcamentoId: string) {
   const { data: orc } = await supabase
     .from("ticket_orcamentos")
-    .select("*, ticket:tickets(numero, titulo, client:clients(nome, nif))")
+    .select("*, ticket:tickets(numero, titulo, client:clients(nome, nif, marca))")
     .eq("id", orcamentoId)
     .single();
   if (!orc) throw new Error("Orçamento não encontrado");
@@ -682,6 +682,7 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 
   const ticket = (orc as any).ticket;
   const client = ticket?.client;
+  setActiveBrand(client?.marca);
 
   const doc = new jsPDF();
   addHeader(doc, `Orçamento v${(orc as any).versao}`, `Ticket #${String(ticket?.numero ?? "").padStart(4, "0")} — ${ticket?.titulo ?? ""}`);
@@ -749,10 +750,11 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   const { data: orc, error } = await supabase
     .from("orcamentos")
-    .select("*, clients(id, nome, nif)")
+    .select("*, clients(id, nome, nif, marca)")
     .eq("id", orcamentoId)
     .single();
   if (error || !orc) throw new Error(error?.message ?? "Orçamento não encontrado");
+  setActiveBrand(((orc as any).clients?.marca) ?? "vrcf");
 
   const { data: itens } = await supabase
     .from("orcamento_itens")
@@ -771,7 +773,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   doc.setTextColor(36, 41, 61);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Vrcf - Informática e Segurança", 14, 18);
+  doc.text(activeBrand.fullName, 14, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
