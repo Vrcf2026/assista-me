@@ -105,8 +105,9 @@ function Inner() {
             descricao: i.descricao,
             quantidade: Number(i.quantidade),
             valor_unitario: Number(i.valor_unitario),
+            iva_taxa: Number(i.iva_taxa ?? 23),
           }))
-        : [{ descricao: "", quantidade: 1, valor_unitario: 0 }],
+        : [{ descricao: "", quantidade: 1, valor_unitario: 0, iva_taxa: 23 }],
     );
   }, [id]);
 
