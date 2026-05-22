@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { Plus, X, Download, Save, ClipboardList, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format";
@@ -304,21 +304,13 @@ function Inner() {
         </div>
       </Card>
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-2">
         <h3 className="text-sm font-semibold">Condições de pagamento</h3>
-        <RadioGroup
-          value={orc.condicao_pagamento}
-          onValueChange={(v) => updateOrc("condicao_pagamento", v as Orcamento["condicao_pagamento"])}
-        >
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="pronto" id="pp" className="mt-1" />
-            <Label htmlFor="pp" className="font-normal cursor-pointer">10% desconto a pronto pagamento na adjudicação</Label>
-          </div>
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="50_50" id="50" className="mt-1" />
-            <Label htmlFor="50" className="font-normal cursor-pointer">50% na adjudicação + 50% na entrega/conclusão</Label>
-          </div>
-        </RadioGroup>
+        <p className="text-xs text-muted-foreground">As duas opções abaixo são incluídas automaticamente no rodapé do PDF:</p>
+        <ul className="text-sm list-disc pl-5 space-y-1">
+          <li>10% desconto a pronto pagamento na adjudicação</li>
+          <li>50% na adjudicação + 50% na entrega/conclusão</li>
+        </ul>
       </Card>
 
       <Card className="p-5 space-y-3">
