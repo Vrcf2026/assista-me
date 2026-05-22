@@ -285,6 +285,7 @@ export type Database = {
           nif: string | null
           nome: string
           tarifa_hora: number
+          tipo_cliente: string
           tipo_contrato: Database["public"]["Enums"]["contract_type"]
           updated_at: string
         }
@@ -299,6 +300,7 @@ export type Database = {
           nif?: string | null
           nome: string
           tarifa_hora?: number
+          tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
         }
@@ -313,6 +315,7 @@ export type Database = {
           nif?: string | null
           nome?: string
           tarifa_hora?: number
+          tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
         }
