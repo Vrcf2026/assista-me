@@ -19,10 +19,11 @@ interface TicketLite {
 async function resolveRecipients(
   clientId: string,
   createdBy: string | null | undefined,
-): Promise<{ emails: { email: string; nome: string | null }[]; clienteNome: string | null }> {
+): Promise<{ emails: { email: string; nome: string | null }[]; clienteNome: string | null; marca: string }> {
   const { data: client } = await supabase
-    .from("clients").select("nome").eq("id", clientId).maybeSingle();
+    .from("clients").select("nome, marca").eq("id", clientId).maybeSingle();
   const clienteNome = client?.nome ?? null;
+  const marca = (client as { marca?: string } | null)?.marca ?? "vrcf";
 
   // Buscar membership do cliente
   const { data: members } = await supabase
@@ -34,7 +35,7 @@ async function resolveRecipients(
   if (createdBy) ids.add(createdBy);
   (members ?? []).forEach((m) => { if (m.is_client_admin) ids.add(m.user_id); });
 
-  if (ids.size === 0) return { emails: [], clienteNome };
+  if (ids.size === 0) return { emails: [], clienteNome, marca };
 
   const { data: profiles } = await supabase
     .from("profiles")
@@ -45,7 +46,7 @@ async function resolveRecipients(
     .filter((p) => !!p.email)
     .map((p) => ({ email: p.email, nome: p.nome ?? clienteNome }));
 
-  return { emails, clienteNome };
+  return { emails, clienteNome, marca };
 }
 
 export async function notifyTicketCriado(ticket: TicketLite, prioridade: string) {
