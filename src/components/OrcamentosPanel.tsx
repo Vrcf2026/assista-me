@@ -141,6 +141,11 @@ export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: T
 
   return (
     <Card className="p-4 space-y-3">
+      {!isAdmin && !isClienteAdmin && orcamentos.some((o) => o.estado === "pendente") && (
+        <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+          Este ticket aguarda aprovação do responsável.
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">💰 Orçamentos</h3>
         {isAdmin && (
