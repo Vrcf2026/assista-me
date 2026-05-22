@@ -21,8 +21,6 @@ import { Route as CampanhasRouteImport } from './routes/campanhas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
 import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
-import { Route as OrcamentosRouteImport } from './routes/orcamentos'
-import { Route as OrcamentosIdRouteImport } from './routes/orcamentos_.$id'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
@@ -108,6 +106,16 @@ const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
 const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
   id: '/trabalhos_/$id',
   path: '/trabalhos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosRoute = OrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
+  id: '/orcamentos_/$id',
+  path: '/orcamentos/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
