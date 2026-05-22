@@ -267,16 +267,37 @@ function ClientFormDialog({
             <Label>Nome *</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Tipo de cliente</Label>
+              <Select value={tipoCliente} onValueChange={(v) => setTipoCliente(v as "particular" | "empresa")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="empresa">Empresa</SelectItem>
+                  <SelectItem value="particular">Particular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>NIF</Label>
+              <Input value={nif} onChange={(e) => setNif(e.target.value)} />
+            </div>
+          </div>
           <div className="space-y-1.5">
-            <Label>NIF</Label>
-            <Input value={nif} onChange={(e) => setNif(e.target.value)} />
+            <Label>Morada</Label>
+            <Input value={morada} onChange={(e) => setMorada(e.target.value)} placeholder="Rua, n.º, código postal, localidade" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email geral</Label>
+            <Input type="email" value={emailGeral} onChange={(e) => setEmailGeral(e.target.value)} placeholder="geral@cliente.pt" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Tipo contrato</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v as "avenca" | "pontual")}>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as "avenca" | "pontual" | "nenhum")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="nenhum">Sem contrato</SelectItem>
                   <SelectItem value="pontual">Pontual</SelectItem>
                   <SelectItem value="avenca">Avença</SelectItem>
                 </SelectContent>
