@@ -108,16 +108,6 @@ const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
   path: '/trabalhos/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrcamentosRoute = OrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
-  id: '/orcamentos_/$id',
-  path: '/orcamentos/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TicketsNovoRoute = TicketsNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -265,6 +255,8 @@ export interface FileRoutesByFullPath {
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
+  '/orcamentos': typeof OrcamentosRoute
+  '/orcamentos/$id': typeof OrcamentosIdRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
