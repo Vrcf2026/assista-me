@@ -919,7 +919,7 @@ export type Database = {
           created_by: string | null
           id: string
           notas: string | null
-          password: string
+          password_encrypted: string
           ticket_id: string
           tipo: string
           utilizador: string | null
@@ -929,7 +929,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           notas?: string | null
-          password: string
+          password_encrypted: string
           ticket_id: string
           tipo?: string
           utilizador?: string | null
@@ -939,7 +939,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           notas?: string | null
-          password?: string
+          password_encrypted?: string
           ticket_id?: string
           tipo?: string
           utilizador?: string | null
@@ -950,6 +950,50 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_credential_requests: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          fulfilled_at: string | null
+          fulfilled_credential_id: string | null
+          id: string
+          nota: string | null
+          ticket_id: string
+          tipo: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          fulfilled_at?: string | null
+          fulfilled_credential_id?: string | null
+          id?: string
+          nota?: string | null
+          ticket_id: string
+          tipo?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          fulfilled_at?: string | null
+          fulfilled_credential_id?: string | null
+          id?: string
+          nota?: string | null
+          ticket_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_credential_requests_fulfilled_credential_id_fkey"
+            columns: ["fulfilled_credential_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_credenciais"
             referencedColumns: ["id"]
           },
         ]
