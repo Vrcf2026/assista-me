@@ -131,6 +131,7 @@ async function loadTicketData(ticketId: string) {
 
 export async function gerarRelatorioTicketCliente(ticketId: string) {
   const { ticket, comments, entries, satisfaction } = await loadTicketData(ticketId);
+  setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório de Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -194,6 +195,7 @@ export async function gerarRelatorioTicketCliente(ticketId: string) {
 
 export async function gerarRelatorioTicketInterno(ticketId: string) {
   const { ticket, comments, entries, satisfaction, pmap } = await loadTicketData(ticketId);
+  setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório Interno — Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -288,6 +290,7 @@ export async function gerarRelatorioMensalCliente(clientId: string, mes: number,
   const { inicio, fim } = monthRange(mes, ano);
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
+  setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -520,6 +523,7 @@ export async function gerarRelatorioMensalInterno(mes: number, ano: number) {
 export async function gerarArquivoCliente(clientId: string, dataInicio: string, dataFim: string) {
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
+  setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
