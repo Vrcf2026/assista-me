@@ -389,7 +389,21 @@ export function AdminDashboard() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link to="/orcamentos" className="block">
+          <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Receipt className="h-5 w-5 text-amber-500" />
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Orçamentos pendentes</div>
+                  <div className="text-2xl font-bold mt-1">{orcamentosPendentes}</div>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Card>
+        </Link>
         <Link to="/trabalhos" className="block">
           <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
             <div className="flex items-center justify-between">
