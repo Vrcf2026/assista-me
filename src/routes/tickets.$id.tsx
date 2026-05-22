@@ -1468,7 +1468,7 @@ function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSav
   );
 }
 
-// ============== Notes tabs ==============
+// ============== Conversation card ==============
 function NotesTabsCard({
   ticket, comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment, onChange,
 }: {
@@ -1481,42 +1481,26 @@ function NotesTabsCard({
   onOpenAttachment: (a: Attachment) => void | Promise<void>;
   onChange: () => void;
 }) {
-  const showSharedTab = isAdmin || isClientAdmin;
-
   return (
-    <Card className="p-4">
-      <Tabs defaultValue="conversa">
-        <TabsList>
-          <TabsTrigger value="conversa">Conversa</TabsTrigger>
-          {isAdmin && <TabsTrigger value="internas">Notas internas</TabsTrigger>}
-          {showSharedTab && <TabsTrigger value="partilhado">Partilhado com cliente</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent value="conversa" className="mt-4">
-          <CommentList
-            comments={comments}
-            attachments={attachments}
-            isAdmin={isAdmin}
-            currentUserId={currentUserId}
-            onOpenAttachment={onOpenAttachment}
-          />
-          <div className="mt-4 pt-4 border-t">
-            <NewCommentForm ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={onChange} />
-          </div>
-        </TabsContent>
-
-        {isAdmin && (
-          <TabsContent value="internas" className="mt-4">
-            <InternalNotesPanel ticket={ticket} onChange={onChange} />
-          </TabsContent>
-        )}
-
-        {showSharedTab && (
-          <TabsContent value="partilhado" className="mt-4">
-            <SharedChecklistPanel ticketId={ticket.id} canEdit={isAdmin} />
-          </TabsContent>
-        )}
-      </Tabs>
+    <Card className="p-4 space-y-4">
+      <h3 className="text-sm font-semibold">💬 Conversação</h3>
+      <CommentList
+        comments={comments}
+        attachments={attachments}
+        isAdmin={isAdmin}
+        isClientAdmin={isClientAdmin}
+        currentUserId={currentUserId}
+        onOpenAttachment={onOpenAttachment}
+      />
+      <div className="pt-4 border-t">
+        <NewCommentForm
+          ticketId={ticket.id}
+          clientId={ticket.client_id}
+          isAdmin={isAdmin}
+          isClientAdmin={isClientAdmin}
+          onSent={onChange}
+        />
+      </div>
     </Card>
   );
 }
