@@ -72,7 +72,7 @@ function Inner() {
   const { id } = Route.useParams();
   const [orc, setOrc] = useState<Orcamento | null>(null);
   const [itens, setItens] = useState<ItemDraft[]>([]);
-  const [clients, setClients] = useState<{ id: string; nome: string; nif: string | null }[]>([]);
+  const [clients, setClients] = useState<{ id: string; nome: string; nif: string | null; tipo_cliente: string }[]>([]);
   const [clienteMode, setClienteMode] = useState<"existente" | "ocasional">("existente");
   const [saving, setSaving] = useState(false);
   const inputsRef = useRef<Record<string, HTMLInputElement | null>>({});
