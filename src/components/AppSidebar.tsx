@@ -115,18 +115,24 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-3 px-2 py-3">
-          <img
-            src={brand.logo}
-            alt={brand.shortName}
-            className={collapsed ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"}
-          />
-          {!collapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="font-bold text-sidebar-foreground tracking-tight">{brand.shortName}</span>
-              <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
-                {brand.tagline}
-              </span>
-            </div>
+          {brand ? (
+            <>
+              <img
+                src={brand.logo}
+                alt={brand.shortName}
+                className={collapsed ? "h-8 w-8 object-contain" : "h-10 w-10 object-contain"}
+              />
+              {!collapsed && (
+                <div className="flex flex-col leading-tight">
+                  <span className="font-bold text-sidebar-foreground tracking-tight">{brand.shortName}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
+                    {brand.tagline}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className={collapsed ? "h-8 w-8" : "h-10 w-full"} />
           )}
         </Link>
       </SidebarHeader>
