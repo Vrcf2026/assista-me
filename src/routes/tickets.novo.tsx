@@ -51,6 +51,7 @@ function NovoCliente() {
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
   const [files, setFiles] = useState<File[]>([]);
+  const [creds, setCreds] = useState<CredentialDraft[]>([]);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
