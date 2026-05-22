@@ -1567,9 +1567,26 @@ export type Database = {
         Args: { _ano: number; _client_id: string; _mes: number }
         Returns: number
       }
+      decrypt_ticket_credentials: {
+        Args: { _key: string; _ticket_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          id: string
+          notas: string
+          password: string
+          ticket_id: string
+          tipo: string
+          utilizador: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      encrypt_password: {
+        Args: { _key: string; _password: string }
+        Returns: string
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
