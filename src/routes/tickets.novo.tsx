@@ -16,6 +16,14 @@ import { ArrowLeft } from "lucide-react";
 import { notifyTicketCriado } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoTicket } from "@/lib/email/notify-admin";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { CredentialsCollapsible, type CredentialDraft, saveDraftCredentials } from "@/components/CredentialsCollapsible";
+
+async function invokeCreds(action: string, payload: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke("ticket-credentials", { body: { action, ...payload } });
+  if (error) throw new Error(error.message);
+  if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+  return data;
+}
 
 export const Route = createFileRoute("/tickets/novo")({
   validateSearch: (s: Record<string, unknown>) => ({
