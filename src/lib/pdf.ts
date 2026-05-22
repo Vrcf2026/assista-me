@@ -978,14 +978,15 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
 
   // ===== Rodapé =====
   const totalPages = doc.getNumberOfPages();
+  const [fr, fg, fb] = hexToRgb(activeBrand.color);
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setDrawColor(231, 119, 34);
+    doc.setDrawColor(fr, fg, fb);
     doc.line(14, 284, 196, 284);
     doc.setFontSize(7);
     doc.setTextColor(120, 120, 120);
     doc.text(
-      `VRCF — Informática & Segurança · NIF: 515237205 · 911564243 · geral@vrcf.pt · Documento gerado em ${new Date().toLocaleString("pt-PT")}`,
+      `${activeBrand.fullName} · NIF: ${activeBrand.nif} · ${activeBrand.contactPhone} · ${activeBrand.contactEmail} · Documento gerado em ${new Date().toLocaleString("pt-PT")}`,
       14, 288,
     );
     doc.text(`Página ${i} de ${totalPages}`, 196, 288, { align: "right" });
