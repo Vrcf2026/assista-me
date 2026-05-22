@@ -214,7 +214,26 @@ function Inner() {
     void load();
   };
 
-  const total = totalDe(itens);
+  // Cálculo de totais
+  // Se "iva_incluido": valor_unitario JÁ inclui IVA → subtotal = total/(1+iva), iva = total - subtotal
+  // Se NÃO incluído: valor_unitario é líquido → iva = subtotal * taxa, total = subtotal + iva
+  let subtotal = 0;
+  let totalIva = 0;
+  let total = 0;
+  for (const it of itens) {
+    const bruto = Number(it.quantidade) * Number(it.valor_unitario);
+    const taxa = Number(it.iva_taxa ?? 23) / 100;
+    if (orc.iva_incluido) {
+      const liq = bruto / (1 + taxa);
+      subtotal += liq;
+      totalIva += bruto - liq;
+      total += bruto;
+    } else {
+      subtotal += bruto;
+      totalIva += bruto * taxa;
+      total += bruto * (1 + taxa);
+    }
+  }
 
   return (
     <div className="space-y-4 max-w-5xl">
