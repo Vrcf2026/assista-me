@@ -329,6 +329,7 @@ export type Database = {
       }
       comments: {
         Row: {
+          client_admin_only: boolean
           created_at: string
           id: string
           is_internal: boolean
@@ -338,6 +339,7 @@ export type Database = {
           visto_em: string | null
         }
         Insert: {
+          client_admin_only?: boolean
           created_at?: string
           id?: string
           is_internal?: boolean
@@ -347,6 +349,7 @@ export type Database = {
           visto_em?: string | null
         }
         Update: {
+          client_admin_only?: boolean
           created_at?: string
           id?: string
           is_internal?: boolean

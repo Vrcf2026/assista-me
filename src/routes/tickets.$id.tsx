@@ -29,7 +29,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Eye, EyeOff, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
@@ -81,6 +81,7 @@ interface Comment {
   user_id: string;
   mensagem: string;
   is_internal: boolean;
+  client_admin_only: boolean;
   visto_em: string | null;
   created_at: string;
 }
@@ -711,15 +712,21 @@ function CloseDialog({
 
 // ============== Comments ==============
 function CommentList({
-  comments, attachments, isAdmin, currentUserId, onOpenAttachment,
+  comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment,
 }: {
   comments: Comment[];
   attachments: Attachment[];
   isAdmin: boolean;
+  isClientAdmin: boolean;
   currentUserId: string | undefined;
   onOpenAttachment: (attachment: Attachment) => void | Promise<void>;
 }) {
-  const visible = comments.filter((c) => isAdmin || !c.is_internal);
+  const visible = comments.filter((c) => {
+    if (isAdmin) return true;
+    if (c.is_internal) return false;
+    if (c.client_admin_only && !isClientAdmin) return false;
+    return true;
+  });
   const attsByComment = useMemo(() => {
     const m: Record<string, Attachment[]> = {};
     attachments.forEach((a) => {
@@ -735,15 +742,25 @@ function CommentList({
         const own = c.user_id === currentUserId;
         const baseCls = c.is_internal
           ? "bg-internal-note border-internal-note-border text-internal-note-foreground"
-          : own
-            ? "bg-primary/10 border-primary/20"
-            : "bg-secondary border-border";
+          : c.client_admin_only
+            ? "bg-amber-500/10 border-amber-500/30"
+            : own
+              ? "bg-primary/10 border-primary/20"
+              : "bg-secondary border-border";
+        const label = own
+          ? "Eu"
+          : c.is_internal
+            ? "Nota interna"
+            : c.client_admin_only
+              ? "Mensagem (só admin)"
+              : "Mensagem";
         return (
           <li key={c.id} className={`border rounded-md p-3 ${baseCls}`}>
             <div className="flex items-center justify-between gap-2 text-xs mb-1">
               <span className="font-medium flex items-center gap-1">
                 {c.is_internal && <Lock className="h-3 w-3" />}
-                {own ? "Eu" : c.is_internal ? "Nota interna" : "Mensagem"}
+                {!c.is_internal && c.client_admin_only && <Lock className="h-3 w-3 text-amber-600" />}
+                {label}
               </span>
               <span className="text-muted-foreground">{formatDateTime(c.created_at)}</span>
             </div>
@@ -759,12 +776,12 @@ function CommentList({
                 ))}
               </ul>
             )}
-            {isAdmin && !c.is_internal && c.user_id !== currentUserId && c.visto_em && (
+            {isAdmin && !c.is_internal && !c.client_admin_only && c.user_id !== currentUserId && c.visto_em && (
               <p className="text-xs text-muted-foreground mt-1 italic">
                 Visto pelo cliente às {formatDateTime(c.visto_em)}
               </p>
             )}
-            {isAdmin && !c.is_internal && c.user_id === currentUserId && (
+            {isAdmin && !c.is_internal && !c.client_admin_only && c.user_id === currentUserId && (
               <p className="text-xs text-muted-foreground mt-1 italic">
                 {c.visto_em ? `Visto às ${formatDateTime(c.visto_em)}` : "Ainda não visto"}
               </p>
@@ -777,16 +794,18 @@ function CommentList({
 }
 
 function NewCommentForm({
-  ticketId, clientId, isAdmin, onSent,
+  ticketId, clientId, isAdmin, isClientAdmin, onSent,
 }: {
   ticketId: string;
   clientId: string;
   isAdmin: boolean;
+  isClientAdmin: boolean;
   onSent: () => void;
 }) {
   const { user } = useAuth();
   const [mensagem, setMensagem] = useState("");
   const [internal, setInternal] = useState(false);
+  const [adminOnly, setAdminOnly] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
@@ -887,12 +906,14 @@ function NewCommentForm({
     setBusy(true);
     try {
       const sendInternal = isAdmin && internal;
+      const sendAdminOnly = !sendInternal && (isAdmin || isClientAdmin) && adminOnly;
       const { data: comment, error } = await supabase
         .from("comments").insert({
           ticket_id: ticketId,
           user_id: user.id,
           mensagem,
           is_internal: sendInternal,
+          client_admin_only: sendAdminOnly,
         }).select("id").single();
       if (error) throw error;
 
@@ -954,7 +975,7 @@ function NewCommentForm({
         .maybeSingle();
       if (t) {
         const ticketLite = { id: t.id, numero: t.numero, titulo: t.titulo, client_id: t.client_id };
-        if (isAdmin && !sendInternal) {
+        if (isAdmin && !sendInternal && !sendAdminOnly) {
           void notifyNovoComentario(ticketLite, mensagem, "Equipa VRCF", comment.id);
         }
         if (!isAdmin) {
@@ -968,7 +989,7 @@ function NewCommentForm({
         }
       }
 
-      setMensagem(""); setFiles([]); setInternal(false);
+      setMensagem(""); setFiles([]); setInternal(false); setAdminOnly(false);
       resetTime();
       onSent();
     } catch (err) {
@@ -981,9 +1002,9 @@ function NewCommentForm({
       <Textarea
         value={mensagem}
         onChange={(e) => setMensagem(e.target.value)}
-        placeholder={isAdmin && internal ? "Nota interna (não visível pelo cliente)…" : "Escreva uma mensagem…"}
+        placeholder={isAdmin && internal ? "Nota interna (não visível pelo cliente)…" : adminOnly ? "Mensagem visível só para VRCF e admins do cliente…" : "Escreva uma mensagem…"}
         rows={3}
-        className={isAdmin && internal ? "bg-internal-note" : ""}
+        className={isAdmin && internal ? "bg-internal-note" : adminOnly ? "bg-amber-500/5" : ""}
       />
 
       {isAdmin && (
@@ -1103,8 +1124,14 @@ function NewCommentForm({
           />
           {isAdmin && (
             <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox checked={internal} onCheckedChange={(v) => setInternal(!!v)} />
+              <Checkbox checked={internal} onCheckedChange={(v) => { setInternal(!!v); if (v) setAdminOnly(false); }} />
               <Lock className="h-3.5 w-3.5" /> Nota interna
+            </label>
+          )}
+          {(isAdmin || isClientAdmin) && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer" title="Visível apenas para VRCF e admins do cliente">
+              <Checkbox checked={adminOnly} disabled={internal} onCheckedChange={(v) => setAdminOnly(!!v)} />
+              <Lock className="h-3.5 w-3.5 text-amber-600" /> Partilhar só com admin
             </label>
           )}
           {isAdmin && templates.length > 0 && (
@@ -1467,7 +1494,7 @@ function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSav
   );
 }
 
-// ============== Notes tabs ==============
+// ============== Conversation card ==============
 function NotesTabsCard({
   ticket, comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment, onChange,
 }: {
@@ -1480,42 +1507,26 @@ function NotesTabsCard({
   onOpenAttachment: (a: Attachment) => void | Promise<void>;
   onChange: () => void;
 }) {
-  const showSharedTab = isAdmin || isClientAdmin;
-
   return (
-    <Card className="p-4">
-      <Tabs defaultValue="conversa">
-        <TabsList>
-          <TabsTrigger value="conversa">Conversa</TabsTrigger>
-          {isAdmin && <TabsTrigger value="internas">Notas internas</TabsTrigger>}
-          {showSharedTab && <TabsTrigger value="partilhado">Partilhado com cliente</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent value="conversa" className="mt-4">
-          <CommentList
-            comments={comments}
-            attachments={attachments}
-            isAdmin={isAdmin}
-            currentUserId={currentUserId}
-            onOpenAttachment={onOpenAttachment}
-          />
-          <div className="mt-4 pt-4 border-t">
-            <NewCommentForm ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onSent={onChange} />
-          </div>
-        </TabsContent>
-
-        {isAdmin && (
-          <TabsContent value="internas" className="mt-4">
-            <InternalNotesPanel ticket={ticket} onChange={onChange} />
-          </TabsContent>
-        )}
-
-        {showSharedTab && (
-          <TabsContent value="partilhado" className="mt-4">
-            <SharedChecklistPanel ticketId={ticket.id} canEdit={isAdmin} />
-          </TabsContent>
-        )}
-      </Tabs>
+    <Card className="p-4 space-y-4">
+      <h3 className="text-sm font-semibold">💬 Conversação</h3>
+      <CommentList
+        comments={comments}
+        attachments={attachments}
+        isAdmin={isAdmin}
+        isClientAdmin={isClientAdmin}
+        currentUserId={currentUserId}
+        onOpenAttachment={onOpenAttachment}
+      />
+      <div className="pt-4 border-t">
+        <NewCommentForm
+          ticketId={ticket.id}
+          clientId={ticket.client_id}
+          isAdmin={isAdmin}
+          isClientAdmin={isClientAdmin}
+          onSent={onChange}
+        />
+      </div>
     </Card>
   );
 }
