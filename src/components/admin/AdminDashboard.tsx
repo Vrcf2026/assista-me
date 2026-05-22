@@ -9,7 +9,7 @@ import { PriorityBadge, StatusBadge, TipoBadge } from "@/components/StatusBadge"
 import { formatTicketNumber } from "@/lib/format";
 import { getCriticalSla, formatRemaining } from "@/lib/sla";
 import {
-  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList, Megaphone,
+  AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList, Megaphone, Receipt,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
@@ -60,6 +60,7 @@ export function AdminDashboard() {
   const [satAvg, setSatAvg] = useState<{ count: number; avg: number }>({ count: 0, avg: 0 });
   const [trabalhosStats, setTrabalhosStats] = useState<{ ativos: number; atrasados: number }>({ ativos: 0, atrasados: 0 });
   const [campanhasStats, setCampanhasStats] = useState<{ ativas: number; pendentes: number }>({ ativas: 0, pendentes: 0 });
+  const [orcamentosPendentes, setOrcamentosPendentes] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { void load(); }, []);
@@ -113,6 +114,12 @@ export function AdminDashboard() {
       pendentes = count ?? 0;
     }
     setCampanhasStats({ ativas: ativasIds.length, pendentes });
+
+    const { count: orcCount } = await supabase
+      .from("orcamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("estado", "enviado");
+    setOrcamentosPendentes(orcCount ?? 0);
 
     setLoading(false);
   }
@@ -382,7 +389,21 @@ export function AdminDashboard() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link to="/orcamentos" className="block">
+          <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Receipt className="h-5 w-5 text-amber-500" />
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Orçamentos pendentes</div>
+                  <div className="text-2xl font-bold mt-1">{orcamentosPendentes}</div>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Card>
+        </Link>
         <Link to="/trabalhos" className="block">
           <Card className="p-5 shadow-sm hover:shadow-md transition cursor-pointer">
             <div className="flex items-center justify-between">

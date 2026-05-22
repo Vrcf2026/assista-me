@@ -724,3 +724,169 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 
   save(doc, "cliente", `orcamento-${ticket?.numero ?? orcamentoId.slice(0, 6)}-v${(orc as any).versao}.pdf`);
 }
+
+// ============ PDF — Orçamento Independente ============
+export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
+  const { data: orc, error } = await supabase
+    .from("orcamentos")
+    .select("*, clients(id, nome, nif)")
+    .eq("id", orcamentoId)
+    .single();
+  if (error || !orc) throw new Error(error?.message ?? "Orçamento não encontrado");
+
+  const { data: itens } = await supabase
+    .from("orcamento_itens")
+    .select("*")
+    .eq("orcamento_id", orcamentoId)
+    .order("ordem");
+
+  const o = orc as any;
+  const cliNome = o.clients?.nome ?? o.cliente_nome ?? "—";
+  const cliContacto = o.cliente_contacto ?? "";
+  const cliNif = o.clients?.nif ?? o.cliente_nif ?? "";
+
+  const doc = new jsPDF();
+
+  // ===== Cabeçalho =====
+  doc.setFillColor(30, 30, 30);
+  doc.rect(0, 0, 210, 32, "F");
+  doc.setTextColor(231, 119, 34);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("VRCF — Informática & Segurança", 14, 12);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("NIF: 515237205  ·  911 564 243  ·  geral@vrcf.pt", 14, 18);
+  doc.text("Documento de proposta comercial", 14, 24);
+  doc.setTextColor(0, 0, 0);
+
+  // ===== Título ORÇAMENTO =====
+  let y = 42;
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(231, 119, 34);
+  doc.text("ORÇAMENTO", 14, y);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Ref.: ORC-${String(o.numero).padStart(5, "0")}`, 196, y - 6, { align: "right" });
+  doc.text(`Data: ${formatDate(o.created_at)}`, 196, y, { align: "right" });
+  y += 8;
+
+  // ===== Dados do cliente =====
+  doc.setDrawColor(220, 220, 220);
+  doc.line(14, y, 196, y);
+  y += 5;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(100, 100, 100);
+  doc.text("CLIENTE", 14, y);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  y += 5;
+  doc.setFontSize(10);
+  doc.text(cliNome, 14, y); y += 5;
+  if (cliContacto) { doc.setFontSize(9); doc.text(cliContacto, 14, y); y += 5; }
+  if (cliNif) { doc.setFontSize(9); doc.text(`NIF: ${cliNif}`, 14, y); y += 5; }
+  y += 3;
+
+  // ===== Tabela de itens =====
+  const rows = (itens ?? []).map((it: any, idx: number) => [
+    String(idx + 1),
+    it.descricao,
+    String(Number(it.quantidade)),
+    formatCurrency(Number(it.valor_unitario)),
+    formatCurrency(Number(it.quantidade) * Number(it.valor_unitario)),
+  ]);
+  const total = (itens ?? []).reduce((s: number, it: any) => s + Number(it.quantidade) * Number(it.valor_unitario), 0);
+
+  autoTable(doc, {
+    startY: y,
+    head: [["#", "Descrição", "Qtd.", "Preço Unit.", "Total"]],
+    body: rows,
+    headStyles: { fillColor: [231, 119, 34], textColor: [255, 255, 255] },
+    styles: { fontSize: 9, cellPadding: 3 },
+    alternateRowStyles: { fillColor: [248, 248, 248] },
+    columnStyles: {
+      0: { cellWidth: 12, halign: "center" },
+      2: { cellWidth: 20, halign: "right" },
+      3: { cellWidth: 32, halign: "right" },
+      4: { cellWidth: 34, halign: "right", fontStyle: "bold" },
+    },
+  });
+  y = getY(doc);
+
+  // ===== Total destacado =====
+  doc.setFillColor(30, 30, 30);
+  doc.rect(120, y, 76, 12, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(`TOTAL: ${formatCurrency(total)}`, 192, y + 8, { align: "right" });
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  y += 16;
+
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text("Valores com IVA incluído à taxa legal em vigor.", 14, y);
+  doc.setTextColor(0, 0, 0);
+  y += 8;
+
+  // ===== Termos e condições =====
+  if (y > 200) { doc.addPage(); y = 20; }
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(231, 119, 34);
+  doc.text("Termos e condições", 14, y);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  y += 6;
+
+  const condPag = o.condicao_pagamento === "pronto"
+    ? "Pagamento a pronto — 10% de desconto sobre o valor total na adjudicação."
+    : "50% do valor total na adjudicação e 50% na entrega/conclusão dos trabalhos.";
+
+  const garantia = o.tipo_cliente === "particular"
+    ? "Os produtos fornecidos beneficiam de garantia legal de 3 anos (2 anos base + 1 ano adicional), nos termos do DL 84/2021."
+    : "Os produtos fornecidos beneficiam de garantia legal de 6 meses, nos termos do Código Comercial.";
+
+  const termos: [string, string][] = [
+    ["1. Validade", "O presente orçamento é válido por 15 dias úteis a contar da data de emissão."],
+    ["2. IVA", "Todos os valores apresentados incluem IVA à taxa legal em vigor."],
+    ["3. Condições de pagamento", condPag],
+    ["4. Garantia de produtos", garantia],
+    ["5. Garantia de serviços", "A mão de obra tem garantia de 90 dias após a conclusão dos trabalhos."],
+    ["6. Responsabilidade", "Não nos responsabilizamos pela perda de dados durante a intervenção. Recomendamos a realização de backup prévio."],
+    ["7. RGPD", "Os dados recolhidos são tratados exclusivamente para gestão deste orçamento, nos termos do Regulamento (UE) 2016/679."],
+  ];
+
+  doc.setFontSize(8);
+  for (const [titulo, texto] of termos) {
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFont("helvetica", "bold");
+    doc.text(titulo, 14, y);
+    doc.setFont("helvetica", "normal");
+    const lines = doc.splitTextToSize(texto, 165);
+    doc.text(lines, 45, y);
+    y += Math.max(4, lines.length * 4) + 2;
+  }
+
+  // ===== Rodapé =====
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(231, 119, 34);
+    doc.line(14, 284, 196, 284);
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text(
+      `VRCF — Informática & Segurança · NIF: 515237205 · 911564243 · geral@vrcf.pt · Documento gerado em ${new Date().toLocaleString("pt-PT")}`,
+      14, 288,
+    );
+    doc.text(`Página ${i} de ${totalPages}`, 196, 288, { align: "right" });
+  }
+
+  doc.save(`orcamento-ORC-${String(o.numero).padStart(5, "0")}.pdf`);
+}

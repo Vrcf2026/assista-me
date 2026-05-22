@@ -443,6 +443,110 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamento_itens: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          orcamento_id: string
+          ordem: number
+          quantidade: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          orcamento_id: string
+          ordem?: number
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          ordem?: number
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_itens_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamentos: {
+        Row: {
+          client_id: string | null
+          cliente_contacto: string | null
+          cliente_nif: string | null
+          cliente_nome: string | null
+          condicao_pagamento: string
+          created_at: string
+          created_by: string | null
+          estado: string
+          id: string
+          notas: string | null
+          numero: number
+          tipo_cliente: string
+          trabalho_id: string | null
+          validade: string
+        }
+        Insert: {
+          client_id?: string | null
+          cliente_contacto?: string | null
+          cliente_nif?: string | null
+          cliente_nome?: string | null
+          condicao_pagamento?: string
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          numero?: number
+          tipo_cliente?: string
+          trabalho_id?: string | null
+          validade?: string
+        }
+        Update: {
+          client_id?: string | null
+          cliente_contacto?: string | null
+          cliente_nif?: string | null
+          cliente_nome?: string | null
+          condicao_pagamento?: string
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          numero?: number
+          tipo_cliente?: string
+          trabalho_id?: string | null
+          validade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamentos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orcamentos_trabalho_id_fkey"
+            columns: ["trabalho_id"]
+            isOneToOne: false
+            referencedRelation: "trabalhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preventiva_agendamento_tarefas: {
         Row: {
           agendamento_id: string

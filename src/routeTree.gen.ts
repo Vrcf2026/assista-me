@@ -14,6 +14,7 @@ import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
@@ -25,6 +26,7 @@ import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
 import { Route as PreventivaAgendamentosRouteImport } from './routes/preventiva_.agendamentos'
 import { Route as PreventivaTemplatesRouteImport } from './routes/preventiva.templates'
+import { Route as OrcamentosIdRouteImport } from './routes/orcamentos_.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
@@ -69,6 +71,11 @@ const PreventivaRoute = PreventivaRouteImport.update({
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosRoute = OrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -125,6 +132,11 @@ const PreventivaTemplatesRoute = PreventivaTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
   getParentRoute: () => PreventivaRoute,
+} as any)
+const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
+  id: '/orcamentos_/$id',
+  path: '/orcamentos/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
@@ -238,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
@@ -251,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/orcamentos/$id': typeof OrcamentosIdRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
   '/preventiva/agendamentos': typeof PreventivaAgendamentosRoute
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
@@ -276,6 +290,7 @@ export interface FileRoutesByTo {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
@@ -288,6 +303,7 @@ export interface FileRoutesByTo {
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/orcamentos/$id': typeof OrcamentosIdRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
   '/preventiva/agendamentos': typeof PreventivaAgendamentosRoute
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
@@ -314,6 +330,7 @@ export interface FileRoutesById {
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
+  '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
@@ -327,6 +344,7 @@ export interface FileRoutesById {
   '/campanhas_/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/orcamentos_/$id': typeof OrcamentosIdRoute
   '/preventiva/templates': typeof PreventivaTemplatesRoute
   '/preventiva_/agendamentos': typeof PreventivaAgendamentosRoute
   '/satisfacao/$token': typeof SatisfacaoTokenRoute
@@ -354,6 +372,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/orcamentos'
     | '/painel'
     | '/preventiva'
     | '/tickets'
@@ -367,6 +386,7 @@ export interface FileRouteTypes {
     | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/orcamentos/$id'
     | '/preventiva/templates'
     | '/preventiva/agendamentos'
     | '/satisfacao/$token'
@@ -392,6 +412,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/orcamentos'
     | '/painel'
     | '/tickets'
     | '/trabalhos'
@@ -404,6 +425,7 @@ export interface FileRouteTypes {
     | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/orcamentos/$id'
     | '/preventiva/templates'
     | '/preventiva/agendamentos'
     | '/satisfacao/$token'
@@ -429,6 +451,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/clientes'
     | '/login'
+    | '/orcamentos'
     | '/painel'
     | '/preventiva'
     | '/tickets'
@@ -442,6 +465,7 @@ export interface FileRouteTypes {
     | '/campanhas_/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
+    | '/orcamentos_/$id'
     | '/preventiva/templates'
     | '/preventiva_/agendamentos'
     | '/satisfacao/$token'
@@ -468,6 +492,7 @@ export interface RootRouteChildren {
   CampanhasRoute: typeof CampanhasRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OrcamentosRoute: typeof OrcamentosRoute
   PainelRoute: typeof PainelRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
   TicketsRoute: typeof TicketsRouteWithChildren
@@ -480,6 +505,7 @@ export interface RootRouteChildren {
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   CampanhasIdRoute: typeof CampanhasIdRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  OrcamentosIdRoute: typeof OrcamentosIdRoute
   PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   TrabalhosIdRoute: typeof TrabalhosIdRoute
@@ -532,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamentos': {
+      id: '/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/orcamentos'
+      preLoaderRoute: typeof OrcamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -610,6 +643,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/preventiva/templates'
       preLoaderRoute: typeof PreventivaTemplatesRouteImport
       parentRoute: typeof PreventivaRoute
+    }
+    '/orcamentos_/$id': {
+      id: '/orcamentos_/$id'
+      path: '/orcamentos/$id'
+      fullPath: '/orcamentos/$id'
+      preLoaderRoute: typeof OrcamentosIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
@@ -798,6 +838,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampanhasRoute: CampanhasRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
+  OrcamentosRoute: OrcamentosRoute,
   PainelRoute: PainelRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
   TicketsRoute: TicketsRouteWithChildren,
@@ -810,6 +851,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTemplatesRoute: AdminTemplatesRoute,
   CampanhasIdRoute: CampanhasIdRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  OrcamentosIdRoute: OrcamentosIdRoute,
   PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   TrabalhosIdRoute: TrabalhosIdRoute,
@@ -829,12 +871,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
