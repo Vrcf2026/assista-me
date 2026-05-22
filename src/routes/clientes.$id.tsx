@@ -91,6 +91,9 @@ interface TicketRow {
 function ClienteDetail({ id }: { id: string }) {
   const [client, setClient] = useState<ClientFull | null>(null);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
+  const [trabalhos, setTrabalhos] = useState<TrabalhoRow[]>([]);
+  const [orcamentos, setOrcamentos] = useState<OrcamentoRow[]>([]);
+  const [campanhas, setCampanhas] = useState<CampanhaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [mes, setMes] = useState(() => {
     const d = new Date();
@@ -100,14 +103,46 @@ function ClienteDetail({ id }: { id: string }) {
   useEffect(() => {
     void (async () => {
       setLoading(true);
-      const { data: c } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
-      setClient(c as ClientFull | null);
-      const { data: t } = await supabase
-        .from("tickets")
-        .select("id, numero, titulo, estado, tipo_intervencao, tempo_gasto_minutos, motivo_fecho, solucao_aplicada, created_at")
-        .eq("client_id", id)
-        .order("created_at", { ascending: false });
-      setTickets((t ?? []) as TicketRow[]);
+      const [cRes, tRes, trRes, orcRes, cpRes] = await Promise.all([
+        supabase.from("clients").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .from("tickets")
+          .select("id, numero, titulo, estado, tipo_intervencao, tempo_gasto_minutos, motivo_fecho, solucao_aplicada, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("trabalhos")
+          .select("id, titulo, estado, prioridade, minutos, data_agendada, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("orcamentos")
+          .select("id, numero, estado, validade, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("campanha_clientes")
+          .select("id, campanha_id, estado, minutos, data_agendada, concluido_em, campanhas(titulo)")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+      ]);
+      setClient(cRes.data as ClientFull | null);
+      setTickets((tRes.data ?? []) as TicketRow[]);
+      setTrabalhos((trRes.data ?? []) as TrabalhoRow[]);
+      setOrcamentos((orcRes.data ?? []) as OrcamentoRow[]);
+      setCampanhas(((cpRes.data ?? []) as Array<{
+        id: string; campanha_id: string; estado: string; minutos: number;
+        data_agendada: string | null; concluido_em: string | null;
+        campanhas: { titulo: string } | null;
+      }>).map((r) => ({
+        id: r.id,
+        campanha_id: r.campanha_id,
+        estado: r.estado,
+        minutos: r.minutos,
+        data_agendada: r.data_agendada,
+        concluido_em: r.concluido_em,
+        campanha_titulo: r.campanhas?.titulo ?? null,
+      })));
       setLoading(false);
     })();
   }, [id]);
@@ -129,6 +164,11 @@ function ClienteDetail({ id }: { id: string }) {
 
   const printReport = () => window.print();
 
+  const contratoLabel =
+    client.tipo_contrato === "avenca" ? "Avença anual"
+    : client.tipo_contrato === "pontual" ? "Pontual"
+    : "Sem contrato";
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between print:hidden">
@@ -145,8 +185,11 @@ function ClienteDetail({ id }: { id: string }) {
       <Card className="p-6">
         <h1 className="text-2xl font-semibold">{client.nome}</h1>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-sm">
+          <div><div className="text-muted-foreground text-xs">Tipo</div><div>{client.tipo_cliente === "particular" ? "Particular" : "Empresa"}</div></div>
           <div><div className="text-muted-foreground text-xs">NIF</div><div>{client.nif ?? "—"}</div></div>
-          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{client.tipo_contrato === "avenca" ? "Avença anual" : "Pontual"}</div></div>
+          <div><div className="text-muted-foreground text-xs">Email geral</div><div>{client.email_geral ?? "—"}</div></div>
+          <div className="sm:col-span-2 lg:col-span-2"><div className="text-muted-foreground text-xs">Morada</div><div>{client.morada ?? "—"}</div></div>
+          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{contratoLabel}</div></div>
           <div><div className="text-muted-foreground text-xs">Tarifa</div><div className="font-mono">{formatCurrency(Number(client.tarifa_hora))}/h</div></div>
           {client.tipo_contrato === "avenca" ? (
             <>
@@ -169,7 +212,7 @@ function ClienteDetail({ id }: { id: string }) {
           contratoInicio={null}
           contratoFim={null}
         />
-      ) : pacoteAnual > 0 ? (
+      ) : client.tipo_contrato === "avenca" && pacoteAnual > 0 ? (
         <HoursPackageWidget
           clientId={client.id}
           tipoContrato="avenca"
