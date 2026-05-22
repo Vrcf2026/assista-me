@@ -80,7 +80,8 @@ export function AppSidebar() {
     return () => { cancelled = true; };
   }, [user, role]);
 
-  const brand = role === "admin" ? BRANDS.vrcf : getBrand(clientMarca ?? "vrcf");
+  // Admin → sempre VRCF. Cliente → espera pelo fetch antes de mostrar (evita flash).
+  const brand = role === "admin" ? BRANDS.vrcf : (clientMarca ? getBrand(clientMarca) : null);
 
   const isActive = (url: string) =>
     url === "/" ? pathname === "/" : pathname === url || pathname.startsWith(url + "/");
