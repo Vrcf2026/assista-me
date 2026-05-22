@@ -34,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
-import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
+import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
@@ -282,7 +282,7 @@ function TicketDetail({ id }: { id: string }) {
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
       {/* Credenciais seguras — admin VRCF e admin do cliente */}
-      {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} />}
+      {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} ticketNumero={ticket.numero} ticketTitulo={ticket.titulo} clienteNome={ticket.client?.nome ?? "Cliente"} />}
 
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
@@ -1315,7 +1315,7 @@ async function invokeCreds(action: string, payload: Record<string, unknown> = {}
   return data;
 }
 
-function CredentialsPanel({ ticketId, isAdmin }: { ticketId: string; isAdmin: boolean }) {
+function CredentialsPanel({ ticketId, isAdmin, ticketNumero, ticketTitulo, clienteNome }: { ticketId: string; isAdmin: boolean; ticketNumero: number; ticketTitulo: string; clienteNome: string }) {
   const [items, setItems] = useState<Credencial[]>([]);
   const [requests, setRequests] = useState<CredRequest[]>([]);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
@@ -1461,6 +1461,10 @@ function CredentialsPanel({ ticketId, isAdmin }: { ticketId: string; isAdmin: bo
       />
       <FulfillCredentialDialog
         request={fulfillReq}
+        ticketId={ticketId}
+        ticketNumero={ticketNumero}
+        ticketTitulo={ticketTitulo}
+        clienteNome={clienteNome}
         onOpenChange={(v) => !v && setFulfillReq(null)}
         onDone={() => { setFulfillReq(null); void load(); }}
       />
@@ -1623,8 +1627,14 @@ function RequestCredentialDialog({ open, onOpenChange, ticketId, onCreated }: {
   );
 }
 
-function FulfillCredentialDialog({ request, onOpenChange, onDone }: {
-  request: CredRequest | null; onOpenChange: (v: boolean) => void; onDone: () => void;
+function FulfillCredentialDialog({ request, ticketId, ticketNumero, ticketTitulo, clienteNome, onOpenChange, onDone }: {
+  request: CredRequest | null;
+  ticketId: string;
+  ticketNumero: number;
+  ticketTitulo: string;
+  clienteNome: string;
+  onOpenChange: (v: boolean) => void;
+  onDone: () => void;
 }) {
   const [utilizador, setUtilizador] = useState("");
   const [password, setPassword] = useState("");
@@ -1643,6 +1653,12 @@ function FulfillCredentialDialog({ request, onOpenChange, onDone }: {
         notas: notas.trim() || null,
       });
       toast.success("Credencial enviada em segurança");
+      void notifyAdminCredencialFornecida(
+        { id: ticketId, numero: ticketNumero, titulo: ticketTitulo },
+        clienteNome,
+        request.tipo,
+        request.id,
+      );
       onDone();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
     finally { setBusy(false); }

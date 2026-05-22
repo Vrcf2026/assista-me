@@ -47,3 +47,23 @@ export async function notifyAdminNovoComentarioCliente(
     },
   });
 }
+
+export async function notifyAdminCredencialFornecida(
+  ticket: TicketLite,
+  clienteNome: string,
+  tipo: string,
+  requestId: string,
+) {
+  await sendTransactionalEmail({
+    templateName: "admin-credencial-fornecida",
+    recipientEmail: ADMIN_EMAIL,
+    idempotencyKey: `admin-credencial-${requestId}`,
+    templateData: {
+      clienteNome,
+      ticketNumero: ticket.numero,
+      ticketTitulo: ticket.titulo,
+      tipo,
+      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+    },
+  });
+}

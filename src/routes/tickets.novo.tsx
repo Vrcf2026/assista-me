@@ -47,19 +47,39 @@ function NovoTicketPage() {
 function NovoCliente() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [titulo, setTitulo] = useState("");
+  const [sistema, setSistema] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState<"baixa" | "media" | "alta">("media");
+  const [impacto, setImpacto] = useState<"bloqueia_tudo" | "parcial" | "nao_bloqueia">("parcial");
+  const [desde, setDesde] = useState("");
+  const [precisaDeslocacao, setPrecisaDeslocacao] = useState(false);
+  const [localizacao, setLocalizacao] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [creds, setCreds] = useState<CredentialDraft[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // Autocomplete sugestões de sistema/equipamento (tickets anteriores do cliente)
+  const [sistemasPassados, setSistemasPassados] = useState<string[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      const { data: m } = await supabase
+        .from("client_users").select("client_id").eq("user_id", user.id).limit(1);
+      const cid = m?.[0]?.client_id;
+      if (!cid) return;
+      const { data } = await supabase
+        .from("tickets").select("equipamento").eq("client_id", cid)
+        .not("equipamento", "is", null).order("created_at", { ascending: false }).limit(50);
+      const uniq = Array.from(new Set((data ?? []).map((t) => (t.equipamento ?? "").trim()).filter(Boolean)));
+      setSistemasPassados(uniq.slice(0, 15));
+    })();
+  }, [user]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setBusy(true);
     try {
-      // Buscar primeiro cliente associado ao utilizador
       const { data: memberships } = await supabase
         .from("client_users").select("client_id").eq("user_id", user.id).limit(1);
       const clientId = memberships?.[0]?.client_id;
@@ -67,18 +87,44 @@ function NovoCliente() {
       const { data: clientRow } = await supabase
         .from("clients").select("nome").eq("id", clientId).maybeSingle();
       const client = { id: clientId, nome: clientRow?.nome ?? "Cliente" };
+
+      const sistemaTrim = sistema.trim();
+      const descTrim = descricao.trim();
+      // Auto-gerar título: [Sistema] resumo da descrição (até ~80 chars)
+      const resumo = descTrim.split("\n")[0].slice(0, 70);
+      const titulo = sistemaTrim
+        ? `[${sistemaTrim}] ${resumo}`.slice(0, 200)
+        : resumo.slice(0, 200) || "Pedido de suporte";
+
+      const impactoLabel = impacto === "bloqueia_tudo" ? "🔴 Bloqueia totalmente o trabalho"
+        : impacto === "parcial" ? "🟠 Bloqueia parcialmente"
+        : "🟢 Não bloqueia";
+      const descricaoFinal = [
+        descTrim,
+        "",
+        "---",
+        sistemaTrim ? `**Sistema/Equipamento:** ${sistemaTrim}` : null,
+        `**Impacto:** ${impactoLabel}`,
+        desde.trim() ? `**Desde quando:** ${desde.trim()}` : null,
+        precisaDeslocacao ? `**Necessita deslocação:** Sim${localizacao.trim() ? ` — ${localizacao.trim()}` : ""}` : null,
+      ].filter(Boolean).join("\n");
+
       const { data: ticket, error } = await supabase
         .from("tickets")
         .insert({
           client_id: client.id,
-          titulo, descricao, prioridade,
+          titulo,
+          descricao: descricaoFinal,
+          prioridade,
+          tipo_intervencao: precisaDeslocacao ? "presencial" : "remota",
+          equipamento: sistemaTrim || null,
+          localizacao: precisaDeslocacao ? (localizacao.trim() || null) : null,
           created_by: user.id,
           pedido_por: user.id,
         })
         .select("id, numero")
         .single();
       if (error) throw error;
-      // upload files
       for (const f of files) {
         const path = `${ticket.id}/${Date.now()}-${f.name}`;
         const { error: upErr } = await supabase.storage
@@ -97,7 +143,7 @@ function NovoCliente() {
       await saveDraftCredentials(invokeCreds, ticket.id, creds);
       toast.success(`Ticket #${String(ticket.numero).padStart(4, "0")} criado`);
       void notifyTicketCriado(
-        { id: ticket.id, numero: ticket.numero, titulo: titulo, client_id: client.id, created_by: user.id },
+        { id: ticket.id, numero: ticket.numero, titulo, client_id: client.id, created_by: user.id },
         prioridade,
       );
       void notifyAdminNovoTicket(
@@ -119,33 +165,93 @@ function NovoCliente() {
         <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
       </Button>
       <Card className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Novo ticket</h1>
+        <h1 className="text-2xl font-semibold mb-1">Novo pedido de suporte</h1>
+        <p className="text-sm text-muted-foreground mb-4">
+          Quanto mais detalhe nos der, mais rápido conseguimos ajudar.
+        </p>
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Título *</Label>
-            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} required maxLength={200} />
+            <Label>Sistema / Equipamento afectado *</Label>
+            <Input
+              value={sistema} onChange={(e) => setSistema(e.target.value)}
+              required maxLength={150}
+              list="sistemas-passados"
+              placeholder="Ex: Email, Impressora receção, Servidor, Internet"
+            />
+            <datalist id="sistemas-passados">
+              {sistemasPassados.map((s) => <option key={s} value={s} />)}
+            </datalist>
           </div>
+
           <div className="space-y-1.5">
-            <Label>Descrição do problema *</Label>
-            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} required rows={6} maxLength={5000} />
+            <Label>O que está a acontecer? *</Label>
+            <Textarea
+              value={descricao} onChange={(e) => setDescricao(e.target.value)}
+              required rows={5} maxLength={5000}
+              placeholder="Descreva o problema, mensagens de erro que aparecem, o que tentou fazer…"
+            />
           </div>
-          <div className="space-y-1.5">
-            <Label>Prioridade</Label>
-            <Select value={prioridade} onValueChange={(v) => setPrioridade(v as typeof prioridade)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="baixa">Baixa</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Impacto no trabalho *</Label>
+              <Select value={impacto} onValueChange={(v) => setImpacto(v as typeof impacto)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bloqueia_tudo">🔴 Bloqueia totalmente</SelectItem>
+                  <SelectItem value="parcial">🟠 Parcialmente</SelectItem>
+                  <SelectItem value="nao_bloqueia">🟢 Não bloqueia</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Prioridade</Label>
+              <Select value={prioridade} onValueChange={(v) => setPrioridade(v as typeof prioridade)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           <div className="space-y-1.5">
-            <Label>Anexos</Label>
+            <Label>Desde quando (opcional)</Label>
+            <Input
+              value={desde} onChange={(e) => setDesde(e.target.value)}
+              maxLength={120}
+              placeholder="Ex: hoje de manhã, ontem após reinício, há ~2 horas"
+            />
+          </div>
+
+          <div className="space-y-2 rounded-md border p-3 bg-muted/20">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={precisaDeslocacao}
+                onChange={(e) => setPrecisaDeslocacao(e.target.checked)}
+                className="h-4 w-4"
+              />
+              É necessário deslocação ao local?
+            </label>
+            {precisaDeslocacao && (
+              <Input
+                value={localizacao}
+                onChange={(e) => setLocalizacao(e.target.value)}
+                placeholder="Localização (escritório, sala, andar, morada)"
+                maxLength={200}
+              />
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Anexos (fotos, screenshots)</Label>
             <AttachmentPicker files={files} onChange={setFiles} />
           </div>
           <CredentialsCollapsible items={creds} onChange={setCreds} />
-          <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Criar ticket"}</Button>
+          <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Abrir pedido"}</Button>
         </form>
       </Card>
     </div>
@@ -170,6 +276,8 @@ function NovoAdmin() {
   const [localizacao, setLocalizacao] = useState("");
   const [contactoLocal, setContactoLocal] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [creds, setCreds] = useState<CredentialDraft[]>([]);
+  const [sistemasPassados, setSistemasPassados] = useState<string[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   // Time entry (optional, registado imediatamente)
   const [logTime, setLogTime] = useState(false);
@@ -183,17 +291,23 @@ function NovoAdmin() {
       .then(({ data }) => setClients((data ?? []) as { id: string; nome: string }[]));
   }, []);
 
-  // Load users of the selected client
+  // Load users + past sistemas of the selected client
   useEffect(() => {
-    if (!clientId) { setClientUsers([]); return; }
+    if (!clientId) { setClientUsers([]); setSistemasPassados([]); return; }
     void (async () => {
       const { data: links } = await supabase
         .from("client_users").select("user_id").eq("client_id", clientId);
       const ids = (links ?? []).map((l) => l.user_id);
-      if (ids.length === 0) { setClientUsers([]); return; }
-      const { data: profs } = await supabase
-        .from("profiles").select("user_id, nome, email").in("user_id", ids);
-      setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+      if (ids.length === 0) { setClientUsers([]); } else {
+        const { data: profs } = await supabase
+          .from("profiles").select("user_id, nome, email").in("user_id", ids);
+        setClientUsers((profs ?? []) as { user_id: string; nome: string | null; email: string | null }[]);
+      }
+      const { data: pastTickets } = await supabase
+        .from("tickets").select("equipamento").eq("client_id", clientId)
+        .not("equipamento", "is", null).order("created_at", { ascending: false }).limit(50);
+      const uniq = Array.from(new Set((pastTickets ?? []).map((t) => (t.equipamento ?? "").trim()).filter(Boolean)));
+      setSistemasPassados(uniq.slice(0, 15));
     })();
     setAssignedUserId("");
     setAssignToUser(false);
@@ -232,6 +346,10 @@ function NovoAdmin() {
           is_internal: false,
         });
       }
+
+      await saveDraftCredentials(invokeCreds, ticket.id, creds);
+
+
 
       // Optional time entry — entra na avença/faturação
       if (logTime && minutos > 0) {
@@ -377,7 +495,11 @@ function NovoAdmin() {
               onChange={(e) => setEquipamento(e.target.value)}
               placeholder="Ex: Servidor srv3diso, PC receção, Router principal"
               maxLength={200}
+              list="admin-sistemas-passados"
             />
+            <datalist id="admin-sistemas-passados">
+              {sistemasPassados.map((s) => <option key={s} value={s} />)}
+            </datalist>
           </div>
 
           {(tipo === "presencial" || tipo === "preventiva") && (
@@ -408,6 +530,9 @@ function NovoAdmin() {
             <Label>Anexos</Label>
             <AttachmentPicker files={files} onChange={setFiles} />
           </div>
+
+          <CredentialsCollapsible items={creds} onChange={setCreds} />
+
 
           <div className="space-y-2 rounded-md border p-3 bg-muted/20">
             <label className="flex items-center gap-2 text-sm cursor-pointer">
