@@ -279,9 +279,11 @@ export type Database = {
           contrato_inicio: string | null
           created_at: string
           dias_fecho_automatico: number | null
+          email_geral: string | null
           horas_pacote: number | null
           horas_pacote_anual: number | null
           id: string
+          morada: string | null
           nif: string | null
           nome: string
           tarifa_hora: number
@@ -294,9 +296,11 @@ export type Database = {
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
+          email_geral?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
+          morada?: string | null
           nif?: string | null
           nome: string
           tarifa_hora?: number
@@ -309,9 +313,11 @@ export type Database = {
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
+          email_geral?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
+          morada?: string | null
           nif?: string | null
           nome?: string
           tarifa_hora?: number
@@ -1557,7 +1563,7 @@ export type Database = {
         | "duplicado"
         | "fechado_pelo_cliente"
         | "inatividade"
-      contract_type: "avenca" | "pontual"
+      contract_type: "avenca" | "pontual" | "nenhum"
       intervention_type: "remota" | "presencial" | "critica" | "preventiva"
       ticket_priority: "baixa" | "media" | "alta"
       ticket_status: "aberto" | "em_progresso" | "aguarda_cliente" | "fechado"
@@ -1696,7 +1702,7 @@ export const Constants = {
         "fechado_pelo_cliente",
         "inatividade",
       ],
-      contract_type: ["avenca", "pontual"],
+      contract_type: ["avenca", "pontual", "nenhum"],
       intervention_type: ["remota", "presencial", "critica", "preventiva"],
       ticket_priority: ["baixa", "media", "alta"],
       ticket_status: ["aberto", "em_progresso", "aguarda_cliente", "fechado"],
