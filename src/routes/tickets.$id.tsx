@@ -906,12 +906,14 @@ function NewCommentForm({
     setBusy(true);
     try {
       const sendInternal = isAdmin && internal;
+      const sendAdminOnly = !sendInternal && (isAdmin || isClientAdmin) && adminOnly;
       const { data: comment, error } = await supabase
         .from("comments").insert({
           ticket_id: ticketId,
           user_id: user.id,
           mensagem,
           is_internal: sendInternal,
+          client_admin_only: sendAdminOnly,
         }).select("id").single();
       if (error) throw error;
 
