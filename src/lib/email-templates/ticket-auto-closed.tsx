@@ -12,10 +12,7 @@ import {
   Text,
 } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
-
-const SITE_NAME = "VRCF — Suporte Técnico";
-const SITE_URL = "https://tickets.vrcf.info";
-const BRAND_ORANGE = "#F97316";
+import { getBrand } from "@/lib/brand";
 
 interface Props {
   clienteNome?: string;
@@ -23,6 +20,7 @@ interface Props {
   ticketTitulo?: string;
   diasInatividade?: number;
   ticketUrl?: string;
+  marca?: string;
 }
 
 const TicketAutoClosedEmail = ({
@@ -31,12 +29,14 @@ const TicketAutoClosedEmail = ({
   ticketTitulo,
   diasInatividade,
   ticketUrl,
+  marca,
 }: Props) => {
+  const brand = getBrand(marca);
   const numeroFmt = ticketNumero
     ? `#${String(ticketNumero).padStart(5, "0")}`
     : "#00000";
   const dias = diasInatividade ?? 7;
-  const url = ticketUrl ?? SITE_URL;
+  const url = ticketUrl ?? brand.siteUrl;
 
   return (
     <Html lang="pt-PT" dir="ltr">
@@ -47,7 +47,7 @@ const TicketAutoClosedEmail = ({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={brandText}>{SITE_NAME}</Text>
+            <Text style={{ ...brandText, color: brand.color }}>{brand.emailSiteName}</Text>
           </Section>
 
           <Heading style={h1}>Ticket fechado por inatividade</Heading>
@@ -65,7 +65,7 @@ const TicketAutoClosedEmail = ({
           </Text>
 
           <Section style={ctaWrap}>
-            <Link href={url} style={button}>
+            <Link href={url} style={{ ...button, backgroundColor: brand.color }}>
               Ver ticket
             </Link>
           </Section>
@@ -78,7 +78,7 @@ const TicketAutoClosedEmail = ({
           <Hr style={hr} />
 
           <Text style={footer}>
-            Este é um email automático enviado por {SITE_NAME}.
+            Este é um email automático enviado por {brand.emailSiteName}.
           </Text>
         </Container>
       </Body>
@@ -101,6 +101,7 @@ export const template = {
     ticketTitulo: "Impressora não imprime",
     diasInatividade: 7,
     ticketUrl: "https://tickets.vrcf.info",
+    marca: "vrcf",
   },
 } satisfies TemplateEntry;
 
@@ -114,7 +115,6 @@ const header = { paddingBottom: "8px" };
 const brandText = {
   fontSize: "13px",
   fontWeight: 700 as const,
-  color: BRAND_ORANGE,
   letterSpacing: "0.5px",
   textTransform: "uppercase" as const,
   margin: 0,
@@ -133,7 +133,6 @@ const text = {
 };
 const ctaWrap = { margin: "24px 0" };
 const button = {
-  backgroundColor: BRAND_ORANGE,
   color: "#ffffff",
   fontSize: "14px",
   fontWeight: 600 as const,

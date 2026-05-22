@@ -35,6 +35,7 @@ interface Client {
   dias_fecho_automatico: number | null;
   morada: string | null;
   email_geral: string | null;
+  marca: "vrcf" | "spacedata";
 }
 
 function ClientesPage() {
@@ -197,6 +198,7 @@ function ClientFormDialog({
   const [dias, setDias] = useState("7");
   const [morada, setMorada] = useState("");
   const [emailGeral, setEmailGeral] = useState("");
+  const [marca, setMarca] = useState<"vrcf" | "spacedata">("vrcf");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -212,12 +214,14 @@ function ClientFormDialog({
       setDias(editing.dias_fecho_automatico ? String(editing.dias_fecho_automatico) : "");
       setMorada(editing.morada ?? "");
       setEmailGeral(editing.email_geral ?? "");
+      setMarca((editing.marca ?? "vrcf") as "vrcf" | "spacedata");
     } else {
       setNome(""); setNif("");
       setTipoCliente("empresa");
       setTipo("pontual"); setTarifa("25"); setHorasPacoteAnual("");
       setContratoInicio(""); setContratoFim(""); setDias("7");
       setMorada(""); setEmailGeral("");
+      setMarca("vrcf");
     }
   }, [editing, open]);
 
@@ -237,6 +241,7 @@ function ClientFormDialog({
         dias_fecho_automatico: dias ? Number(dias) : null,
         morada: morada || null,
         email_geral: emailGeral || null,
+        marca,
       };
       if (editing) {
         const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
@@ -266,6 +271,17 @@ function ClientFormDialog({
           <div className="space-y-1.5">
             <Label>Nome *</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Marca para comunicações</Label>
+            <Select value={marca} onValueChange={(v) => setMarca(v as "vrcf" | "spacedata")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vrcf">VRCF (predefinido)</SelectItem>
+                <SelectItem value="spacedata">SpaceData</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">Define que marca aparece em emails, PDFs e portal deste cliente.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

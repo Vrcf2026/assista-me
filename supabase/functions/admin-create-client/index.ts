@@ -19,6 +19,7 @@ interface CreateClientPayload {
   dias_fecho_automatico?: number | null;
   morada?: string | null;
   email_geral?: string | null;
+  marca?: "vrcf" | "spacedata";
 }
 
 Deno.serve(async (req) => {
@@ -59,6 +60,7 @@ Deno.serve(async (req) => {
       dias_fecho_automatico: body.dias_fecho_automatico ?? null,
       morada: body.morada ?? null,
       email_geral: body.email_geral ?? null,
+      marca: body.marca === "spacedata" ? "spacedata" : "vrcf",
     }).select("id").single();
 
     if (clientErr) return json({ error: clientErr.message }, 400);

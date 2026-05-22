@@ -3,16 +3,30 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatMinutes, formatCurrency, calcValor, TIPO_LABELS, ESTADO_LABELS } from "@/lib/format";
 import { ESTADO_FATURACAO_LABELS } from "@/lib/billing";
+import { BRANDS, getBrand, type BrandConfig } from "@/lib/brand";
 
 type Tipo = "cliente" | "interno";
 
+// Marca activa do PDF que está a ser gerado.
+// Cada gerador (gerarRelatorio*, etc.) chama setActiveBrand() no início.
+let activeBrand: BrandConfig = BRANDS.vrcf;
+function setActiveBrand(marca?: string | null) {
+  activeBrand = getBrand(marca);
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
 function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
+  const [r, g, b] = hexToRgb(activeBrand.color);
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 210, 25, "F");
-  doc.setTextColor(231, 119, 34);
+  doc.setTextColor(r, g, b);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("VRCF — Informática & Segurança", 14, 10);
+  doc.text(activeBrand.fullName, 14, 10);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
@@ -22,16 +36,17 @@ function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
 }
 
 function addFooters(doc: jsPDF, tipo: Tipo) {
+  const [r, g, b] = hexToRgb(activeBrand.color);
   const total = doc.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     const y = 287;
-    doc.setDrawColor(231, 119, 34);
+    doc.setDrawColor(r, g, b);
     doc.line(14, y - 3, 196, y - 3);
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.setFont("helvetica", "normal");
-    doc.text("VRCF — Informática & Segurança", 14, y);
+    doc.text(activeBrand.fullName, 14, y);
     if (tipo === "interno") {
       doc.setTextColor(200, 50, 50);
       doc.text("DOCUMENTO INTERNO — CONFIDENCIAL", 80, y);
@@ -47,6 +62,7 @@ function save(doc: jsPDF, tipo: Tipo, filename: string) {
   addFooters(doc, tipo);
   doc.save(filename);
 }
+
 
 function getY(doc: jsPDF): number {
   // @ts-expect-error lastAutoTable injected
@@ -80,7 +96,7 @@ function section(doc: jsPDF, titulo: string, y?: number) {
 async function loadTicketData(ticketId: string) {
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("*, client:clients(id, nome, nif, tarifa_hora)")
+    .select("*, client:clients(id, nome, nif, tarifa_hora, marca)")
     .eq("id", ticketId)
     .single();
   if (!ticket) throw new Error("Ticket não encontrado");
@@ -115,6 +131,7 @@ async function loadTicketData(ticketId: string) {
 
 export async function gerarRelatorioTicketCliente(ticketId: string) {
   const { ticket, comments, entries, satisfaction } = await loadTicketData(ticketId);
+  setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório de Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -178,6 +195,7 @@ export async function gerarRelatorioTicketCliente(ticketId: string) {
 
 export async function gerarRelatorioTicketInterno(ticketId: string) {
   const { ticket, comments, entries, satisfaction, pmap } = await loadTicketData(ticketId);
+  setActiveBrand(ticket.client?.marca);
   const doc = new jsPDF();
   addHeader(doc, `Relatório Interno — Ticket #${String(ticket.numero).padStart(4, "0")}`, ticket.client?.nome ?? "");
 
@@ -272,6 +290,7 @@ export async function gerarRelatorioMensalCliente(clientId: string, mes: number,
   const { inicio, fim } = monthRange(mes, ano);
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
+  setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -504,6 +523,7 @@ export async function gerarRelatorioMensalInterno(mes: number, ano: number) {
 export async function gerarArquivoCliente(clientId: string, dataInicio: string, dataFim: string) {
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
   if (!client) throw new Error("Cliente não encontrado");
+  setActiveBrand((client as { marca?: string }).marca);
 
   const { data: tickets } = await supabase
     .from("tickets")
@@ -650,7 +670,7 @@ export async function gerarArquivoCliente(clientId: string, dataInicio: string, 
 export async function gerarOrcamentoPDF(orcamentoId: string) {
   const { data: orc } = await supabase
     .from("ticket_orcamentos")
-    .select("*, ticket:tickets(numero, titulo, client:clients(nome, nif))")
+    .select("*, ticket:tickets(numero, titulo, client:clients(nome, nif, marca))")
     .eq("id", orcamentoId)
     .single();
   if (!orc) throw new Error("Orçamento não encontrado");
@@ -662,6 +682,7 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 
   const ticket = (orc as any).ticket;
   const client = ticket?.client;
+  setActiveBrand(client?.marca);
 
   const doc = new jsPDF();
   addHeader(doc, `Orçamento v${(orc as any).versao}`, `Ticket #${String(ticket?.numero ?? "").padStart(4, "0")} — ${ticket?.titulo ?? ""}`);
@@ -729,10 +750,11 @@ export async function gerarOrcamentoPDF(orcamentoId: string) {
 export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   const { data: orc, error } = await supabase
     .from("orcamentos")
-    .select("*, clients(id, nome, nif)")
+    .select("*, clients(id, nome, nif, marca)")
     .eq("id", orcamentoId)
     .single();
   if (error || !orc) throw new Error(error?.message ?? "Orçamento não encontrado");
+  setActiveBrand(((orc as any).clients?.marca) ?? "vrcf");
 
   const { data: itens } = await supabase
     .from("orcamento_itens")
@@ -751,7 +773,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   doc.setTextColor(36, 41, 61);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Vrcf - Informática e Segurança", 14, 18);
+  doc.text(activeBrand.fullName, 14, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
