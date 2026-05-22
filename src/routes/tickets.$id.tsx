@@ -712,15 +712,21 @@ function CloseDialog({
 
 // ============== Comments ==============
 function CommentList({
-  comments, attachments, isAdmin, currentUserId, onOpenAttachment,
+  comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment,
 }: {
   comments: Comment[];
   attachments: Attachment[];
   isAdmin: boolean;
+  isClientAdmin: boolean;
   currentUserId: string | undefined;
   onOpenAttachment: (attachment: Attachment) => void | Promise<void>;
 }) {
-  const visible = comments.filter((c) => isAdmin || !c.is_internal);
+  const visible = comments.filter((c) => {
+    if (isAdmin) return true;
+    if (c.is_internal) return false;
+    if (c.client_admin_only && !isClientAdmin) return false;
+    return true;
+  });
   const attsByComment = useMemo(() => {
     const m: Record<string, Attachment[]> = {};
     attachments.forEach((a) => {
@@ -736,15 +742,25 @@ function CommentList({
         const own = c.user_id === currentUserId;
         const baseCls = c.is_internal
           ? "bg-internal-note border-internal-note-border text-internal-note-foreground"
-          : own
-            ? "bg-primary/10 border-primary/20"
-            : "bg-secondary border-border";
+          : c.client_admin_only
+            ? "bg-amber-500/10 border-amber-500/30"
+            : own
+              ? "bg-primary/10 border-primary/20"
+              : "bg-secondary border-border";
+        const label = own
+          ? "Eu"
+          : c.is_internal
+            ? "Nota interna"
+            : c.client_admin_only
+              ? "Mensagem (só admin)"
+              : "Mensagem";
         return (
           <li key={c.id} className={`border rounded-md p-3 ${baseCls}`}>
             <div className="flex items-center justify-between gap-2 text-xs mb-1">
               <span className="font-medium flex items-center gap-1">
                 {c.is_internal && <Lock className="h-3 w-3" />}
-                {own ? "Eu" : c.is_internal ? "Nota interna" : "Mensagem"}
+                {!c.is_internal && c.client_admin_only && <Lock className="h-3 w-3 text-amber-600" />}
+                {label}
               </span>
               <span className="text-muted-foreground">{formatDateTime(c.created_at)}</span>
             </div>
@@ -760,12 +776,12 @@ function CommentList({
                 ))}
               </ul>
             )}
-            {isAdmin && !c.is_internal && c.user_id !== currentUserId && c.visto_em && (
+            {isAdmin && !c.is_internal && !c.client_admin_only && c.user_id !== currentUserId && c.visto_em && (
               <p className="text-xs text-muted-foreground mt-1 italic">
                 Visto pelo cliente às {formatDateTime(c.visto_em)}
               </p>
             )}
-            {isAdmin && !c.is_internal && c.user_id === currentUserId && (
+            {isAdmin && !c.is_internal && !c.client_admin_only && c.user_id === currentUserId && (
               <p className="text-xs text-muted-foreground mt-1 italic">
                 {c.visto_em ? `Visto às ${formatDateTime(c.visto_em)}` : "Ainda não visto"}
               </p>
