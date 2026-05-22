@@ -188,28 +188,36 @@ function ClientFormDialog({
 }) {
   const [nome, setNome] = useState("");
   const [nif, setNif] = useState("");
-  const [tipo, setTipo] = useState<"avenca" | "pontual">("pontual");
+  const [tipoCliente, setTipoCliente] = useState<"particular" | "empresa">("empresa");
+  const [tipo, setTipo] = useState<"avenca" | "pontual" | "nenhum">("pontual");
   const [tarifa, setTarifa] = useState("25");
   const [horasPacoteAnual, setHorasPacoteAnual] = useState("");
   const [contratoInicio, setContratoInicio] = useState("");
   const [contratoFim, setContratoFim] = useState("");
   const [dias, setDias] = useState("7");
+  const [morada, setMorada] = useState("");
+  const [emailGeral, setEmailGeral] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (editing) {
       setNome(editing.nome);
       setNif(editing.nif ?? "");
+      setTipoCliente(editing.tipo_cliente ?? "empresa");
       setTipo(editing.tipo_contrato);
       setTarifa(String(editing.tarifa_hora));
       setHorasPacoteAnual(editing.horas_pacote_anual ? String(editing.horas_pacote_anual) : (editing.horas_pacote ? String(editing.horas_pacote) : ""));
       setContratoInicio(editing.contrato_inicio ?? "");
       setContratoFim(editing.contrato_fim ?? "");
       setDias(editing.dias_fecho_automatico ? String(editing.dias_fecho_automatico) : "");
+      setMorada(editing.morada ?? "");
+      setEmailGeral(editing.email_geral ?? "");
     } else {
       setNome(""); setNif("");
+      setTipoCliente("empresa");
       setTipo("pontual"); setTarifa("25"); setHorasPacoteAnual("");
       setContratoInicio(""); setContratoFim(""); setDias("7");
+      setMorada(""); setEmailGeral("");
     }
   }, [editing, open]);
 
@@ -220,12 +228,15 @@ function ClientFormDialog({
       const payload = {
         nome,
         nif: nif || null,
+        tipo_cliente: tipoCliente,
         tipo_contrato: tipo,
         tarifa_hora: Number(tarifa),
         horas_pacote_anual: tipo === "avenca" && horasPacoteAnual ? Number(horasPacoteAnual) : null,
         contrato_inicio: tipo === "avenca" && contratoInicio ? contratoInicio : null,
         contrato_fim: tipo === "avenca" && contratoFim ? contratoFim : null,
         dias_fecho_automatico: dias ? Number(dias) : null,
+        morada: morada || null,
+        email_geral: emailGeral || null,
       };
       if (editing) {
         const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
@@ -247,7 +258,7 @@ function ClientFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
         </DialogHeader>
