@@ -255,8 +255,6 @@ export interface FileRoutesByFullPath {
   '/preventiva': typeof PreventivaRouteWithChildren
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
-  '/orcamentos': typeof OrcamentosRoute
-  '/orcamentos/$id': typeof OrcamentosIdRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
