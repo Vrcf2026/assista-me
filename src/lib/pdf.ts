@@ -747,49 +747,61 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
 
   const doc = new jsPDF();
 
-  // ===== Cabeçalho =====
-  doc.setFillColor(30, 30, 30);
-  doc.rect(0, 0, 210, 32, "F");
-  doc.setTextColor(231, 119, 34);
-  doc.setFontSize(16);
+  // ===== Cabeçalho (estilo claro, igual ao modelo) =====
+  doc.setTextColor(36, 41, 61);
   doc.setFont("helvetica", "bold");
-  doc.text("VRCF — Informática & Segurança", 14, 12);
-  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.text("Vrcf - Informática e Segurança", 14, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.text("NIF: 515237205  ·  911 564 243  ·  geral@vrcf.pt", 14, 18);
-  doc.text("Documento de proposta comercial", 14, 24);
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(100, 100, 100);
+  doc.text("Rua Luis Calado Nunes 15 LJ B  ·  NIF: 515237205  ·  911564243  ·  geral@vrcf.pt", 14, 24);
+  doc.setDrawColor(200, 200, 200);
+  doc.line(14, 28, 196, 28);
 
   // ===== Título ORÇAMENTO =====
-  let y = 42;
-  doc.setFontSize(20);
+  let y = 40;
+  doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(231, 119, 34);
+  doc.setTextColor(36, 41, 61);
   doc.text("ORÇAMENTO", 14, y);
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(`Ref.: ORC-${String(o.numero).padStart(5, "0")}`, 196, y - 6, { align: "right" });
-  doc.text(`Data: ${formatDate(o.created_at)}`, 196, y, { align: "right" });
-  y += 8;
+  doc.text(`Ref.: ORC-${String(o.numero).padStart(2, "0")}`, 14, y + 6);
+  doc.text(`Data: ${formatDate(o.created_at)}`, 196, y + 6, { align: "right" });
+  y += 14;
 
   // ===== Dados do cliente =====
-  doc.setDrawColor(220, 220, 220);
-  doc.line(14, y, 196, y);
-  y += 5;
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(100, 100, 100);
-  doc.text("CLIENTE", 14, y);
+  doc.text("DADOS DO CLIENTE", 14, y);
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
   y += 5;
   doc.setFontSize(10);
-  doc.text(cliNome, 14, y); y += 5;
-  if (cliContacto) { doc.setFontSize(9); doc.text(cliContacto, 14, y); y += 5; }
-  if (cliNif) { doc.setFontSize(9); doc.text(`NIF: ${cliNif}`, 14, y); y += 5; }
-  y += 3;
+  doc.text(`Nome: ${cliNome}`, 14, y); y += 5;
+  doc.text(`Contacto: ${cliContacto || "—"}`, 14, y); y += 5;
+  if (cliNif) { doc.text(`NIF: ${cliNif}`, 14, y); y += 5; }
+  y += 2;
+
+  if (o.notas) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 100, 100);
+    doc.text("DESCRIÇÃO", 14, y);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    y += 5;
+    const lns = doc.splitTextToSize(o.notas, 180);
+    doc.text(lns, 14, y);
+    y += lns.length * 4 + 3;
+  }
+
+  doc.setFontSize(9);
+  doc.text("IBAN: PT50 0007 0200 0000 5140 0080 2", 14, y);
+  y += 6;
 
   // ===== Tabela de itens =====
   const rows = (itens ?? []).map((it: any, idx: number) => [
@@ -818,7 +830,7 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   y = getY(doc);
 
   // ===== Total destacado =====
-  doc.setFillColor(30, 30, 30);
+  doc.setFillColor(36, 41, 61);
   doc.rect(120, y, 76, 12, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
