@@ -144,6 +144,7 @@ function NovoCliente() {
             <Label>Anexos</Label>
             <AttachmentPicker files={files} onChange={setFiles} />
           </div>
+          <CredentialsCollapsible items={creds} onChange={setCreds} />
           <Button type="submit" className="w-full" disabled={busy}>{busy ? "..." : "Criar ticket"}</Button>
         </form>
       </Card>
