@@ -63,7 +63,7 @@ function totalDe(itens: Pick<Item, "quantidade" | "valor_unitario">[]) {
   return itens.reduce((s, i) => s + Number(i.quantidade) * Number(i.valor_unitario), 0);
 }
 
-export function OrcamentosPanel({ ticket, isAdmin }: { ticket: TicketLite; isAdmin: boolean }) {
+export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: TicketLite; isAdmin: boolean; isClienteAdmin?: boolean }) {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [itensByOrc, setItensByOrc] = useState<Record<string, Item[]>>({});
   const [loading, setLoading] = useState(true);
