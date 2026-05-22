@@ -856,9 +856,9 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   doc.setFont("helvetica", "normal");
   y += 6;
 
-  const condPag = o.condicao_pagamento === "pronto"
-    ? "Pagamento a pronto — 10% de desconto sobre o valor total na adjudicação."
-    : "50% do valor total na adjudicação e 50% na entrega/conclusão dos trabalhos.";
+  const condPag =
+    "Opção A — 10% de desconto sobre o valor total a pronto pagamento na adjudicação.\n" +
+    "Opção B — 50% na adjudicação + 50% na entrega/conclusão dos trabalhos.";
 
   const garantia = o.tipo_cliente === "particular"
     ? "Os produtos fornecidos beneficiam de garantia legal de 3 anos (2 anos base + 1 ano adicional), nos termos do DL 84/2021."
@@ -880,8 +880,8 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
     doc.setFont("helvetica", "bold");
     doc.text(titulo, 14, y);
     doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(texto, 165);
-    doc.text(lines, 45, y);
+    const lines = doc.splitTextToSize(texto, 145);
+    doc.text(lines, 55, y);
     y += Math.max(4, lines.length * 4) + 2;
   }
 
