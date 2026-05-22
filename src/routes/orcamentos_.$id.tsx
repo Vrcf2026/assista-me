@@ -110,7 +110,7 @@ function Inner() {
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
-    void supabase.from("clients").select("id, nome, nif").order("nome").then(({ data }) => setClients(data ?? []));
+    void supabase.from("clients").select("id, nome, nif, tipo_cliente").order("nome").then(({ data }) => setClients(data ?? []));
   }, []);
 
   if (!orc) {
