@@ -283,6 +283,7 @@ export type Database = {
           horas_pacote: number | null
           horas_pacote_anual: number | null
           id: string
+          marca: string
           morada: string | null
           nif: string | null
           nome: string
@@ -300,6 +301,7 @@ export type Database = {
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
+          marca?: string
           morada?: string | null
           nif?: string | null
           nome: string
@@ -317,6 +319,7 @@ export type Database = {
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
+          marca?: string
           morada?: string | null
           nif?: string | null
           nome?: string
