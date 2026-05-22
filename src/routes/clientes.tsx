@@ -272,6 +272,17 @@ function ClientFormDialog({
             <Label>Nome *</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
+          <div className="space-y-1.5">
+            <Label>Marca para comunicações</Label>
+            <Select value={marca} onValueChange={(v) => setMarca(v as "vrcf" | "spacedata")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vrcf">VRCF (predefinido)</SelectItem>
+                <SelectItem value="spacedata">SpaceData</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">Define que marca aparece em emails, PDFs e portal deste cliente.</p>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Tipo de cliente</Label>
