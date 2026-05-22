@@ -317,6 +317,106 @@ function ClienteDetail({ id }: { id: string }) {
           </div>
         )}
       </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de trabalhos</h2>
+        {trabalhos.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem trabalhos.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Título</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium">Prioridade</th>
+                  <th className="px-3 py-2 font-medium text-right">Tempo</th>
+                  <th className="px-3 py-2 font-medium">Agendado</th>
+                  <th className="px-3 py-2 font-medium">Criado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trabalhos.map((t) => (
+                  <tr key={t.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">{t.titulo}</td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{t.estado}</span></td>
+                    <td className="px-3 py-1.5 text-xs">{t.prioridade}</td>
+                    <td className="px-3 py-1.5 text-right">{t.minutos}min</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{t.data_agendada ? new Date(t.data_agendada).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{formatDateTime(t.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de orçamentos</h2>
+        {orcamentos.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem orçamentos.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Nº</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium">Validade</th>
+                  <th className="px-3 py-2 font-medium">Criado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orcamentos.map((o) => (
+                  <tr key={o.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">
+                      <Link to="/orcamentos/$id" params={{ id: o.id }} className="font-mono text-primary hover:underline">
+                        ORC-{String(o.numero).padStart(4, "0")}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{o.estado}</span></td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{formatDateTime(o.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de campanhas</h2>
+        {campanhas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem campanhas.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Campanha</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium text-right">Tempo</th>
+                  <th className="px-3 py-2 font-medium">Agendada</th>
+                  <th className="px-3 py-2 font-medium">Concluída</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campanhas.map((c) => (
+                  <tr key={c.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">{c.campanha_titulo ?? "—"}</td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{c.estado}</span></td>
+                    <td className="px-3 py-1.5 text-right">{c.minutos}min</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{c.data_agendada ? new Date(c.data_agendada).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{c.concluido_em ? formatDateTime(c.concluido_em) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
