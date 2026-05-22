@@ -1315,7 +1315,7 @@ async function invokeCreds(action: string, payload: Record<string, unknown> = {}
   return data;
 }
 
-function CredentialsPanel({ ticketId, isAdmin }: { ticketId: string; isAdmin: boolean }) {
+function CredentialsPanel({ ticketId, isAdmin, ticketNumero, ticketTitulo, clienteNome }: { ticketId: string; isAdmin: boolean; ticketNumero: number; ticketTitulo: string; clienteNome: string }) {
   const [items, setItems] = useState<Credencial[]>([]);
   const [requests, setRequests] = useState<CredRequest[]>([]);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
