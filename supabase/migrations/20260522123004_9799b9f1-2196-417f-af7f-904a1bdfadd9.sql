@@ -1,0 +1,2 @@
+ALTER TABLE public.orcamentos ADD COLUMN IF NOT EXISTS iva_incluido boolean NOT NULL DEFAULT true;
+ALTER TABLE public.orcamento_itens ADD COLUMN IF NOT EXISTS iva_taxa numeric NOT NULL DEFAULT 23 CHECK (iva_taxa IN (0, 6, 13, 23));
