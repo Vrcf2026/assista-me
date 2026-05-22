@@ -1627,8 +1627,14 @@ function RequestCredentialDialog({ open, onOpenChange, ticketId, onCreated }: {
   );
 }
 
-function FulfillCredentialDialog({ request, onOpenChange, onDone }: {
-  request: CredRequest | null; onOpenChange: (v: boolean) => void; onDone: () => void;
+function FulfillCredentialDialog({ request, ticketId, ticketNumero, ticketTitulo, clienteNome, onOpenChange, onDone }: {
+  request: CredRequest | null;
+  ticketId: string;
+  ticketNumero: number;
+  ticketTitulo: string;
+  clienteNome: string;
+  onOpenChange: (v: boolean) => void;
+  onDone: () => void;
 }) {
   const [utilizador, setUtilizador] = useState("");
   const [password, setPassword] = useState("");
@@ -1647,6 +1653,12 @@ function FulfillCredentialDialog({ request, onOpenChange, onDone }: {
         notas: notas.trim() || null,
       });
       toast.success("Credencial enviada em segurança");
+      void notifyAdminCredencialFornecida(
+        { id: ticketId, numero: ticketNumero, titulo: ticketTitulo },
+        clienteNome,
+        request.tipo,
+        request.id,
+      );
       onDone();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
     finally { setBusy(false); }
