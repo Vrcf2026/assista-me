@@ -105,7 +105,7 @@ function ClienteDetail({ id }: { id: string }) {
   useEffect(() => {
     void (async () => {
       setLoading(true);
-      const [cRes, tRes, trRes, orcRes, cpRes] = await Promise.all([
+      const [cRes, tRes, trRes, orcRes, torcRes, cpRes] = await Promise.all([
         supabase.from("clients").select("*").eq("id", id).maybeSingle(),
         supabase
           .from("tickets")
@@ -123,6 +123,11 @@ function ClienteDetail({ id }: { id: string }) {
           .eq("client_id", id)
           .order("created_at", { ascending: false }),
         supabase
+          .from("ticket_orcamentos")
+          .select("id, versao, estado, validade, created_at, ticket_id, tickets!inner(numero, client_id)")
+          .eq("tickets.client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
           .from("campanha_clientes")
           .select("id, campanha_id, estado, minutos, data_agendada, concluido_em, campanhas(titulo)")
           .eq("client_id", id)
@@ -131,7 +136,27 @@ function ClienteDetail({ id }: { id: string }) {
       setClient(cRes.data as ClientFull | null);
       setTickets((tRes.data ?? []) as TicketRow[]);
       setTrabalhos((trRes.data ?? []) as TrabalhoRow[]);
-      setOrcamentos((orcRes.data ?? []) as OrcamentoRow[]);
+      const orcPrincipais: OrcamentoRow[] = (orcRes.data ?? []).map((o: any) => ({
+        key: `p-${o.id}`,
+        origem: "principal",
+        ref: `ORC-${String(o.numero).padStart(4, "0")}`,
+        link: { kind: "orcamento", id: o.id },
+        estado: o.estado,
+        validade: o.validade,
+        created_at: o.created_at,
+      }));
+      const orcTickets: OrcamentoRow[] = (torcRes.data ?? []).map((o: any) => ({
+        key: `t-${o.id}`,
+        origem: "ticket",
+        ref: `T#${String(o.tickets?.numero ?? 0).padStart(4, "0")} v${o.versao}`,
+        link: { kind: "ticket", id: o.ticket_id },
+        estado: o.estado,
+        validade: o.validade,
+        created_at: o.created_at,
+      }));
+      setOrcamentos(
+        [...orcPrincipais, ...orcTickets].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+      );
       setCampanhas(((cpRes.data ?? []) as Array<{
         id: string; campanha_id: string; estado: string; minutos: number;
         data_agendada: string | null; concluido_em: string | null;
