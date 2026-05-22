@@ -9,13 +9,16 @@ const corsHeaders = {
 interface CreateClientPayload {
   nome: string;
   nif?: string | null;
-  tipo_contrato: "avenca" | "pontual";
+  tipo_cliente?: "particular" | "empresa";
+  tipo_contrato: "avenca" | "pontual" | "nenhum";
   tarifa_hora: number;
   horas_pacote?: number | null;
   horas_pacote_anual?: number | null;
   contrato_inicio?: string | null;
   contrato_fim?: string | null;
   dias_fecho_automatico?: number | null;
+  morada?: string | null;
+  email_geral?: string | null;
 }
 
 Deno.serve(async (req) => {
@@ -47,12 +50,15 @@ Deno.serve(async (req) => {
     const { data: client, error: clientErr } = await admin.from("clients").insert({
       nome: body.nome,
       nif: body.nif ?? null,
+      tipo_cliente: body.tipo_cliente ?? "empresa",
       tipo_contrato: body.tipo_contrato,
       tarifa_hora: body.tarifa_hora,
       horas_pacote_anual: isAvenca && body.horas_pacote_anual ? body.horas_pacote_anual : null,
       contrato_inicio: isAvenca ? body.contrato_inicio ?? null : null,
       contrato_fim: isAvenca ? body.contrato_fim ?? null : null,
       dias_fecho_automatico: body.dias_fecho_automatico ?? null,
+      morada: body.morada ?? null,
+      email_geral: body.email_geral ?? null,
     }).select("id").single();
 
     if (clientErr) return json({ error: clientErr.message }, 400);

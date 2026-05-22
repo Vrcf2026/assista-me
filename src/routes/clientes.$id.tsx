@@ -36,13 +36,44 @@ interface ClientFull {
   id: string;
   nome: string;
   nif: string | null;
-  tipo_contrato: "avenca" | "pontual";
+  tipo_cliente: "particular" | "empresa";
+  tipo_contrato: "avenca" | "pontual" | "nenhum";
   tarifa_hora: number;
   horas_pacote: number | null;
   horas_pacote_anual: number | null;
   contrato_inicio: string | null;
   contrato_fim: string | null;
   dias_fecho_automatico: number | null;
+  morada: string | null;
+  email_geral: string | null;
+}
+
+interface TrabalhoRow {
+  id: string;
+  titulo: string;
+  estado: string;
+  prioridade: string;
+  minutos: number;
+  data_agendada: string | null;
+  created_at: string;
+}
+
+interface OrcamentoRow {
+  id: string;
+  numero: number;
+  estado: string;
+  validade: string | null;
+  created_at: string;
+}
+
+interface CampanhaRow {
+  id: string;
+  campanha_id: string;
+  estado: string;
+  minutos: number;
+  data_agendada: string | null;
+  concluido_em: string | null;
+  campanha_titulo: string | null;
 }
 
 interface TicketRow {
@@ -60,6 +91,9 @@ interface TicketRow {
 function ClienteDetail({ id }: { id: string }) {
   const [client, setClient] = useState<ClientFull | null>(null);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
+  const [trabalhos, setTrabalhos] = useState<TrabalhoRow[]>([]);
+  const [orcamentos, setOrcamentos] = useState<OrcamentoRow[]>([]);
+  const [campanhas, setCampanhas] = useState<CampanhaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [mes, setMes] = useState(() => {
     const d = new Date();
@@ -69,14 +103,46 @@ function ClienteDetail({ id }: { id: string }) {
   useEffect(() => {
     void (async () => {
       setLoading(true);
-      const { data: c } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
-      setClient(c as ClientFull | null);
-      const { data: t } = await supabase
-        .from("tickets")
-        .select("id, numero, titulo, estado, tipo_intervencao, tempo_gasto_minutos, motivo_fecho, solucao_aplicada, created_at")
-        .eq("client_id", id)
-        .order("created_at", { ascending: false });
-      setTickets((t ?? []) as TicketRow[]);
+      const [cRes, tRes, trRes, orcRes, cpRes] = await Promise.all([
+        supabase.from("clients").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .from("tickets")
+          .select("id, numero, titulo, estado, tipo_intervencao, tempo_gasto_minutos, motivo_fecho, solucao_aplicada, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("trabalhos")
+          .select("id, titulo, estado, prioridade, minutos, data_agendada, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("orcamentos")
+          .select("id, numero, estado, validade, created_at")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("campanha_clientes")
+          .select("id, campanha_id, estado, minutos, data_agendada, concluido_em, campanhas(titulo)")
+          .eq("client_id", id)
+          .order("created_at", { ascending: false }),
+      ]);
+      setClient(cRes.data as ClientFull | null);
+      setTickets((tRes.data ?? []) as TicketRow[]);
+      setTrabalhos((trRes.data ?? []) as TrabalhoRow[]);
+      setOrcamentos((orcRes.data ?? []) as OrcamentoRow[]);
+      setCampanhas(((cpRes.data ?? []) as Array<{
+        id: string; campanha_id: string; estado: string; minutos: number;
+        data_agendada: string | null; concluido_em: string | null;
+        campanhas: { titulo: string } | null;
+      }>).map((r) => ({
+        id: r.id,
+        campanha_id: r.campanha_id,
+        estado: r.estado,
+        minutos: r.minutos,
+        data_agendada: r.data_agendada,
+        concluido_em: r.concluido_em,
+        campanha_titulo: r.campanhas?.titulo ?? null,
+      })));
       setLoading(false);
     })();
   }, [id]);
@@ -98,6 +164,11 @@ function ClienteDetail({ id }: { id: string }) {
 
   const printReport = () => window.print();
 
+  const contratoLabel =
+    client.tipo_contrato === "avenca" ? "Avença anual"
+    : client.tipo_contrato === "pontual" ? "Pontual"
+    : "Sem contrato";
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between print:hidden">
@@ -114,8 +185,11 @@ function ClienteDetail({ id }: { id: string }) {
       <Card className="p-6">
         <h1 className="text-2xl font-semibold">{client.nome}</h1>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-sm">
+          <div><div className="text-muted-foreground text-xs">Tipo</div><div>{client.tipo_cliente === "particular" ? "Particular" : "Empresa"}</div></div>
           <div><div className="text-muted-foreground text-xs">NIF</div><div>{client.nif ?? "—"}</div></div>
-          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{client.tipo_contrato === "avenca" ? "Avença anual" : "Pontual"}</div></div>
+          <div><div className="text-muted-foreground text-xs">Email geral</div><div>{client.email_geral ?? "—"}</div></div>
+          <div className="sm:col-span-2 lg:col-span-2"><div className="text-muted-foreground text-xs">Morada</div><div>{client.morada ?? "—"}</div></div>
+          <div><div className="text-muted-foreground text-xs">Contrato</div><div>{contratoLabel}</div></div>
           <div><div className="text-muted-foreground text-xs">Tarifa</div><div className="font-mono">{formatCurrency(Number(client.tarifa_hora))}/h</div></div>
           {client.tipo_contrato === "avenca" ? (
             <>
@@ -138,7 +212,7 @@ function ClienteDetail({ id }: { id: string }) {
           contratoInicio={null}
           contratoFim={null}
         />
-      ) : pacoteAnual > 0 ? (
+      ) : client.tipo_contrato === "avenca" && pacoteAnual > 0 ? (
         <HoursPackageWidget
           clientId={client.id}
           tipoContrato="avenca"
@@ -236,6 +310,106 @@ function ClienteDetail({ id }: { id: string }) {
                     <td className="px-3 py-1.5"><StatusBadge estado={t.estado} /></td>
                     <td className="px-3 py-1.5 text-right">{t.tempo_gasto_minutos}min</td>
                     <td className="px-3 py-1.5 text-xs text-muted-foreground">{formatDateTime(t.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de trabalhos</h2>
+        {trabalhos.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem trabalhos.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Título</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium">Prioridade</th>
+                  <th className="px-3 py-2 font-medium text-right">Tempo</th>
+                  <th className="px-3 py-2 font-medium">Agendado</th>
+                  <th className="px-3 py-2 font-medium">Criado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trabalhos.map((t) => (
+                  <tr key={t.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">{t.titulo}</td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{t.estado}</span></td>
+                    <td className="px-3 py-1.5 text-xs">{t.prioridade}</td>
+                    <td className="px-3 py-1.5 text-right">{t.minutos}min</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{t.data_agendada ? new Date(t.data_agendada).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{formatDateTime(t.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de orçamentos</h2>
+        {orcamentos.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem orçamentos.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Nº</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium">Validade</th>
+                  <th className="px-3 py-2 font-medium">Criado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orcamentos.map((o) => (
+                  <tr key={o.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">
+                      <Link to="/orcamentos/$id" params={{ id: o.id }} className="font-mono text-primary hover:underline">
+                        ORC-{String(o.numero).padStart(4, "0")}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{o.estado}</span></td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{formatDateTime(o.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 print:hidden">
+        <h2 className="text-lg font-semibold mb-3">Histórico de campanhas</h2>
+        {campanhas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem campanhas.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Campanha</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium text-right">Tempo</th>
+                  <th className="px-3 py-2 font-medium">Agendada</th>
+                  <th className="px-3 py-2 font-medium">Concluída</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campanhas.map((c) => (
+                  <tr key={c.id} className="border-t hover:bg-secondary/50">
+                    <td className="px-3 py-1.5">{c.campanha_titulo ?? "—"}</td>
+                    <td className="px-3 py-1.5"><span className="text-xs px-2 py-0.5 rounded border bg-secondary">{c.estado}</span></td>
+                    <td className="px-3 py-1.5 text-right">{c.minutos}min</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{c.data_agendada ? new Date(c.data_agendada).toLocaleDateString("pt-PT") : "—"}</td>
+                    <td className="px-3 py-1.5 text-xs text-muted-foreground">{c.concluido_em ? formatDateTime(c.concluido_em) : "—"}</td>
                   </tr>
                 ))}
               </tbody>

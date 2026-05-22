@@ -25,13 +25,16 @@ interface Client {
   id: string;
   nome: string;
   nif: string | null;
-  tipo_contrato: "avenca" | "pontual";
+  tipo_cliente: "particular" | "empresa";
+  tipo_contrato: "avenca" | "pontual" | "nenhum";
   tarifa_hora: number;
   horas_pacote: number | null;
   horas_pacote_anual: number | null;
   contrato_inicio: string | null;
   contrato_fim: string | null;
   dias_fecho_automatico: number | null;
+  morada: string | null;
+  email_geral: string | null;
 }
 
 function ClientesPage() {
@@ -134,7 +137,7 @@ function ClientesList() {
                       <td className="px-4 py-2 text-muted-foreground">{c.nif ?? "—"}</td>
                       <td className="px-4 py-2">
                         <span className="text-xs px-2 py-0.5 rounded border bg-secondary">
-                          {c.tipo_contrato === "avenca" ? "Avença" : "Pontual"}
+                          {c.tipo_contrato === "avenca" ? "Avença" : c.tipo_contrato === "pontual" ? "Pontual" : "Sem contrato"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-right font-mono text-xs">{formatCurrency(Number(c.tarifa_hora))}/h</td>
@@ -185,28 +188,36 @@ function ClientFormDialog({
 }) {
   const [nome, setNome] = useState("");
   const [nif, setNif] = useState("");
-  const [tipo, setTipo] = useState<"avenca" | "pontual">("pontual");
+  const [tipoCliente, setTipoCliente] = useState<"particular" | "empresa">("empresa");
+  const [tipo, setTipo] = useState<"avenca" | "pontual" | "nenhum">("pontual");
   const [tarifa, setTarifa] = useState("25");
   const [horasPacoteAnual, setHorasPacoteAnual] = useState("");
   const [contratoInicio, setContratoInicio] = useState("");
   const [contratoFim, setContratoFim] = useState("");
   const [dias, setDias] = useState("7");
+  const [morada, setMorada] = useState("");
+  const [emailGeral, setEmailGeral] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (editing) {
       setNome(editing.nome);
       setNif(editing.nif ?? "");
+      setTipoCliente(editing.tipo_cliente ?? "empresa");
       setTipo(editing.tipo_contrato);
       setTarifa(String(editing.tarifa_hora));
       setHorasPacoteAnual(editing.horas_pacote_anual ? String(editing.horas_pacote_anual) : (editing.horas_pacote ? String(editing.horas_pacote) : ""));
       setContratoInicio(editing.contrato_inicio ?? "");
       setContratoFim(editing.contrato_fim ?? "");
       setDias(editing.dias_fecho_automatico ? String(editing.dias_fecho_automatico) : "");
+      setMorada(editing.morada ?? "");
+      setEmailGeral(editing.email_geral ?? "");
     } else {
       setNome(""); setNif("");
+      setTipoCliente("empresa");
       setTipo("pontual"); setTarifa("25"); setHorasPacoteAnual("");
       setContratoInicio(""); setContratoFim(""); setDias("7");
+      setMorada(""); setEmailGeral("");
     }
   }, [editing, open]);
 
@@ -217,12 +228,15 @@ function ClientFormDialog({
       const payload = {
         nome,
         nif: nif || null,
+        tipo_cliente: tipoCliente,
         tipo_contrato: tipo,
         tarifa_hora: Number(tarifa),
         horas_pacote_anual: tipo === "avenca" && horasPacoteAnual ? Number(horasPacoteAnual) : null,
         contrato_inicio: tipo === "avenca" && contratoInicio ? contratoInicio : null,
         contrato_fim: tipo === "avenca" && contratoFim ? contratoFim : null,
         dias_fecho_automatico: dias ? Number(dias) : null,
+        morada: morada || null,
+        email_geral: emailGeral || null,
       };
       if (editing) {
         const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
@@ -244,7 +258,7 @@ function ClientFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
         </DialogHeader>
@@ -253,16 +267,37 @@ function ClientFormDialog({
             <Label>Nome *</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Tipo de cliente</Label>
+              <Select value={tipoCliente} onValueChange={(v) => setTipoCliente(v as "particular" | "empresa")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="empresa">Empresa</SelectItem>
+                  <SelectItem value="particular">Particular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>NIF</Label>
+              <Input value={nif} onChange={(e) => setNif(e.target.value)} />
+            </div>
+          </div>
           <div className="space-y-1.5">
-            <Label>NIF</Label>
-            <Input value={nif} onChange={(e) => setNif(e.target.value)} />
+            <Label>Morada</Label>
+            <Input value={morada} onChange={(e) => setMorada(e.target.value)} placeholder="Rua, n.º, código postal, localidade" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email geral</Label>
+            <Input type="email" value={emailGeral} onChange={(e) => setEmailGeral(e.target.value)} placeholder="geral@cliente.pt" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Tipo contrato</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v as "avenca" | "pontual")}>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as "avenca" | "pontual" | "nenhum")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="nenhum">Sem contrato</SelectItem>
                   <SelectItem value="pontual">Pontual</SelectItem>
                   <SelectItem value="avenca">Avença</SelectItem>
                 </SelectContent>
