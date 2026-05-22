@@ -158,7 +158,7 @@ function Inner() {
         cliente_nif: clienteMode === "ocasional" ? orc.cliente_nif : null,
         estado: orc.estado,
         validade: orc.validade,
-        condicao_pagamento: orc.condicao_pagamento,
+        iva_incluido: orc.iva_incluido,
         notas: orc.notas,
       };
       const { error: e1 } = await supabase.from("orcamentos").update(payload).eq("id", orc.id);
@@ -173,6 +173,7 @@ function Inner() {
           descricao: it.descricao,
           quantidade: it.quantidade || 0,
           valor_unitario: it.valor_unitario || 0,
+          iva_taxa: it.iva_taxa ?? 23,
         }));
         const { error: e2 } = await supabase.from("orcamento_itens").insert(rows);
         if (e2) throw e2;
