@@ -784,14 +784,24 @@ export async function gerarOrcamentoIndependentePDF(orcamentoId: string) {
   const doc = new jsPDF();
 
   // ===== Cabeçalho (estilo claro, igual ao modelo) =====
+  let headerTextX = 14;
+  if (activeLogoDataUrl) {
+    try {
+      doc.addImage(activeLogoDataUrl, "PNG", 14, 10, 16, 16);
+      headerTextX = 34;
+    } catch { /* ignore */ }
+  }
   doc.setTextColor(36, 41, 61);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(activeBrand.fullName, 14, 18);
+  doc.text(activeBrand.fullName, headerTextX, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  doc.text("Rua Luis Calado Nunes 15 LJ B  ·  NIF: 515237205  ·  911564243  ·  geral@vrcf.pt", 14, 24);
+  doc.text(
+    `${activeBrand.address}  ·  NIF: ${activeBrand.nif}  ·  ${activeBrand.contactPhone}  ·  ${activeBrand.contactEmail}`,
+    headerTextX, 24,
+  );
   doc.setDrawColor(200, 200, 200);
   doc.line(14, 28, 196, 28);
 
