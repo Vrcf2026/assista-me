@@ -276,6 +276,8 @@ function NovoAdmin() {
   const [localizacao, setLocalizacao] = useState("");
   const [contactoLocal, setContactoLocal] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [creds, setCreds] = useState<CredentialDraft[]>([]);
+  const [sistemasPassados, setSistemasPassados] = useState<string[]>([]);
   const [notificarCliente, setNotificarCliente] = useState(true);
   // Time entry (optional, registado imediatamente)
   const [logTime, setLogTime] = useState(false);
