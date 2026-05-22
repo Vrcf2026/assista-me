@@ -290,12 +290,23 @@ function Inner() {
         {clienteMode === "existente" ? (
           <div>
             <Label>Cliente</Label>
-            <Select value={orc.client_id ?? ""} onValueChange={(v) => updateOrc("client_id", v)}>
+            <Select value={orc.client_id ?? ""} onValueChange={(v) => {
+              const selected = clients.find((c) => c.id === v);
+              updateOrc("client_id", v);
+              if (selected) {
+                updateOrc("tipo_cliente", selected.tipo_cliente as Orcamento["tipo_cliente"]);
+              }
+            }}>
               <SelectTrigger><SelectValue placeholder="Selecionar cliente…" /></SelectTrigger>
               <SelectContent>
                 {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
               </SelectContent>
             </Select>
+            {orc.client_id && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                Tipo de cliente: <span className="font-medium text-foreground">{orc.tipo_cliente === "particular" ? "Particular" : "Empresa"}</span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid sm:grid-cols-3 gap-3">
@@ -314,16 +325,18 @@ function Inner() {
           </div>
         )}
 
-        <div>
-          <Label>Tipo de cliente</Label>
-          <Select value={orc.tipo_cliente} onValueChange={(v) => updateOrc("tipo_cliente", v as Orcamento["tipo_cliente"])}>
-            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="particular">Particular</SelectItem>
-              <SelectItem value="empresa">Empresa</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {clienteMode === "ocasional" && (
+          <div>
+            <Label>Tipo de cliente</Label>
+            <Select value={orc.tipo_cliente} onValueChange={(v) => updateOrc("tipo_cliente", v as Orcamento["tipo_cliente"])}>
+              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="particular">Particular</SelectItem>
+                <SelectItem value="empresa">Empresa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </Card>
 
       <Card className="p-5 space-y-3">
