@@ -63,7 +63,7 @@ function totalDe(itens: Pick<Item, "quantidade" | "valor_unitario">[]) {
   return itens.reduce((s, i) => s + Number(i.quantidade) * Number(i.valor_unitario), 0);
 }
 
-export function OrcamentosPanel({ ticket, isAdmin }: { ticket: TicketLite; isAdmin: boolean }) {
+export function OrcamentosPanel({ ticket, isAdmin, isClienteAdmin }: { ticket: TicketLite; isAdmin: boolean; isClienteAdmin?: boolean }) {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [itensByOrc, setItensByOrc] = useState<Record<string, Item[]>>({});
   const [loading, setLoading] = useState(true);
@@ -141,6 +141,11 @@ export function OrcamentosPanel({ ticket, isAdmin }: { ticket: TicketLite; isAdm
 
   return (
     <Card className="p-4 space-y-3">
+      {!isAdmin && !isClienteAdmin && orcamentos.some((o) => o.estado === "pendente") && (
+        <div className="rounded-md bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+          Este ticket aguarda aprovação do responsável.
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">💰 Orçamentos</h3>
         {isAdmin && (

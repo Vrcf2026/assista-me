@@ -112,6 +112,14 @@ function TicketDetail({ id }: { id: string }) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [headerEscalateOpen, setHeaderEscalateOpen] = useState(false);
+  const [isClientAdmin, setIsClientAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id || isAdmin || !ticket?.client_id) { setIsClientAdmin(false); return; }
+    void supabase.from("client_users")
+      .select("is_client_admin").eq("user_id", user.id).eq("client_id", ticket.client_id).maybeSingle()
+      .then(({ data }) => setIsClientAdmin(!!data?.is_client_admin));
+  }, [user?.id, ticket?.client_id, isAdmin]);
 
   const load = async () => {
     setLoading(true);
@@ -320,6 +328,7 @@ function TicketDetail({ id }: { id: string }) {
         comments={comments}
         attachments={attachments}
         isAdmin={isAdmin}
+        isClientAdmin={isClientAdmin}
         currentUserId={user?.id}
         onOpenAttachment={openAttachment}
         onChange={load}
@@ -328,6 +337,7 @@ function TicketDetail({ id }: { id: string }) {
       <OrcamentosPanel
         ticket={{ id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id, created_by: (ticket as any).created_by ?? null }}
         isAdmin={isAdmin}
+        isClienteAdmin={isClientAdmin}
       />
 
       {isAdmin && (
@@ -1459,25 +1469,17 @@ function CredentialDialog({ open, onOpenChange, ticketId, userId, editing, onSav
 
 // ============== Notes tabs ==============
 function NotesTabsCard({
-  ticket, comments, attachments, isAdmin, currentUserId, onOpenAttachment, onChange,
+  ticket, comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment, onChange,
 }: {
   ticket: Ticket;
   comments: Comment[];
   attachments: Attachment[];
   isAdmin: boolean;
+  isClientAdmin: boolean;
   currentUserId: string | undefined;
   onOpenAttachment: (a: Attachment) => void | Promise<void>;
   onChange: () => void;
 }) {
-  const [isClientAdmin, setIsClientAdmin] = useState(false);
-
-  useEffect(() => {
-    if (!currentUserId || isAdmin) { setIsClientAdmin(false); return; }
-    void supabase.from("client_users")
-      .select("is_client_admin").eq("user_id", currentUserId).eq("client_id", ticket.client_id).maybeSingle()
-      .then(({ data }) => setIsClientAdmin(!!data?.is_client_admin));
-  }, [currentUserId, ticket.client_id, isAdmin]);
-
   const showSharedTab = isAdmin || isClientAdmin;
 
   return (
