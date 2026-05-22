@@ -3,16 +3,30 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatMinutes, formatCurrency, calcValor, TIPO_LABELS, ESTADO_LABELS } from "@/lib/format";
 import { ESTADO_FATURACAO_LABELS } from "@/lib/billing";
+import { BRANDS, getBrand, type BrandConfig } from "@/lib/brand";
 
 type Tipo = "cliente" | "interno";
 
+// Marca activa do PDF que está a ser gerado.
+// Cada gerador (gerarRelatorio*, etc.) chama setActiveBrand() no início.
+let activeBrand: BrandConfig = BRANDS.vrcf;
+function setActiveBrand(marca?: string | null) {
+  activeBrand = getBrand(marca);
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
 function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
+  const [r, g, b] = hexToRgb(activeBrand.color);
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 210, 25, "F");
-  doc.setTextColor(231, 119, 34);
+  doc.setTextColor(r, g, b);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("VRCF — Informática & Segurança", 14, 10);
+  doc.text(activeBrand.fullName, 14, 10);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
@@ -22,16 +36,17 @@ function addHeader(doc: jsPDF, titulo: string, subtitulo?: string) {
 }
 
 function addFooters(doc: jsPDF, tipo: Tipo) {
+  const [r, g, b] = hexToRgb(activeBrand.color);
   const total = doc.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     const y = 287;
-    doc.setDrawColor(231, 119, 34);
+    doc.setDrawColor(r, g, b);
     doc.line(14, y - 3, 196, y - 3);
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.setFont("helvetica", "normal");
-    doc.text("VRCF — Informática & Segurança", 14, y);
+    doc.text(activeBrand.fullName, 14, y);
     if (tipo === "interno") {
       doc.setTextColor(200, 50, 50);
       doc.text("DOCUMENTO INTERNO — CONFIDENCIAL", 80, y);
@@ -47,6 +62,7 @@ function save(doc: jsPDF, tipo: Tipo, filename: string) {
   addFooters(doc, tipo);
   doc.save(filename);
 }
+
 
 function getY(doc: jsPDF): number {
   // @ts-expect-error lastAutoTable injected
