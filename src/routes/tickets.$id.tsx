@@ -282,6 +282,9 @@ function TicketDetail({ id }: { id: string }) {
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
 
+      {/* Informações do cliente (AnyDesk, contactos, notas) — só admin */}
+      {isAdmin && <ClientInfoPanel clientId={ticket.client_id} canEdit compact />}
+
       {/* Credenciais seguras — admin VRCF e admin do cliente */}
       {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} ticketNumero={ticket.numero} ticketTitulo={ticket.titulo} clienteNome={ticket.client?.nome ?? "Cliente"} />}
 
