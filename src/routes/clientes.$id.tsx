@@ -12,6 +12,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { HoursPackageWidget } from "@/components/HoursPackageWidget";
 import { ClientUsersPanel } from "@/components/ClientUsersPanel";
+import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { ArrowLeft, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/clientes/$id")({
@@ -248,6 +249,8 @@ function ClienteDetail({ id }: { id: string }) {
           contratoFim={client.contrato_fim}
         />
       ) : null}
+
+      <ClientInfoPanel clientId={client.id} canEdit />
 
       <ClientUsersPanel clientId={client.id} />
 

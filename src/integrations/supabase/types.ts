@@ -275,11 +275,15 @@ export type Database = {
       }
       clients: {
         Row: {
+          anydesk_id: string | null
+          contacto_tecnico_nome: string | null
+          contacto_tecnico_telefone: string | null
           contrato_fim: string | null
           contrato_inicio: string | null
           created_at: string
           dias_fecho_automatico: number | null
           email_geral: string | null
+          horario_assistencia: string | null
           horas_pacote: number | null
           horas_pacote_anual: number | null
           id: string
@@ -287,17 +291,23 @@ export type Database = {
           morada: string | null
           nif: string | null
           nome: string
+          notas_internas: string | null
           tarifa_hora: number
+          teamviewer_id: string | null
           tipo_cliente: string
           tipo_contrato: Database["public"]["Enums"]["contract_type"]
           updated_at: string
         }
         Insert: {
+          anydesk_id?: string | null
+          contacto_tecnico_nome?: string | null
+          contacto_tecnico_telefone?: string | null
           contrato_fim?: string | null
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           email_geral?: string | null
+          horario_assistencia?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
@@ -305,17 +315,23 @@ export type Database = {
           morada?: string | null
           nif?: string | null
           nome: string
+          notas_internas?: string | null
           tarifa_hora?: number
+          teamviewer_id?: string | null
           tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
         }
         Update: {
+          anydesk_id?: string | null
+          contacto_tecnico_nome?: string | null
+          contacto_tecnico_telefone?: string | null
           contrato_fim?: string | null
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           email_geral?: string | null
+          horario_assistencia?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
@@ -323,7 +339,9 @@ export type Database = {
           morada?: string | null
           nif?: string | null
           nome?: string
+          notas_internas?: string | null
           tarifa_hora?: number
+          teamviewer_id?: string | null
           tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string

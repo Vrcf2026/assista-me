@@ -33,6 +33,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
+import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
@@ -280,6 +281,9 @@ function TicketDetail({ id }: { id: string }) {
 
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
+
+      {/* Informações do cliente (AnyDesk, contactos, notas) — só admin */}
+      {isAdmin && <ClientInfoPanel clientId={ticket.client_id} canEdit compact />}
 
       {/* Credenciais seguras — admin VRCF e admin do cliente */}
       {(isAdmin || isClientAdmin) && <CredentialsPanel ticketId={ticket.id} isAdmin={isAdmin} ticketNumero={ticket.numero} ticketTitulo={ticket.titulo} clienteNome={ticket.client?.nome ?? "Cliente"} />}
