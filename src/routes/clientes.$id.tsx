@@ -250,6 +250,8 @@ function ClienteDetail({ id }: { id: string }) {
         />
       ) : null}
 
+      <ClientInfoPanel clientId={client.id} canEdit />
+
       <ClientUsersPanel clientId={client.id} />
 
       <Card className="p-6">
