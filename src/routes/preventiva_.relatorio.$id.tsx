@@ -267,3 +267,13 @@ function Inner() {
     </div>
   );
 }
+
+function FotoThumb({ path }: { path: string }) {
+  const url = useSignedUrl("preventiva-fotos", path);
+  if (!url) return <span className="text-muted-foreground">…</span>;
+  return (
+    <a href={url} target="_blank" rel="noreferrer">
+      <img src={url} alt="" className="h-10 w-10 object-cover rounded border" />
+    </a>
+  );
+}
