@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft, History } from "lucide-react";
+import { openPrivateFile } from "@/lib/storage";
 
 export const Route = createFileRoute("/preventiva_/execucao/$id")({
   component: Page,
