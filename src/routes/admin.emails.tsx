@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/RequireRole";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -51,17 +51,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function AdminEmailsPage() {
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) { navigate({ to: "/login" }); return; }
-    if (role !== "admin") { navigate({ to: "/" }); return; }
-  }, [user, role, loading, navigate]);
-
-  if (loading || !user || role !== "admin") return null;
-  return <AppLayout><Dashboard /></AppLayout>;
+  return (
+    <RequireRole role="admin" unauthenticatedRedirectTo="/login">
+      <AppLayout><Dashboard /></AppLayout>
+    </RequireRole>
+  );
 }
 
 function Dashboard() {

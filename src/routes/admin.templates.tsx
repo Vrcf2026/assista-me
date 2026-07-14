@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/RequireRole";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -18,13 +19,11 @@ export const Route = createFileRoute("/admin/templates")({
 interface Template { id: string; titulo: string; mensagem: string; ordem: number; }
 
 function AdminTemplatesPage() {
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
-  }, [user, role, loading, navigate]);
-  if (loading || role !== "admin") return null;
-  return <AppLayout><Inner /></AppLayout>;
+  return (
+    <RequireRole role="admin">
+      <AppLayout><Inner /></AppLayout>
+    </RequireRole>
+  );
 }
 
 function Inner() {

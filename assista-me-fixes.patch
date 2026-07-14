@@ -1,0 +1,915 @@
+diff --git a/.env b/.env
+deleted file mode 100644
+index 42e3887..0000000
+--- a/.env
++++ /dev/null
+@@ -1,6 +0,0 @@
+-SUPABASE_PROJECT_ID="fzkpvtuswrezawhxrbsu"
+-SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6a3B2dHVzd3JlemF3aHhyYnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njc3MjgsImV4cCI6MjA5MjU0MzcyOH0.d4-_ay-W9ZhMEs2t2rzSFR0100VMF-oCGuFvZnTYqbY"
+-SUPABASE_URL="https://fzkpvtuswrezawhxrbsu.supabase.co"
+-VITE_SUPABASE_PROJECT_ID="fzkpvtuswrezawhxrbsu"
+-VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6a3B2dHVzd3JlemF3aHhyYnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Njc3MjgsImV4cCI6MjA5MjU0MzcyOH0.d4-_ay-W9ZhMEs2t2rzSFR0100VMF-oCGuFvZnTYqbY"
+-VITE_SUPABASE_URL="https://fzkpvtuswrezawhxrbsu.supabase.co"
+diff --git a/.gitignore b/.gitignore
+index d24df8a..20fa692 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -20,6 +20,11 @@ dist-ssr
+ .wrangler/
+ .dev.vars
+ 
++# Environment variables
++.env
++.env.local
++.env.*.local
++
+ # Editor directories and files
+ .vscode/*
+ !.vscode/extensions.json
+diff --git a/src/components/RequireRole.tsx b/src/components/RequireRole.tsx
+new file mode 100644
+index 0000000..04ee3a6
+--- /dev/null
++++ b/src/components/RequireRole.tsx
+@@ -0,0 +1,72 @@
++import { useEffect, type ReactNode } from "react";
++import { useNavigate } from "@tanstack/react-router";
++import { useAuth } from "@/lib/auth-context";
++
++interface RequireRoleProps {
++  /** Role(s) autorizado(s) a ver o conteúdo. Ex: "admin" ou ["admin", "client"] */
++  role: string | string[];
++  /** Para onde redirecionar se o utilizador tiver sessão mas não o role exigido. Default: "/" */
++  redirectTo?: string;
++  /** Para onde redirecionar se não houver sessão. Default: usa redirectTo */
++  unauthenticatedRedirectTo?: string;
++  /** UI a mostrar enquanto loading/redirect está pendente. Default: null (nada visível) */
++  fallback?: ReactNode;
++  children: ReactNode;
++}
++
++/**
++ * Substitui o padrão repetido em cada rota admin/preventiva/etc:
++ *
++ *   const { user, role, loading } = useAuth();
++ *   const navigate = useNavigate();
++ *   useEffect(() => {
++ *     if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
++ *   }, [user, role, loading, navigate]);
++ *   if (loading || role !== "admin") return null;
++ *
++ * Uso:
++ *   function FaturacaoPage() {
++ *     return (
++ *       <RequireRole role="admin">
++ *         <AppLayout><Faturacao /></AppLayout>
++ *       </RequireRole>
++ *     );
++ *   }
++ *
++ * Nota de arquitetura: isto continua a ser um guard client-side (a
++ * autenticação do projeto é feita via AuthProvider em React state, não
++ * SSR/cookies), portanto não substitui uma verificação `beforeLoad` a
++ * nível de servidor. Para esse nível de proteção seria necessário migrar
++ * a sessão para cookies e resolver o role no servidor antes do render —
++ * uma mudança maior, fora do âmbito desta limpeza. Isto resolve a
++ * duplicação e garante que o comportamento é sempre igual em todas as
++ * rotas protegidas.
++ */
++export function RequireRole({
++  role,
++  redirectTo = "/",
++  unauthenticatedRedirectTo,
++  fallback = null,
++  children,
++}: RequireRoleProps) {
++  const { user, role: userRole, loading } = useAuth();
++  const navigate = useNavigate();
++
++  const allowedRoles = Array.isArray(role) ? role : [role];
++  const isAllowed = !!userRole && allowedRoles.includes(userRole);
++
++  useEffect(() => {
++    if (loading) return;
++    if (!user) {
++      navigate({ to: unauthenticatedRedirectTo ?? redirectTo });
++      return;
++    }
++    if (!isAllowed) {
++      navigate({ to: redirectTo });
++    }
++  }, [user, isAllowed, loading, navigate, redirectTo, unauthenticatedRedirectTo]);
++
++  if (loading || !user || !isAllowed) return <>{fallback}</>;
++
++  return <>{children}</>;
++}
+diff --git a/src/routes/admin.emails.tsx b/src/routes/admin.emails.tsx
+index 923ef88..95c7f1a 100644
+--- a/src/routes/admin.emails.tsx
++++ b/src/routes/admin.emails.tsx
+@@ -1,6 +1,6 @@
+-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
++import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+-import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -51,17 +51,11 @@ function StatusBadge({ status }: { status: string }) {
+ }
+ 
+ function AdminEmailsPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-
+-  useEffect(() => {
+-    if (loading) return;
+-    if (!user) { navigate({ to: "/login" }); return; }
+-    if (role !== "admin") { navigate({ to: "/" }); return; }
+-  }, [user, role, loading, navigate]);
+-
+-  if (loading || !user || role !== "admin") return null;
+-  return <AppLayout><Dashboard /></AppLayout>;
++  return (
++    <RequireRole role="admin" unauthenticatedRedirectTo="/login">
++      <AppLayout><Dashboard /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Dashboard() {
+diff --git a/src/routes/admin.faturacao.tsx b/src/routes/admin.faturacao.tsx
+index 533fb8c..b53138b 100644
+--- a/src/routes/admin.faturacao.tsx
++++ b/src/routes/admin.faturacao.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -33,13 +34,11 @@ interface ClientInfo {
+ }
+ 
+ function FaturacaoPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Faturacao /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Faturacao /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Faturacao() {
+diff --git a/src/routes/admin.relatorios.tsx b/src/routes/admin.relatorios.tsx
+index ea9135c..55e3e8b 100644
+--- a/src/routes/admin.relatorios.tsx
++++ b/src/routes/admin.relatorios.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -25,13 +26,11 @@ export const Route = createFileRoute("/admin/relatorios")({
+ });
+ 
+ function RelatoriosPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Relatorios /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Relatorios /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Relatorios() {
+diff --git a/src/routes/admin.tags.tsx b/src/routes/admin.tags.tsx
+index c70a412..88e77f6 100644
+--- a/src/routes/admin.tags.tsx
++++ b/src/routes/admin.tags.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -17,13 +18,11 @@ export const Route = createFileRoute("/admin/tags")({
+ interface Tag { id: string; nome: string; cor: string; }
+ 
+ function AdminTagsPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/admin.templates.tsx b/src/routes/admin.templates.tsx
+index e0eb310..3ccd430 100644
+--- a/src/routes/admin.templates.tsx
++++ b/src/routes/admin.templates.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -18,13 +19,11 @@ export const Route = createFileRoute("/admin/templates")({
+ interface Template { id: string; titulo: string; mensagem: string; ordem: number; }
+ 
+ function AdminTemplatesPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/campanhas.tsx b/src/routes/campanhas.tsx
+index cf50ab0..d1f4e01 100644
+--- a/src/routes/campanhas.tsx
++++ b/src/routes/campanhas.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -39,13 +40,11 @@ interface Campanha {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/campanhas_.$id.tsx b/src/routes/campanhas_.$id.tsx
+index 0b4bfa9..5c239f2 100644
+--- a/src/routes/campanhas_.$id.tsx
++++ b/src/routes/campanhas_.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -49,13 +50,11 @@ interface ClienteRow {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/campanhas_.execucao.$clienteId.tsx b/src/routes/campanhas_.execucao.$clienteId.tsx
+index 01117ed..281d437 100644
+--- a/src/routes/campanhas_.execucao.$clienteId.tsx
++++ b/src/routes/campanhas_.execucao.$clienteId.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useRef, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -36,13 +37,11 @@ interface CampCliente {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/clientes.$id.tsx b/src/routes/clientes.$id.tsx
+index 3caf6ef..a6e0405 100644
+--- a/src/routes/clientes.$id.tsx
++++ b/src/routes/clientes.$id.tsx
+@@ -1,6 +1,6 @@
+-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
++import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+-import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -21,16 +21,12 @@ export const Route = createFileRoute("/clientes/$id")({
+ 
+ function ClienteDetailPage() {
+   const { id } = Route.useParams();
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+ 
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-
+-  if (loading || role !== "admin") return null;
+-
+-  return <AppLayout><ClienteDetail id={id} /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><ClienteDetail id={id} /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ interface ClientFull {
+diff --git a/src/routes/clientes.tsx b/src/routes/clientes.tsx
+index 94cbeee..a87c40d 100644
+--- a/src/routes/clientes.tsx
++++ b/src/routes/clientes.tsx
+@@ -1,6 +1,6 @@
+ import { createFileRoute, useNavigate, Link, Outlet, useRouterState } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+-import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -38,22 +38,18 @@ interface Client {
+   marca: "vrcf" | "spacedata";
+ }
+ 
++const loadingFallback = (
++  <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">A carregar…</div>
++);
++
+ function ClientesPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+   const { location } = useRouterState();
+ 
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-
+-  if (loading || role !== "admin") {
+-    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">A carregar…</div>;
+-  }
+-
+-  if (location.pathname !== "/clientes") return <Outlet />;
+-
+-  return <AppLayout><ClientesList /></AppLayout>;
++  return (
++    <RequireRole role="admin" fallback={loadingFallback}>
++      {location.pathname !== "/clientes" ? <Outlet /> : <AppLayout><ClientesList /></AppLayout>}
++    </RequireRole>
++  );
+ }
+ 
+ function ClientesList() {
+diff --git a/src/routes/orcamentos.tsx b/src/routes/orcamentos.tsx
+index 15879a0..2854307 100644
+--- a/src/routes/orcamentos.tsx
++++ b/src/routes/orcamentos.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -59,13 +60,11 @@ function totalDe(itens: { quantidade: number; valor_unitario: number }[]) {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/orcamentos_.$id.tsx b/src/routes/orcamentos_.$id.tsx
+index a2acad1..780ae39 100644
+--- a/src/routes/orcamentos_.$id.tsx
++++ b/src/routes/orcamentos_.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -58,13 +59,11 @@ const ESTADO_LABEL: Record<typeof ESTADOS[number], string> = {
+ };
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ 
+diff --git a/src/routes/painel.tsx b/src/routes/painel.tsx
+index e94e1ef..0e92f66 100644
+--- a/src/routes/painel.tsx
++++ b/src/routes/painel.tsx
+@@ -1,6 +1,6 @@
+-import { createFileRoute, useNavigate } from "@tanstack/react-router";
++import { createFileRoute } from "@tanstack/react-router";
+ import { useCallback, useEffect, useMemo, useState } from "react";
+-import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { supabase } from "@/integrations/supabase/client";
+ import { getCriticalSla, formatRemaining } from "@/lib/sla";
+ 
+@@ -9,13 +9,11 @@ export const Route = createFileRoute("/painel")({
+ });
+ 
+ function PainelPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/login" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <Painel />;
++  return (
++    <RequireRole role="admin" redirectTo="/login">
++      <Painel />
++    </RequireRole>
++  );
+ }
+ 
+ interface TicketRow {
+diff --git a/src/routes/preventiva.index.tsx b/src/routes/preventiva.index.tsx
+index befb309..5a48aa8 100644
+--- a/src/routes/preventiva.index.tsx
++++ b/src/routes/preventiva.index.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -26,13 +27,11 @@ interface AgendamentoRow {
+ }
+ 
+ function PreventivaPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/preventiva.templates.tsx b/src/routes/preventiva.templates.tsx
+index bc89c9a..e5d1642 100644
+--- a/src/routes/preventiva.templates.tsx
++++ b/src/routes/preventiva.templates.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -27,13 +28,11 @@ interface Template {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/preventiva_.agendamentos.tsx b/src/routes/preventiva_.agendamentos.tsx
+index 2fc6391..a2068c9 100644
+--- a/src/routes/preventiva_.agendamentos.tsx
++++ b/src/routes/preventiva_.agendamentos.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState, useRef, KeyboardEvent } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -40,13 +41,11 @@ interface Tarefa {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/preventiva_.execucao.$id.tsx b/src/routes/preventiva_.execucao.$id.tsx
+index b3f9cf6..6359055 100644
+--- a/src/routes/preventiva_.execucao.$id.tsx
++++ b/src/routes/preventiva_.execucao.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useRef, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -49,13 +50,11 @@ interface ExecData {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/preventiva_.relatorio.$id.tsx b/src/routes/preventiva_.relatorio.$id.tsx
+index 5cf57f4..34abf08 100644
+--- a/src/routes/preventiva_.relatorio.$id.tsx
++++ b/src/routes/preventiva_.relatorio.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -38,13 +39,11 @@ interface ChecklistRow {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/preventiva_.templates.$id.tsx b/src/routes/preventiva_.templates.$id.tsx
+index 79c7d3d..75745cb 100644
+--- a/src/routes/preventiva_.templates.$id.tsx
++++ b/src/routes/preventiva_.templates.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState, useRef, KeyboardEvent } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -20,13 +21,11 @@ export const Route = createFileRoute("/preventiva_/templates/$id")({
+ interface Tarefa { id?: string; ordem: number; descricao: string; _new?: boolean; _delete?: boolean; }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/tickets.tsx b/src/routes/tickets.tsx
+index e3b5346..84fa8dd 100644
+--- a/src/routes/tickets.tsx
++++ b/src/routes/tickets.tsx
+@@ -1,6 +1,5 @@
+-import { createFileRoute, useNavigate, Outlet, useRouterState } from "@tanstack/react-router";
+-import { useEffect } from "react";
+-import { useAuth } from "@/lib/auth-context";
++import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { AdminTickets } from "@/components/admin/AdminTickets";
+ 
+@@ -8,18 +7,20 @@ export const Route = createFileRoute("/tickets")({
+   component: TicketsListPage,
+ });
+ 
++// Nota: "/tickets" (esta lista) é admin-only, mas as rotas filhas
++// (ex. "/tickets/$id") são acessíveis a qualquer utilizador autenticado —
++// o que cada um vê dentro do ticket é controlado pelas RLS policies do
++// Supabase, não por este guard. Por isso o bypass para isChildRoute tem
++// de ficar fora do RequireRole.
+ function TicketsListPage() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+   const pathname = useRouterState({ select: (s) => s.location.pathname });
+   const isChildRoute = pathname !== "/tickets";
+ 
+-  useEffect(() => {
+-    if (isChildRoute) return;
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate, isChildRoute]);
+-
+   if (isChildRoute) return <Outlet />;
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><AdminTickets /></AppLayout>;
++
++  return (
++    <RequireRole role="admin">
++      <AppLayout><AdminTickets /></AppLayout>
++    </RequireRole>
++  );
+ }
+diff --git a/src/routes/trabalhos.tsx b/src/routes/trabalhos.tsx
+index ef06957..08cb393 100644
+--- a/src/routes/trabalhos.tsx
++++ b/src/routes/trabalhos.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -44,13 +45,11 @@ interface Trabalho {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/src/routes/trabalhos_.$id.tsx b/src/routes/trabalhos_.$id.tsx
+index 85e045b..04b7b66 100644
+--- a/src/routes/trabalhos_.$id.tsx
++++ b/src/routes/trabalhos_.$id.tsx
+@@ -1,6 +1,7 @@
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useRef, useState } from "react";
+ import { useAuth } from "@/lib/auth-context";
++import { RequireRole } from "@/components/RequireRole";
+ import { AppLayout } from "@/components/AppLayout";
+ import { supabase } from "@/integrations/supabase/client";
+ import { Card } from "@/components/ui/card";
+@@ -61,13 +62,11 @@ interface TempoRow {
+ }
+ 
+ function Page() {
+-  const { user, role, loading } = useAuth();
+-  const navigate = useNavigate();
+-  useEffect(() => {
+-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
+-  }, [user, role, loading, navigate]);
+-  if (loading || role !== "admin") return null;
+-  return <AppLayout><Inner /></AppLayout>;
++  return (
++    <RequireRole role="admin">
++      <AppLayout><Inner /></AppLayout>
++    </RequireRole>
++  );
+ }
+ 
+ function Inner() {
+diff --git a/supabase/migrations/20260704205448_fix_ticket_attachments_storage_policy.sql b/supabase/migrations/20260704205448_fix_ticket_attachments_storage_policy.sql
+new file mode 100644
+index 0000000..ec5e97a
+--- /dev/null
++++ b/supabase/migrations/20260704205448_fix_ticket_attachments_storage_policy.sql
+@@ -0,0 +1,86 @@
++-- =========================================================
++-- FIX: políticas de storage.objects do bucket "ticket-attachments"
++-- ainda usavam current_user_client_id() (modelo antigo: 1 cliente
++-- por utilizador via clients.user_id). Desde a migração
++-- 20260427113957 o acesso de clientes passou a ser multi-tenant via
++-- client_users + is_client_admin()/user_client_ids(), e as políticas
++-- da tabela public.attachments já foram atualizadas nessa altura —
++-- mas as políticas do bucket de storage (o ficheiro em si) ficaram
++-- para trás, criando uma inconsistência entre "quem vê a linha do
++-- anexo" e "quem consegue descarregar o ficheiro real".
++--
++-- Esta migração alinha as políticas de storage.objects com a mesma
++-- condição usada em "View attachments on accessible tickets" /
++-- "Insert attachments on accessible tickets": só o admin VRCF, o
++-- admin do cliente, ou quem criou o ticket, e apenas quando o anexo
++-- não é interno (is_internal = false).
++-- =========================================================
++
++DROP POLICY IF EXISTS "Admins can manage ticket attachment objects" ON storage.objects;
++DROP POLICY IF EXISTS "Users can upload ticket attachment objects" ON storage.objects;
++DROP POLICY IF EXISTS "Users can read ticket attachment objects" ON storage.objects;
++
++-- Admin VRCF: acesso total, sem alterações.
++CREATE POLICY "Admins can manage ticket attachment objects"
++ON storage.objects
++FOR ALL
++USING (
++  bucket_id = 'ticket-attachments'
++  AND public.has_role(auth.uid(), 'admin'::public.app_role)
++)
++WITH CHECK (
++  bucket_id = 'ticket-attachments'
++  AND public.has_role(auth.uid(), 'admin'::public.app_role)
++);
++
++-- Upload: o cliente só pode subir ficheiros para tickets do(s)
++-- cliente(s) a que pertence, sendo admin desse cliente ou o criador
++-- do ticket. (A linha em public.attachments com is_internal=false é
++-- garantida separadamente pela policy de INSERT dessa tabela.)
++CREATE POLICY "Users can upload ticket attachment objects"
++ON storage.objects
++FOR INSERT
++WITH CHECK (
++  bucket_id = 'ticket-attachments'
++  AND auth.uid() IS NOT NULL
++  AND EXISTS (
++    SELECT 1
++    FROM public.tickets t
++    WHERE t.id::text = (storage.foldername(name))[1]
++      AND (
++        public.has_role(auth.uid(), 'admin'::public.app_role)
++        OR (
++          t.client_id IN (SELECT public.user_client_ids(auth.uid()))
++          AND (public.is_client_admin(auth.uid(), t.client_id) OR t.created_by = auth.uid())
++        )
++      )
++  )
++);
++
++-- Leitura/download: replica exatamente a condição de
++-- "View attachments on accessible tickets", incluindo o bloqueio de
++-- anexos internos (is_internal = true) a clientes. Faz join à linha
++-- de public.attachments pelo file_url (que é gravado com o mesmo
++-- valor do "name" do objeto em storage — ver openAttachment() em
++-- tickets.$id.tsx) para poder verificar is_internal.
++CREATE POLICY "Users can read ticket attachment objects"
++ON storage.objects
++FOR SELECT
++USING (
++  bucket_id = 'ticket-attachments'
++  AND auth.uid() IS NOT NULL
++  AND (
++    public.has_role(auth.uid(), 'admin'::public.app_role)
++    OR EXISTS (
++      SELECT 1
++      FROM public.tickets t
++      JOIN public.attachments a
++        ON a.ticket_id = t.id
++        AND a.file_url = storage.objects.name
++      WHERE t.id::text = (storage.foldername(storage.objects.name))[1]
++        AND a.is_internal = false
++        AND t.client_id IN (SELECT public.user_client_ids(auth.uid()))
++        AND (public.is_client_admin(auth.uid(), t.client_id) OR t.created_by = auth.uid())
++    )
++  )
++);

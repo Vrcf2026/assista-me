@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/RequireRole";
 import { supabase } from "@/integrations/supabase/client";
 import { getCriticalSla, formatRemaining } from "@/lib/sla";
 
@@ -9,13 +9,11 @@ export const Route = createFileRoute("/painel")({
 });
 
 function PainelPage() {
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!loading && (!user || role !== "admin")) navigate({ to: "/login" });
-  }, [user, role, loading, navigate]);
-  if (loading || role !== "admin") return null;
-  return <Painel />;
+  return (
+    <RequireRole role="admin" redirectTo="/login">
+      <Painel />
+    </RequireRole>
+  );
 }
 
 interface TicketRow {

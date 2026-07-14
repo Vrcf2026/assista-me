@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/RequireRole";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -38,22 +38,18 @@ interface Client {
   marca: "vrcf" | "spacedata";
 }
 
+const loadingFallback = (
+  <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">A carregar…</div>
+);
+
 function ClientesPage() {
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
   const { location } = useRouterState();
 
-  useEffect(() => {
-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
-  }, [user, role, loading, navigate]);
-
-  if (loading || role !== "admin") {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">A carregar…</div>;
-  }
-
-  if (location.pathname !== "/clientes") return <Outlet />;
-
-  return <AppLayout><ClientesList /></AppLayout>;
+  return (
+    <RequireRole role="admin" fallback={loadingFallback}>
+      {location.pathname !== "/clientes" ? <Outlet /> : <AppLayout><ClientesList /></AppLayout>}
+    </RequireRole>
+  );
 }
 
 function ClientesList() {

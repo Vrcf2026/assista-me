@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { RequireRole } from "@/components/RequireRole";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -21,16 +21,12 @@ export const Route = createFileRoute("/clientes/$id")({
 
 function ClienteDetailPage() {
   const { id } = Route.useParams();
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!loading && (!user || role !== "admin")) navigate({ to: "/" });
-  }, [user, role, loading, navigate]);
-
-  if (loading || role !== "admin") return null;
-
-  return <AppLayout><ClienteDetail id={id} /></AppLayout>;
+  return (
+    <RequireRole role="admin">
+      <AppLayout><ClienteDetail id={id} /></AppLayout>
+    </RequireRole>
+  );
 }
 
 interface ClientFull {
