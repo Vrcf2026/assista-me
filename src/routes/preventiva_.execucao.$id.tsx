@@ -433,7 +433,7 @@ function Inner() {
                       <div key={idx} className="flex items-center gap-2 flex-wrap">
                         <span>{h.concluida ? "✅" : "⬜"}</span>
                         <span className="tabular-nums w-12">{h.minutos != null ? `${h.minutos}min` : "—"}</span>
-                        {h.foto_url && <a href={h.foto_url} target="_blank" rel="noreferrer">📷</a>}
+                        {h.foto_url && <button type="button" onClick={() => void openPrivateFile("preventiva-fotos", h.foto_url!)}>📷</button>}
                         <span className="flex-1 truncate text-muted-foreground">{h.observacao ?? ""}</span>
                         <span className="text-muted-foreground">{new Date(h.data_execucao).toLocaleDateString("pt-PT")}</span>
                       </div>
