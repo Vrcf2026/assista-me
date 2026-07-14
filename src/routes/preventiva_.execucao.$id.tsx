@@ -411,7 +411,7 @@ function Inner() {
                       <History className="h-3.5 w-3.5 mr-1" />{openHist[it.id] ? "Ocultar histórico" : "Ver histórico"}
                     </Button>
                   )}
-                  {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
+                  {it.foto_url && <button type="button" onClick={() => void openPrivateFile("preventiva-fotos", it.foto_url!)} className="text-xs underline">ver foto</button>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
                   <Textarea
