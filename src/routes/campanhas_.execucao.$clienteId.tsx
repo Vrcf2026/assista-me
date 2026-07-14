@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Camera, Check, MessageSquarePlus, Play, Square } from "lucide-react";
 import { toast } from "sonner";
+import { openPrivateFile } from "@/lib/storage";
 
 export const Route = createFileRoute("/campanhas_/execucao/$clienteId")({
   component: Page,
@@ -138,9 +139,8 @@ function Inner() {
     const path = `${clienteId}/${it.id}-${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("campanhas-fotos").upload(path, file, { upsert: true });
     if (error) return toast.error(error.message);
-    const { data: pub } = supabase.storage.from("campanhas-fotos").getPublicUrl(path);
-    await supabase.from("campanha_checklist").update({ foto_url: pub.publicUrl }).eq("id", it.id);
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: pub.publicUrl } : x));
+    await supabase.from("campanha_checklist").update({ foto_url: path }).eq("id", it.id);
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: path } : x));
     toast.success("Foto guardada");
   };
 
@@ -318,7 +318,7 @@ function Inner() {
                   <Button size="sm" variant="ghost" onClick={() => setOpenObsId(openObsId === it.id ? null : it.id)} disabled={isDone}>
                     <MessageSquarePlus className="h-3.5 w-3.5 mr-1" />Nota
                   </Button>
-                  {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
+                  {it.foto_url && <button type="button" onClick={() => void openPrivateFile("campanhas-fotos", it.foto_url!)} className="text-xs underline">ver foto</button>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
                   <Textarea

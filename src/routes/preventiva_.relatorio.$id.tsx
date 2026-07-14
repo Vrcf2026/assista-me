@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useSignedUrl } from "@/lib/storage";
 
 export const Route = createFileRoute("/preventiva_/relatorio/$id")({
   component: Page,
@@ -250,9 +251,7 @@ function Inner() {
                           <td className="py-1 pr-3">{h.observacao ?? "—"}</td>
                           <td className="py-1 pr-3">
                             {h.foto_url ? (
-                              <a href={h.foto_url} target="_blank" rel="noreferrer">
-                                <img src={h.foto_url} alt="" className="h-10 w-10 object-cover rounded border" />
-                              </a>
+                              <FotoThumb path={h.foto_url} />
                             ) : "—"}
                           </td>
                         </tr>
@@ -266,5 +265,15 @@ function Inner() {
         })}
       </Card>
     </div>
+  );
+}
+
+function FotoThumb({ path }: { path: string }) {
+  const url = useSignedUrl("preventiva-fotos", path);
+  if (!url) return <span className="text-muted-foreground">…</span>;
+  return (
+    <a href={url} target="_blank" rel="noreferrer">
+      <img src={url} alt="" className="h-10 w-10 object-cover rounded border" />
+    </a>
   );
 }

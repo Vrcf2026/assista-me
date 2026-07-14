@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Camera, Check, MessageSquarePlus, Play, Square, ArrowLeft, History } from "lucide-react";
+import { openPrivateFile } from "@/lib/storage";
 
 export const Route = createFileRoute("/preventiva_/execucao/$id")({
   component: Page,
@@ -205,9 +206,8 @@ function Inner() {
     const path = `${id}/${it.id}-${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("preventiva-fotos").upload(path, file, { upsert: true });
     if (upErr) return toast.error(upErr.message);
-    const { data: pub } = supabase.storage.from("preventiva-fotos").getPublicUrl(path);
-    await supabase.from("preventiva_checklist").update({ foto_url: pub.publicUrl }).eq("id", it.id);
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: pub.publicUrl } : x));
+    await supabase.from("preventiva_checklist").update({ foto_url: path }).eq("id", it.id);
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: path } : x));
     toast.success("Foto guardada");
   };
 
@@ -411,7 +411,7 @@ function Inner() {
                       <History className="h-3.5 w-3.5 mr-1" />{openHist[it.id] ? "Ocultar histórico" : "Ver histórico"}
                     </Button>
                   )}
-                  {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
+                  {it.foto_url && <button type="button" onClick={() => void openPrivateFile("preventiva-fotos", it.foto_url!)} className="text-xs underline">ver foto</button>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
                   <Textarea
@@ -433,7 +433,7 @@ function Inner() {
                       <div key={idx} className="flex items-center gap-2 flex-wrap">
                         <span>{h.concluida ? "✅" : "⬜"}</span>
                         <span className="tabular-nums w-12">{h.minutos != null ? `${h.minutos}min` : "—"}</span>
-                        {h.foto_url && <a href={h.foto_url} target="_blank" rel="noreferrer">📷</a>}
+                        {h.foto_url && <button type="button" onClick={() => void openPrivateFile("preventiva-fotos", h.foto_url!)}>📷</button>}
                         <span className="flex-1 truncate text-muted-foreground">{h.observacao ?? ""}</span>
                         <span className="text-muted-foreground">{new Date(h.data_execucao).toLocaleDateString("pt-PT")}</span>
                       </div>
