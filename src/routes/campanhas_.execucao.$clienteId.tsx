@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Camera, Check, MessageSquarePlus, Play, Square } from "lucide-react";
 import { toast } from "sonner";
+import { openPrivateFile } from "@/lib/storage";
 
 export const Route = createFileRoute("/campanhas_/execucao/$clienteId")({
   component: Page,
