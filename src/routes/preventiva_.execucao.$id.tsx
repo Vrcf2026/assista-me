@@ -206,9 +206,8 @@ function Inner() {
     const path = `${id}/${it.id}-${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("preventiva-fotos").upload(path, file, { upsert: true });
     if (upErr) return toast.error(upErr.message);
-    const { data: pub } = supabase.storage.from("preventiva-fotos").getPublicUrl(path);
-    await supabase.from("preventiva_checklist").update({ foto_url: pub.publicUrl }).eq("id", it.id);
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: pub.publicUrl } : x));
+    await supabase.from("preventiva_checklist").update({ foto_url: path }).eq("id", it.id);
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: path } : x));
     toast.success("Foto guardada");
   };
 
