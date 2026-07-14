@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useSignedUrl } from "@/lib/storage";
 
 export const Route = createFileRoute("/preventiva_/relatorio/$id")({
   component: Page,
