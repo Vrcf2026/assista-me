@@ -139,9 +139,8 @@ function Inner() {
     const path = `${clienteId}/${it.id}-${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("campanhas-fotos").upload(path, file, { upsert: true });
     if (error) return toast.error(error.message);
-    const { data: pub } = supabase.storage.from("campanhas-fotos").getPublicUrl(path);
-    await supabase.from("campanha_checklist").update({ foto_url: pub.publicUrl }).eq("id", it.id);
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: pub.publicUrl } : x));
+    await supabase.from("campanha_checklist").update({ foto_url: path }).eq("id", it.id);
+    setItems(prev => prev.map(x => x.id === it.id ? { ...x, foto_url: path } : x));
     toast.success("Foto guardada");
   };
 
