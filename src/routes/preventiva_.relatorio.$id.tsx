@@ -251,9 +251,7 @@ function Inner() {
                           <td className="py-1 pr-3">{h.observacao ?? "—"}</td>
                           <td className="py-1 pr-3">
                             {h.foto_url ? (
-                              <a href={h.foto_url} target="_blank" rel="noreferrer">
-                                <img src={h.foto_url} alt="" className="h-10 w-10 object-cover rounded border" />
-                              </a>
+                              <FotoThumb path={h.foto_url} />
                             ) : "—"}
                           </td>
                         </tr>
