@@ -318,7 +318,7 @@ function Inner() {
                   <Button size="sm" variant="ghost" onClick={() => setOpenObsId(openObsId === it.id ? null : it.id)} disabled={isDone}>
                     <MessageSquarePlus className="h-3.5 w-3.5 mr-1" />Nota
                   </Button>
-                  {it.foto_url && <a href={it.foto_url} target="_blank" rel="noreferrer" className="text-xs underline">ver foto</a>}
+                  {it.foto_url && <button type="button" onClick={() => void openPrivateFile("campanhas-fotos", it.foto_url!)} className="text-xs underline">ver foto</button>}
                 </div>
                 {(openObsId === it.id || it.observacao) && (
                   <Textarea
