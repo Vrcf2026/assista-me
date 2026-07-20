@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Map de pathname → label legível para breadcrumb
 const PATH_LABELS: Record<string, string> = {

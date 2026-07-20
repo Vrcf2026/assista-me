@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider, themeInitScript } from "@/hooks/use-theme";
 
 function NotFoundComponent() {
   return (
@@ -43,6 +44,7 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [{ children: themeInitScript }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -63,9 +65,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthProvider>
-      <Outlet />
-      <Toaster richColors position="top-right" />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
+
