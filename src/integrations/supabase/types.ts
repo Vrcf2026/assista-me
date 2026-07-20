@@ -1728,6 +1728,16 @@ export type Database = {
         }
         Returns: number
       }
+      notify: {
+        Args: {
+          _body: string
+          _kind?: string
+          _link: string
+          _title: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
