@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,29 +33,27 @@ interface Row {
 }
 
 export function AdminTickets() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [estadoF, setEstadoF] = useState<string>("all");
   const [prioF, setPrioF] = useState<string>("all");
   const [tipoF, setTipoF] = useState<string>("all");
 
-  useEffect(() => {
-    void load();
-  }, []);
-
-  const load = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("tickets")
-      .select(
-        "id, numero, titulo, estado, prioridade, tipo_intervencao, tempo_gasto_minutos, created_at, client:clients(id, nome, tarifa_hora)",
-      )
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as Row[]);
-    setLoading(false);
-  };
+  const { data: rows = [], isLoading: loading } = useQuery({
+    queryKey: ["admin-tickets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select(
+          "id, numero, titulo, estado, prioridade, tipo_intervencao, tempo_gasto_minutos, created_at, client:clients(id, nome, tarifa_hora)",
+        )
+        .order("created_at", { ascending: false });
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      return (data ?? []) as unknown as Row[];
+    },
+  });
 
   const filtered = rows.filter((r) => {
     if (estadoF !== "all" && r.estado !== estadoF) return false;
