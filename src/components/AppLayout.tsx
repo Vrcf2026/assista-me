@@ -68,7 +68,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <span className="font-medium text-foreground truncate">{currentLabel}</span>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
               <span className="text-xs text-muted-foreground hidden md:inline">
                 {user?.email}
               </span>
