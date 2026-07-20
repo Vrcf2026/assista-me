@@ -1,23 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Popover, PopoverContent, PopoverTrigger,
-} from "@/components/ui/popover";
 import { StatusBadge, PriorityBadge, TipoBadge } from "@/components/StatusBadge";
 import { SlaBadge } from "@/components/SlaBadge";
 import { TicketTagsEditor } from "@/components/TicketTagsEditor";
@@ -27,20 +15,16 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
+import { ArrowLeft, Paperclip, FileText, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
-import { Badge } from "@/components/ui/badge";
 import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { CredentialsPanel } from "@/features/ticket/CredentialsPanel";
-import { EscalateDialog, HeaderEscalateDialog, CloseDialog } from "@/features/ticket/dialogs";
-import { CommentList, NewCommentForm } from "@/features/ticket/Conversation";
+import { HeaderEscalateDialog } from "@/features/ticket/dialogs";
 import { AdminPanel } from "@/features/ticket/AdminPanel";
 import { PedidoPorField, OrdemOficinaInline, NotesTabsCard } from "@/features/ticket/meta-widgets";
-import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
-import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
+import type { Ticket, Comment, Escalation, Attachment } from "@/features/ticket/types";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
@@ -57,7 +41,6 @@ function TicketPage() {
   return <AppLayout><TicketDetail id={id} /></AppLayout>;
 }
 
-import type { Ticket, Comment, Escalation, Attachment } from "@/features/ticket/types";
 
 
 function TicketDetail({ id }: { id: string }) {
