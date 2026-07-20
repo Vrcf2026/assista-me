@@ -27,7 +27,7 @@ import {
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
 } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Eye, EyeOff, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
+import { ArrowLeft, Lock, Paperclip, Send, MessageSquare, Clock, FileText, Download, Plus, Trash2, KeyRound, Check, X, Pencil, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { Badge } from "@/components/ui/badge";
