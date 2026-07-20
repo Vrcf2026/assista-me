@@ -34,22 +34,25 @@ export function ClientInfoPanel({ clientId, canEdit, compact = false }: Props) {
 
   const load = async () => {
     setLoading(true);
-    const [itemsRes, clientRes] = await Promise.all([
+    const [itemsRes, internalRes] = await Promise.all([
       supabase.from("client_info_items")
         .select("id, label, value, sort_order")
         .eq("client_id", clientId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
-      supabase.from("clients").select("notas_internas").eq("id", clientId).maybeSingle(),
+      canEdit
+        ? supabase.from("clients_internal").select("notas_internas").eq("client_id", clientId).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
     const list = (itemsRes.data ?? []) as InfoItem[];
     setItems(list);
     setDraftItems(list);
-    const n = (clientRes.data as { notas_internas: string | null } | null)?.notas_internas ?? "";
+    const n = (internalRes.data as { notas_internas: string | null } | null)?.notas_internas ?? "";
     setNotas(n);
     setDraftNotas(n);
     setLoading(false);
   };
+
 
   useEffect(() => { void load(); }, [clientId]);
 
