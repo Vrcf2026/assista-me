@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CommandPalette } from "@/components/CommandPalette";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 // Map de pathname → label legível para breadcrumb
 const PATH_LABELS: Record<string, string> = {
@@ -68,7 +70,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <span className="font-medium text-foreground truncate">{currentLabel}</span>
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <NotificationsBell />
               <ThemeToggle />
               <span className="text-xs text-muted-foreground hidden md:inline">
                 {user?.email}
