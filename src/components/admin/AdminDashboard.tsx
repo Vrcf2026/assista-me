@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,73 +57,82 @@ function timeAgo(date: Date, now: Date): string {
 }
 
 export function AdminDashboard() {
-  const [tickets, setTickets] = useState<TicketRow[]>([]);
-  const [satAvg, setSatAvg] = useState<{ count: number; avg: number }>({ count: 0, avg: 0 });
-  const [trabalhosStats, setTrabalhosStats] = useState<{ ativos: number; atrasados: number }>({ ativos: 0, atrasados: 0 });
-  const [campanhasStats, setCampanhasStats] = useState<{ ativas: number; pendentes: number }>({ ativas: 0, pendentes: 0 });
-  const [orcamentosPendentes, setOrcamentosPendentes] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { data: tickets = [], isLoading: loadingTickets } = useQuery({
+    queryKey: ["dashboard-tickets"],
+    queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const { data } = await supabase
+        .from("tickets")
+        .select("id, numero, titulo, estado, prioridade, tipo_intervencao, tempo_gasto_minutos, created_at, updated_at, fechado_em, client:clients(id, nome)")
+        .gte("created_at", sixMonthsAgo.toISOString())
+        .order("created_at", { ascending: false });
+      return (data ?? []) as unknown as TicketRow[];
+    },
+  });
 
-  useEffect(() => { void load(); }, []);
+  const { data: satAvg = { count: 0, avg: 0 } } = useQuery({
+    queryKey: ["dashboard-satisfaction"],
+    queryFn: async () => {
+      const thirtyDays = new Date();
+      thirtyDays.setDate(thirtyDays.getDate() - 30);
+      const { data } = await supabase
+        .from("ticket_satisfaction")
+        .select("rating, submitted_at")
+        .not("rating", "is", null)
+        .gte("submitted_at", thirtyDays.toISOString());
+      if (!data || data.length === 0) return { count: 0, avg: 0 };
+      const vals = (data as { rating: number }[]).map((r) => r.rating);
+      return { count: vals.length, avg: vals.reduce((a, b) => a + b, 0) / vals.length };
+    },
+  });
 
-  async function load() {
-    setLoading(true);
-    const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    const { data } = await supabase
-      .from("tickets")
-      .select("id, numero, titulo, estado, prioridade, tipo_intervencao, tempo_gasto_minutos, created_at, updated_at, fechado_em, client:clients(id, nome)")
-      .gte("created_at", sixMonthsAgo.toISOString())
-      .order("created_at", { ascending: false });
-    setTickets((data ?? []) as unknown as TicketRow[]);
+  const { data: trabalhosStats = { ativos: 0, atrasados: 0 } } = useQuery({
+    queryKey: ["dashboard-trabalhos"],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("trabalhos")
+        .select("estado, data_agendada")
+        .in("estado", ["pendente", "agendado", "em_curso"]);
+      const rows = data ?? [];
+      return {
+        ativos: rows.length,
+        atrasados: rows.filter((r) => r.data_agendada && r.data_agendada < today).length,
+      };
+    },
+  });
 
-    const thirtyDays = new Date(); thirtyDays.setDate(thirtyDays.getDate() - 30);
-    const { data: ratings } = await supabase
-      .from("ticket_satisfaction")
-      .select("rating, submitted_at")
-      .not("rating", "is", null)
-      .gte("submitted_at", thirtyDays.toISOString());
-    if (ratings && ratings.length > 0) {
-      const vals = (ratings as { rating: number }[]).map((r) => r.rating);
-      setSatAvg({ count: vals.length, avg: vals.reduce((a, b) => a + b, 0) / vals.length });
-    } else {
-      setSatAvg({ count: 0, avg: 0 });
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: trab } = await supabase
-      .from("trabalhos")
-      .select("estado, data_agendada")
-      .in("estado", ["pendente", "agendado", "em_curso"]);
-    if (trab) {
-      const ativos = trab.length;
-      const atrasados = trab.filter((r) => r.data_agendada && r.data_agendada < today).length;
-      setTrabalhosStats({ ativos, atrasados });
-    }
-
-    const { data: campAtivas } = await supabase
-      .from("campanhas")
-      .select("id")
-      .eq("estado", "ativa");
-    const ativasIds = (campAtivas ?? []).map((c) => c.id);
-    let pendentes = 0;
-    if (ativasIds.length > 0) {
+  const { data: campanhasStats = { ativas: 0, pendentes: 0 } } = useQuery({
+    queryKey: ["dashboard-campanhas"],
+    queryFn: async () => {
+      const { data: campAtivas } = await supabase
+        .from("campanhas")
+        .select("id")
+        .eq("estado", "ativa");
+      const ativasIds = (campAtivas ?? []).map((c) => c.id);
+      if (ativasIds.length === 0) return { ativas: 0, pendentes: 0 };
       const { count } = await supabase
         .from("campanha_clientes")
         .select("id", { count: "exact", head: true })
         .in("campanha_id", ativasIds)
         .in("estado", ["pendente", "agendado", "em_curso"]);
-      pendentes = count ?? 0;
-    }
-    setCampanhasStats({ ativas: ativasIds.length, pendentes });
+      return { ativas: ativasIds.length, pendentes: count ?? 0 };
+    },
+  });
 
-    const { count: orcCount } = await supabase
-      .from("orcamentos")
-      .select("id", { count: "exact", head: true })
-      .eq("estado", "enviado");
-    setOrcamentosPendentes(orcCount ?? 0);
+  const { data: orcamentosPendentes = 0 } = useQuery({
+    queryKey: ["dashboard-orcamentos-pendentes"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("orcamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("estado", "enviado");
+      return count ?? 0;
+    },
+  });
 
-    setLoading(false);
-  }
+  const loading = loadingTickets;
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400_000);
