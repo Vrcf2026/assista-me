@@ -176,12 +176,12 @@ export function InternalNotesPanel({ ticket, onChange }: { ticket: { id: string;
 
   return (
     <div className="space-y-2">
-      <textarea
+      <Textarea
         value={val}
         onChange={(e) => setVal(e.target.value)}
         rows={10}
         placeholder="Notas internas — só visíveis pela equipa VRCF"
-        className="w-full min-h-[80px] rounded-md border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/30"
+        className="bg-yellow-500/5 border-yellow-500/30 focus-visible:ring-yellow-500/30"
       />
       <div className="flex justify-end">
         <Button size="sm" onClick={save} disabled={busy}>Guardar</Button>
