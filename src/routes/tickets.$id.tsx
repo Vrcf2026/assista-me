@@ -35,6 +35,7 @@ import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { CredentialsPanel } from "@/features/ticket/CredentialsPanel";
+import { EscalateDialog, HeaderEscalateDialog, CloseDialog } from "@/features/ticket/dialogs";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
