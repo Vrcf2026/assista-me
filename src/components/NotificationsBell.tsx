@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useRouter } from "@tanstack/react-router";
 import { Bell, Check, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,10 @@ type Notification = {
 
 export function NotificationsBell() {
   const { user } = useAuth();
+  const router = useRouter();
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const initialLoad = useRef(true);
 
   useEffect(() => {
     if (!user) return;
@@ -35,6 +38,7 @@ export function NotificationsBell() {
         .order("created_at", { ascending: false })
         .limit(30);
       if (!cancelled && data) setItems(data as Notification[]);
+      initialLoad.current = false;
     };
     void load();
 
@@ -43,7 +47,27 @@ export function NotificationsBell() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => void load(),
+        (payload) => {
+          void load();
+          if (payload.eventType === "INSERT" && !initialLoad.current) {
+            const n = payload.new as Notification;
+            toast(n.title, {
+              description: n.body ?? undefined,
+              action: n.link
+                ? {
+                    label: "Abrir",
+                    onClick: () => {
+                      void supabase
+                        .from("notifications")
+                        .update({ read_at: new Date().toISOString() })
+                        .eq("id", n.id);
+                      router.navigate({ to: n.link! });
+                    },
+                  }
+                : undefined,
+            });
+          }
+        },
       )
       .subscribe();
 
@@ -51,7 +75,7 @@ export function NotificationsBell() {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, router]);
 
   const unread = items.filter((n) => !n.read_at).length;
 
