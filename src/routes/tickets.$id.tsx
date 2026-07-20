@@ -36,6 +36,7 @@ import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { CredentialsPanel } from "@/features/ticket/CredentialsPanel";
 import { EscalateDialog, HeaderEscalateDialog, CloseDialog } from "@/features/ticket/dialogs";
+import { CommentList, NewCommentForm } from "@/features/ticket/Conversation";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
