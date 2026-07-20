@@ -59,7 +59,7 @@ export function CommandPalette() {
   const navigate = useNavigate();
   const { role } = useAuth();
   const { theme, setTheme } = useTheme();
-  const isAdmin = role === "admin" || role === "tech";
+  const isAdmin = role === "admin";
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
