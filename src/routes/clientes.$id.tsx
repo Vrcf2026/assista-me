@@ -89,20 +89,14 @@ interface TicketRow {
 }
 
 function ClienteDetail({ id }: { id: string }) {
-  const [client, setClient] = useState<ClientFull | null>(null);
-  const [tickets, setTickets] = useState<TicketRow[]>([]);
-  const [trabalhos, setTrabalhos] = useState<TrabalhoRow[]>([]);
-  const [orcamentos, setOrcamentos] = useState<OrcamentoRow[]>([]);
-  const [campanhas, setCampanhas] = useState<CampanhaRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [mes, setMes] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
 
-  useEffect(() => {
-    void (async () => {
-      setLoading(true);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["cliente-detail", id],
+    queryFn: async () => {
       const [cRes, tRes, trRes, orcRes, torcRes, cpRes] = await Promise.all([
         supabase.from("clients").select("*").eq("id", id).maybeSingle(),
         supabase
@@ -131,9 +125,10 @@ function ClienteDetail({ id }: { id: string }) {
           .eq("client_id", id)
           .order("created_at", { ascending: false }),
       ]);
-      setClient(cRes.data as ClientFull | null);
-      setTickets((tRes.data ?? []) as TicketRow[]);
-      setTrabalhos((trRes.data ?? []) as TrabalhoRow[]);
+
+      const client = cRes.data as ClientFull | null;
+      const tickets = (tRes.data ?? []) as TicketRow[];
+      const trabalhos = (trRes.data ?? []) as TrabalhoRow[];
       const orcPrincipais: OrcamentoRow[] = (orcRes.data ?? []).map((o: any) => ({
         key: `p-${o.id}`,
         origem: "principal",
@@ -152,10 +147,10 @@ function ClienteDetail({ id }: { id: string }) {
         validade: o.validade,
         created_at: o.created_at,
       }));
-      setOrcamentos(
-        [...orcPrincipais, ...orcTickets].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+      const orcamentos = [...orcPrincipais, ...orcTickets].sort((a, b) =>
+        b.created_at.localeCompare(a.created_at),
       );
-      setCampanhas(((cpRes.data ?? []) as Array<{
+      const campanhas: CampanhaRow[] = ((cpRes.data ?? []) as Array<{
         id: string; campanha_id: string; estado: string; minutos: number;
         data_agendada: string | null; concluido_em: string | null;
         campanhas: { titulo: string } | null;
@@ -167,10 +162,17 @@ function ClienteDetail({ id }: { id: string }) {
         data_agendada: r.data_agendada,
         concluido_em: r.concluido_em,
         campanha_titulo: r.campanhas?.titulo ?? null,
-      })));
-      setLoading(false);
-    })();
-  }, [id]);
+      }));
+
+      return { client, tickets, trabalhos, orcamentos, campanhas };
+    },
+  });
+
+  const client = data?.client ?? null;
+  const tickets = useMemo(() => data?.tickets ?? [], [data]);
+  const trabalhos = data?.trabalhos ?? [];
+  const orcamentos = data?.orcamentos ?? [];
+  const campanhas = data?.campanhas ?? [];
 
   if (loading) return <div className="text-sm text-muted-foreground">A carregar…</div>;
   if (!client) return <div className="text-sm">Cliente não encontrado</div>;
