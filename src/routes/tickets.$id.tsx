@@ -37,6 +37,8 @@ import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { CredentialsPanel } from "@/features/ticket/CredentialsPanel";
 import { EscalateDialog, HeaderEscalateDialog, CloseDialog } from "@/features/ticket/dialogs";
 import { CommentList, NewCommentForm } from "@/features/ticket/Conversation";
+import { AdminPanel } from "@/features/ticket/AdminPanel";
+import { PedidoPorField, OrdemOficinaInline, NotesTabsCard } from "@/features/ticket/meta-widgets";
 import { notifyNovoComentario, notifyTicketFechado, notifyTicketSatisfacao } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente, notifyAdminCredencialFornecida } from "@/lib/email/notify-admin";
 
