@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Map de pathname → label legível para breadcrumb
 const PATH_LABELS: Record<string, string> = {
@@ -67,7 +68,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <span className="font-medium text-foreground truncate">{currentLabel}</span>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
               <span className="text-xs text-muted-foreground hidden md:inline">
                 {user?.email}
               </span>
