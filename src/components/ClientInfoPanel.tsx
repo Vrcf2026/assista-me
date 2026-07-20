@@ -140,11 +140,14 @@ export function ClientInfoPanel({ clientId, canEdit, compact = false }: Props) {
       }
 
       if (draftNotas !== notas) {
-        const { error } = await supabase.from("clients")
-          .update({ notas_internas: draftNotas.trim() || null })
-          .eq("id", clientId);
+        const { error } = await supabase.from("clients_internal")
+          .upsert(
+            { client_id: clientId, notas_internas: draftNotas.trim() || null },
+            { onConflict: "client_id" }
+          );
         if (error) throw error;
       }
+
 
       toast.success("Informações atualizadas");
       setEditing(false);
