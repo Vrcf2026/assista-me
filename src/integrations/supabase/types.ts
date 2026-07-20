@@ -313,15 +313,11 @@ export type Database = {
       }
       clients: {
         Row: {
-          anydesk_id: string | null
-          contacto_tecnico_nome: string | null
-          contacto_tecnico_telefone: string | null
           contrato_fim: string | null
           contrato_inicio: string | null
           created_at: string
           dias_fecho_automatico: number | null
           email_geral: string | null
-          horario_assistencia: string | null
           horas_pacote: number | null
           horas_pacote_anual: number | null
           id: string
@@ -329,23 +325,17 @@ export type Database = {
           morada: string | null
           nif: string | null
           nome: string
-          notas_internas: string | null
           tarifa_hora: number
-          teamviewer_id: string | null
           tipo_cliente: string
           tipo_contrato: Database["public"]["Enums"]["contract_type"]
           updated_at: string
         }
         Insert: {
-          anydesk_id?: string | null
-          contacto_tecnico_nome?: string | null
-          contacto_tecnico_telefone?: string | null
           contrato_fim?: string | null
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           email_geral?: string | null
-          horario_assistencia?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
@@ -353,23 +343,17 @@ export type Database = {
           morada?: string | null
           nif?: string | null
           nome: string
-          notas_internas?: string | null
           tarifa_hora?: number
-          teamviewer_id?: string | null
           tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
         }
         Update: {
-          anydesk_id?: string | null
-          contacto_tecnico_nome?: string | null
-          contacto_tecnico_telefone?: string | null
           contrato_fim?: string | null
           contrato_inicio?: string | null
           created_at?: string
           dias_fecho_automatico?: number | null
           email_geral?: string | null
-          horario_assistencia?: string | null
           horas_pacote?: number | null
           horas_pacote_anual?: number | null
           id?: string
@@ -377,14 +361,56 @@ export type Database = {
           morada?: string | null
           nif?: string | null
           nome?: string
-          notas_internas?: string | null
           tarifa_hora?: number
-          teamviewer_id?: string | null
           tipo_cliente?: string
           tipo_contrato?: Database["public"]["Enums"]["contract_type"]
           updated_at?: string
         }
         Relationships: []
+      }
+      clients_internal: {
+        Row: {
+          anydesk_id: string | null
+          client_id: string
+          contacto_tecnico_nome: string | null
+          contacto_tecnico_telefone: string | null
+          created_at: string
+          horario_assistencia: string | null
+          notas_internas: string | null
+          teamviewer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          anydesk_id?: string | null
+          client_id: string
+          contacto_tecnico_nome?: string | null
+          contacto_tecnico_telefone?: string | null
+          created_at?: string
+          horario_assistencia?: string | null
+          notas_internas?: string | null
+          teamviewer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anydesk_id?: string | null
+          client_id?: string
+          contacto_tecnico_nome?: string | null
+          contacto_tecnico_telefone?: string | null
+          created_at?: string
+          horario_assistencia?: string | null
+          notas_internas?: string | null
+          teamviewer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_internal_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comments: {
         Row: {
