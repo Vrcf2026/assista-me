@@ -12,6 +12,8 @@ import { getCriticalSla, formatRemaining } from "@/lib/sla";
 import {
   AlertTriangle, Clock, Inbox, Star, Flame, ArrowRight, ClipboardList, Megaphone, Receipt,
 } from "lucide-react";
+import { ClientsAtRiskWidget } from "@/components/ClientHealthScore";
+import { calcHealthScore } from "@/lib/health-score";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   PieChart, Pie, Cell, AreaChart, Area,
@@ -129,6 +131,64 @@ export function AdminDashboard() {
         .select("id", { count: "exact", head: true })
         .eq("estado", "enviado");
       return count ?? 0;
+    },
+  });
+
+  // Health scores de todos os clientes activos (agregação leve)
+  const { data: clientsHealth = [] } = useQuery({
+    queryKey: ["dashboard-clients-health"],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const now = new Date();
+      const days90ago = new Date(now.getTime() - 90 * 86400_000);
+      const days30ago = new Date(now.getTime() - 30 * 86400_000);
+
+      const { data: clients } = await supabase
+        .from("clients")
+        .select("id, nome")
+        .order("nome");
+      if (!clients || clients.length === 0) return [];
+
+      // Tickets 90 dias de todos
+      const { data: allTickets } = await supabase
+        .from("tickets")
+        .select("id, client_id, estado, created_at")
+        .in("client_id", clients.map((c) => c.id))
+        .gte("created_at", days90ago.toISOString());
+
+      // Horas 30 dias de todos
+      const allTicketIds = (allTickets ?? []).map((t) => t.id);
+      const { data: allTime } = allTicketIds.length > 0
+        ? await supabase
+            .from("time_entries")
+            .select("ticket_id, minutos")
+            .eq("nao_contabilizar", false)
+            .gte("data_trabalho", days30ago.toISOString().slice(0, 10))
+            .in("ticket_id", allTicketIds)
+        : { data: [] };
+
+      const horasByClient: Record<string, number> = {};
+      const ticketClientMap: Record<string, string> = {};
+      (allTickets ?? []).forEach((t) => { ticketClientMap[t.id] = t.client_id; });
+      (allTime ?? []).forEach((e) => {
+        const cid = ticketClientMap[e.ticket_id];
+        if (cid) horasByClient[cid] = (horasByClient[cid] ?? 0) + (e.minutos ?? 0) / 60;
+      });
+
+      return clients.map((client) => {
+        const ticketsDeste = (allTickets ?? []).filter((t) => t.client_id === client.id);
+        const health = calcHealthScore({
+          ticketsTotal: ticketsDeste.length,
+          ticketsFechados: ticketsDeste.filter((t) => t.estado === "fechado").length,
+          ticketsAbertos: ticketsDeste.filter((t) => t.estado !== "fechado").length,
+          satisfacaoMedia: null,
+          satisfacaoCount: 0,
+          tempoMedioRespostaMin: null,
+          horasContratoMes: null,
+          horasUsadasUlt30: horasByClient[client.id] ?? 0,
+        });
+        return { id: client.id, nome: client.nome, health };
+      });
     },
   });
 
@@ -454,6 +514,11 @@ export function AdminDashboard() {
           </Card>
         </Link>
       </div>
+
+      {/* SECÇÃO — Clientes a monitorizar */}
+      {clientsHealth.length > 0 && (
+        <ClientsAtRiskWidget clients={clientsHealth} />
+      )}
 
       {/* SECÇÃO 4 — Gráficos em tabs */}
       <Card className="p-5 shadow-sm">
