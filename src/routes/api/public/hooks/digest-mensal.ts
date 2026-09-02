@@ -28,7 +28,7 @@ import { sendEmailResend } from "@/lib/resend";
  * );
  * ─────────────────────────────────────────────
  */
-export const Route = createFileRoute("/api/public/hooks/digest-mensal" as any)({
+export const Route = createFileRoute("/api/public/hooks/digest-mensal")({
   server: {
     handlers: {
       POST: async ({ request }) => {

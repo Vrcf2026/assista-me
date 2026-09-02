@@ -46,6 +46,8 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicSatisfacaoTokenRouteImport } from './routes/api/public/satisfacao.$token'
+import { Route as ApiPublicHooksEmailInboundRouteImport } from './routes/api/public/hooks/email-inbound'
+import { Route as ApiPublicHooksDigestMensalRouteImport } from './routes/api/public/hooks/digest-mensal'
 import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api/public/hooks/auto-close-tickets'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -238,6 +240,18 @@ const ApiPublicSatisfacaoTokenRoute =
     path: '/api/public/satisfacao/$token',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEmailInboundRoute =
+  ApiPublicHooksEmailInboundRouteImport.update({
+    id: '/api/public/hooks/email-inbound',
+    path: '/api/public/hooks/email-inbound',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksDigestMensalRoute =
+  ApiPublicHooksDigestMensalRouteImport.update({
+    id: '/api/public/hooks/digest-mensal',
+    path: '/api/public/hooks/digest-mensal',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksAutoCloseTicketsRoute =
   ApiPublicHooksAutoCloseTicketsRouteImport.update({
     id: '/api/public/hooks/auto-close-tickets',
@@ -278,6 +292,8 @@ export interface FileRoutesByFullPath {
   '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
+  '/api/public/hooks/digest-mensal': typeof ApiPublicHooksDigestMensalRoute
+  '/api/public/hooks/email-inbound': typeof ApiPublicHooksEmailInboundRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -317,6 +333,8 @@ export interface FileRoutesByTo {
   '/preventiva/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
+  '/api/public/hooks/digest-mensal': typeof ApiPublicHooksDigestMensalRoute
+  '/api/public/hooks/email-inbound': typeof ApiPublicHooksEmailInboundRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -358,6 +376,8 @@ export interface FileRoutesById {
   '/preventiva_/relatorio/$id': typeof PreventivaRelatorioIdRoute
   '/preventiva_/templates/$id': typeof PreventivaTemplatesIdRoute
   '/api/public/hooks/auto-close-tickets': typeof ApiPublicHooksAutoCloseTicketsRoute
+  '/api/public/hooks/digest-mensal': typeof ApiPublicHooksDigestMensalRoute
+  '/api/public/hooks/email-inbound': typeof ApiPublicHooksEmailInboundRoute
   '/api/public/satisfacao/$token': typeof ApiPublicSatisfacaoTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -400,6 +420,8 @@ export interface FileRouteTypes {
     | '/preventiva/relatorio/$id'
     | '/preventiva/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
+    | '/api/public/hooks/digest-mensal'
+    | '/api/public/hooks/email-inbound'
     | '/api/public/satisfacao/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -439,6 +461,8 @@ export interface FileRouteTypes {
     | '/preventiva/relatorio/$id'
     | '/preventiva/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
+    | '/api/public/hooks/digest-mensal'
+    | '/api/public/hooks/email-inbound'
     | '/api/public/satisfacao/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -479,6 +503,8 @@ export interface FileRouteTypes {
     | '/preventiva_/relatorio/$id'
     | '/preventiva_/templates/$id'
     | '/api/public/hooks/auto-close-tickets'
+    | '/api/public/hooks/digest-mensal'
+    | '/api/public/hooks/email-inbound'
     | '/api/public/satisfacao/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -515,6 +541,8 @@ export interface RootRouteChildren {
   PreventivaRelatorioIdRoute: typeof PreventivaRelatorioIdRoute
   PreventivaTemplatesIdRoute: typeof PreventivaTemplatesIdRoute
   ApiPublicHooksAutoCloseTicketsRoute: typeof ApiPublicHooksAutoCloseTicketsRoute
+  ApiPublicHooksDigestMensalRoute: typeof ApiPublicHooksDigestMensalRoute
+  ApiPublicHooksEmailInboundRoute: typeof ApiPublicHooksEmailInboundRoute
   ApiPublicSatisfacaoTokenRoute: typeof ApiPublicSatisfacaoTokenRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -784,6 +812,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSatisfacaoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/email-inbound': {
+      id: '/api/public/hooks/email-inbound'
+      path: '/api/public/hooks/email-inbound'
+      fullPath: '/api/public/hooks/email-inbound'
+      preLoaderRoute: typeof ApiPublicHooksEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/digest-mensal': {
+      id: '/api/public/hooks/digest-mensal'
+      path: '/api/public/hooks/digest-mensal'
+      fullPath: '/api/public/hooks/digest-mensal'
+      preLoaderRoute: typeof ApiPublicHooksDigestMensalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/auto-close-tickets': {
       id: '/api/public/hooks/auto-close-tickets'
       path: '/api/public/hooks/auto-close-tickets'
@@ -861,6 +903,8 @@ const rootRouteChildren: RootRouteChildren = {
   PreventivaRelatorioIdRoute: PreventivaRelatorioIdRoute,
   PreventivaTemplatesIdRoute: PreventivaTemplatesIdRoute,
   ApiPublicHooksAutoCloseTicketsRoute: ApiPublicHooksAutoCloseTicketsRoute,
+  ApiPublicHooksDigestMensalRoute: ApiPublicHooksDigestMensalRoute,
+  ApiPublicHooksEmailInboundRoute: ApiPublicHooksEmailInboundRoute,
   ApiPublicSatisfacaoTokenRoute: ApiPublicSatisfacaoTokenRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

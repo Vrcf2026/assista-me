@@ -29,7 +29,7 @@ interface ResendInboundPayload {
   message_id?: string;
 }
 
-export const Route = createFileRoute("/api/public/hooks/email-inbound" as any)({
+export const Route = createFileRoute("/api/public/hooks/email-inbound")({
   server: {
     handlers: {
       POST: async ({ request }) => {
