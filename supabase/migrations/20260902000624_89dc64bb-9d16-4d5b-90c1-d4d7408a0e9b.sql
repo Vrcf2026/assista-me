@@ -1,0 +1,12 @@
+REVOKE EXECUTE ON FUNCTION public.calcular_estado_faturacao(uuid, integer, boolean) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.client_horas_consumidas_anual(uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.client_horas_consumidas_mes(uuid, integer, integer) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.is_client_admin(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.user_client_ids(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.calcular_estado_faturacao(uuid, integer, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.client_horas_consumidas_anual(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.client_horas_consumidas_mes(uuid, integer, integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_client_admin(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.user_client_ids(uuid) TO authenticated;
