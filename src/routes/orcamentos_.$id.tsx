@@ -16,7 +16,7 @@ import {
 import { Plus, X, Download, Save, ClipboardList, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format";
-import { gerarOrcamentoIndependentePDF } from "@/lib/pdf";
+import { gerarOrcamentoIndependentePDF } from "@/lib/pdf-lazy";
 
 export const Route = createFileRoute("/orcamentos_/$id")({
   component: Page,

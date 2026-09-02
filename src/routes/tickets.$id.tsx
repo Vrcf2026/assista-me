@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Paperclip, FileText, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf";
+import { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "@/lib/pdf-lazy";
 import { OrcamentosPanel } from "@/components/OrcamentosPanel";
 import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { CredentialsPanel } from "@/features/ticket/CredentialsPanel";

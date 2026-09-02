@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { Lock, Paperclip, Clock, MessageSquare, Send, Sparkles } from "lucide-react";
 import type { Comment, Attachment } from "./types";
+import { resolveTemplateVars } from "@/lib/template-vars";
 
 export function CommentList({
   comments, attachments, isAdmin, isClientAdmin, currentUserId, onOpenAttachment,
@@ -109,7 +110,7 @@ export function NewCommentForm({
   isAdmin: boolean;
   isClientAdmin: boolean;
   onSent: () => void;
-  ticketContext?: { titulo: string; descricao: string; tipo_intervencao: string };
+  ticketContext?: { titulo: string; descricao: string; tipo_intervencao: string; numero?: number; nome_cliente?: string };
   comments?: { mensagem: string; is_internal: boolean; user_id: string }[];
 }) {
   const { user } = useAuth();
@@ -508,7 +509,14 @@ Escreve uma resposta profissional, direta e emp√°tica para o cliente em portugu√
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setMensagem((m) => (m ? m + "\n\n" : "") + t.mensagem)}
+                    onClick={() => {
+                        const resolved = resolveTemplateVars(t.mensagem, {
+                          nome_cliente: ticketContext?.nome_cliente,
+                          numero_ticket: ticketContext?.numero,
+                          titulo_ticket: ticketContext?.titulo,
+                        });
+                        setMensagem((m) => (m ? m + "\n\n" : "") + resolved);
+                      }}
                     className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-secondary"
                   >
                     <div className="font-medium">{t.titulo}</div>

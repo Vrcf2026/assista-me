@@ -190,7 +190,6 @@ function EditUserDialog({
           return m;
         };
         if (error) {
-          console.error("invoke error:", error);
           const raw = (data as { error?: string } | null)?.error ?? error.message ?? "Erro ao alterar password";
           throw new Error(translateErr(raw));
         }

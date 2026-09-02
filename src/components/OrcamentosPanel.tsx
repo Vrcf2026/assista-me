@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { Plus, Trash2, Download, Pencil, Check, X, FileText, ExternalLink } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { gerarOrcamentoPDF } from "@/lib/pdf";
+import { gerarOrcamentoPDF } from "@/lib/pdf-lazy";
 import { notifyNovoComentario } from "@/lib/email/notify-ticket-event";
 import { notifyAdminNovoComentarioCliente } from "@/lib/email/notify-admin";
 

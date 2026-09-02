@@ -154,6 +154,8 @@ export function NotesTabsCard({
             titulo: ticket.titulo,
             descricao: ticket.descricao,
             tipo_intervencao: ticket.tipo_intervencao,
+            numero: ticket.numero,
+            nome_cliente: ticket.client?.nome ?? undefined,
           }}
           comments={comments}
         />

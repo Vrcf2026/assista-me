@@ -19,7 +19,7 @@ import {
   gerarRelatorioMensalCliente,
   gerarRelatorioMensalInterno,
   gerarArquivoCliente,
-} from "@/lib/pdf";
+} from "@/lib/pdf-lazy";
 
 export const Route = createFileRoute("/admin/relatorios")({
   component: RelatoriosPage,

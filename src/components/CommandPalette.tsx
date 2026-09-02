@@ -115,7 +115,7 @@ export function CommandPalette() {
 
       const { data } = await queryBuilder;
       setTicketResults(
-        (data ?? []).map((t: any) => ({
+        (data ?? []).map((t: Record<string, any>) => ({
           id: t.id,
           numero: t.numero,
           titulo: t.titulo,

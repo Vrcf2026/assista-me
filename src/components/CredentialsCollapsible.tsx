@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { ChevronDown, ChevronRight, Eye, EyeOff, KeyRound, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,8 +119,7 @@ export async function saveDraftCredentials(
         notas: d.notas.trim() || null,
       });
     } catch (e) {
-      // surface but don't block
-      console.error("Erro a guardar credencial", e);
+      toast.error(e instanceof Error ? e.message : "Erro a guardar credencial");
     }
   }
 }
