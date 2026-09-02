@@ -1,8 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import * as React from "react";
-import { renderAsync } from "@react-email/components";
-import { TEMPLATES } from "@/lib/email-templates/registry";
+import { sendEmailResend } from "@/lib/resend";
 
 /**
  * Cron job chamado pelo pg_cron no dia 1 de cada mês às 08:00.
@@ -39,9 +37,6 @@ export const Route = createFileRoute("/api/public/hooks/digest-mensal" as any)({
         const ANON_KEY =
           process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
         const SITE_URL = "https://tickets.vrcf.info";
-        const SITE_NAME = "VRCF — Suporte Técnico";
-        const FROM_DOMAIN = "tickets.vrcf.info";
-        const SENDER_DOMAIN = "notify.tickets.vrcf.info";
 
         if (!SUPABASE_URL || !SERVICE_KEY) {
           return Response.json({ error: "Server configuration error" }, { status: 500 });
@@ -85,11 +80,6 @@ export const Route = createFileRoute("/api/public/hooks/digest-mensal" as any)({
         if (clientErr) {
           console.error("digest-mensal: erro ao buscar clientes", clientErr);
           return Response.json({ error: clientErr.message }, { status: 500 });
-        }
-
-        const entry = TEMPLATES["digest-mensal"];
-        if (!entry) {
-          return Response.json({ error: "Template digest-mensal não registado" }, { status: 500 });
         }
 
         let enviados = 0;
@@ -198,41 +188,15 @@ export const Route = createFileRoute("/api/public/hooks/digest-mensal" as any)({
                 marca: cliente.marca ?? "vrcf",
               };
 
-              const element = React.createElement(entry.component, props);
-              const html = await renderAsync(element);
-              const text = await renderAsync(element, { plainText: true });
-              const subject =
-                typeof entry.subject === "function"
-                  ? entry.subject(props)
-                  : entry.subject;
-
-              const messageId = crypto.randomUUID();
-              await supabase.from("email_send_log").insert({
-                message_id: messageId,
-                template_name: "digest-mensal",
-                recipient_email: email,
-                status: "pending",
+              const result = await sendEmailResend({
+                to: email,
+                templateName: "digest-mensal",
+                templateData: props,
+                idempotencyKey: `digest-${cliente.id}-${inicioMes.toISOString().slice(0, 7)}`,
               });
 
-              const { error: enqErr } = await supabase.rpc("enqueue_email", {
-                queue_name: "transactional_emails",
-                payload: {
-                  message_id: messageId,
-                  to: email,
-                  from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-                  sender_domain: SENDER_DOMAIN,
-                  subject,
-                  html,
-                  text,
-                  purpose: "transactional",
-                  label: "digest-mensal",
-                  idempotency_key: `digest-${cliente.id}-${inicioMes.toISOString().slice(0, 7)}`,
-                  queued_at: new Date().toISOString(),
-                },
-              });
-
-              if (enqErr) {
-                console.error("digest-mensal: enqueue falhou", { cliente: cliente.id, enqErr });
+              if (!result.success) {
+                console.error("digest-mensal: envio falhou", { cliente: cliente.id, error: result.error });
                 erros++;
               } else {
                 enviados++;

@@ -1,12 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import * as React from "react";
-import { renderAsync } from "@react-email/components";
-import { TEMPLATES } from "@/lib/email-templates/registry";
+import { sendEmailResend } from "@/lib/resend";
 
-const SITE_NAME = "VRCF — Suporte Técnico";
-const SENDER_DOMAIN = "notify.tickets.vrcf.info";
-const FROM_DOMAIN = "tickets.vrcf.info";
 const SITE_URL = "https://tickets.vrcf.info";
 
 /**
@@ -58,14 +53,6 @@ export const Route = createFileRoute("/api/public/hooks/auto-close-tickets")({
         let closed = 0;
         let emailed = 0;
 
-        const entry = TEMPLATES["ticket-auto-closed"];
-        if (!entry) {
-          return Response.json(
-            { error: "Template ticket-auto-closed not registered" },
-            { status: 500 },
-          );
-        }
-
         for (const t of tickets ?? []) {
           const client = (t as any).clients;
           const dias = Number(client?.dias_fecho_automatico ?? 7);
@@ -90,60 +77,30 @@ export const Route = createFileRoute("/api/public/hooks/auto-close-tickets")({
           }
           closed++;
 
-          // Email para o cliente (lookup do email no auth.users via admin API)
+          // Email para o cliente via Resend
           if (!client?.user_id) continue;
           const { data: userData, error: userErr } =
             await supabase.auth.admin.getUserById(client.user_id);
           if (userErr || !userData?.user?.email) continue;
           const recipient = userData.user.email;
 
-          const props = {
-            clienteNome: client?.nome,
-            ticketNumero: t.numero,
-            ticketTitulo: t.titulo,
-            diasInatividade: dias,
-            ticketUrl: `${SITE_URL}/tickets/${t.id}`,
-          };
+          const result = await sendEmailResend({
+            to: recipient,
+            templateName: "ticket-auto-closed",
+            templateData: {
+              clienteNome: client?.nome,
+              ticketNumero: t.numero,
+              ticketTitulo: t.titulo,
+              diasInatividade: dias,
+              ticketUrl: `${SITE_URL}/tickets/${t.id}`,
+            },
+            idempotencyKey: `auto-close-${t.id}`,
+          });
 
-          try {
-            const element = React.createElement(entry.component, props);
-            const html = await renderAsync(element);
-            const text = await renderAsync(element, { plainText: true });
-            const subject =
-              typeof entry.subject === "function"
-                ? entry.subject(props)
-                : entry.subject;
-
-            const messageId = crypto.randomUUID();
-            await supabase.from("email_send_log").insert({
-              message_id: messageId,
-              template_name: "ticket-auto-closed",
-              recipient_email: recipient,
-              status: "pending",
-            });
-            const { error: enqErr } = await supabase.rpc("enqueue_email", {
-              queue_name: "transactional_emails",
-              payload: {
-                message_id: messageId,
-                to: recipient,
-                from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-                sender_domain: SENDER_DOMAIN,
-                subject,
-                html,
-                text,
-                purpose: "transactional",
-                label: "ticket-auto-closed",
-                idempotency_key: `auto-close-${t.id}`,
-                queued_at: new Date().toISOString(),
-              },
-            });
-            if (enqErr) {
-              console.error("auto-close: enqueue failed", enqErr);
-            } else {
-              emailed++;
-            }
-          } catch (err) {
-            console.error("auto-close: email render failed", err);
+          if (result.success) {
+            emailed++;
+          } else {
+            console.error("auto-close: envio falhou", result.error);
           }
         }
 
