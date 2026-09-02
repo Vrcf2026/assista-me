@@ -25,6 +25,7 @@ import { HeaderEscalateDialog } from "@/features/ticket/dialogs";
 import { AdminPanel } from "@/features/ticket/AdminPanel";
 import { PedidoPorField, OrdemOficinaInline, NotesTabsCard } from "@/features/ticket/meta-widgets";
 import type { Ticket, Comment, Escalation, Attachment } from "@/features/ticket/types";
+import { TicketTimer } from "@/components/TicketTimer";
 
 export const Route = createFileRoute("/tickets/$id")({
   component: TicketPage,
@@ -128,7 +129,16 @@ function TicketDetail({ id }: { id: string }) {
         <Button asChild variant="ghost" size="sm">
           <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
         </Button>
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <TicketTimer
+              ticketId={ticket.id}
+              tipoIntervencao={ticket.tipo_intervencao}
+              isAdmin={isAdmin}
+              onSaved={load}
+            />
+          )}
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-1" /> Exportar</Button>
           </DropdownMenuTrigger>
@@ -143,6 +153,7 @@ function TicketDetail({ id }: { id: string }) {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
       {/* Header card */}

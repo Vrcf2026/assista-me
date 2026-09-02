@@ -150,6 +150,12 @@ export function NotesTabsCard({
           isAdmin={isAdmin}
           isClientAdmin={isClientAdmin}
           onSent={onChange}
+          ticketContext={{
+            titulo: ticket.titulo,
+            descricao: ticket.descricao,
+            tipo_intervencao: ticket.tipo_intervencao,
+          }}
+          comments={comments}
         />
       </div>
     </Card>

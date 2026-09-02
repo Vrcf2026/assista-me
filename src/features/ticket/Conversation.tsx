@@ -16,7 +16,7 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Lock, Paperclip, Clock, MessageSquare, Send } from "lucide-react";
+import { Lock, Paperclip, Clock, MessageSquare, Send, Sparkles } from "lucide-react";
 import type { Comment, Attachment } from "./types";
 
 export function CommentList({
@@ -102,13 +102,15 @@ export function CommentList({
 }
 
 export function NewCommentForm({
-  ticketId, clientId, isAdmin, isClientAdmin, onSent,
+  ticketId, clientId, isAdmin, isClientAdmin, onSent, ticketContext, comments: commentsForAi,
 }: {
   ticketId: string;
   clientId: string;
   isAdmin: boolean;
   isClientAdmin: boolean;
   onSent: () => void;
+  ticketContext?: { titulo: string; descricao: string; tipo_intervencao: string };
+  comments?: { mensagem: string; is_internal: boolean; user_id: string }[];
 }) {
   const { user } = useAuth();
   const [mensagem, setMensagem] = useState("");
@@ -116,6 +118,7 @@ export function NewCommentForm({
   const [adminOnly, setAdminOnly] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; titulo: string; mensagem: string }[]>([]);
 
   // Tempo
@@ -205,6 +208,43 @@ export function NewCommentForm({
       setChronoStart(null);
       localStorage.removeItem(chronoKey);
       setChronoElapsed(0);
+    }
+  };
+
+  const sugerirResposta = async () => {
+    if (!ticketContext) return;
+    setAiLoading(true);
+    try {
+      const conversaVisivel = (commentsForAi ?? [])
+        .filter((c) => !c.is_internal)
+        .map((c) => (c.user_id === "admin" ? `Técnico: ${c.mensagem}` : `Cliente: ${c.mensagem}`))
+        .join("\n");
+
+      const prompt = `És um técnico de suporte informático da VRCF – Informática & Segurança.
+Ticket #: ${ticketContext.titulo}
+Tipo: ${ticketContext.tipo_intervencao}
+Descrição original: ${ticketContext.descricao}
+${conversaVisivel ? `\nConversa até agora:\n${conversaVisivel}` : ""}
+
+Escreve uma resposta profissional, direta e empática para o cliente em português europeu. Máximo 150 palavras. Não uses saudações formais como "Exmo.". Não incluas assinatura.`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 400,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await res.json() as { content?: { type: string; text: string }[] };
+      const text = data.content?.find((b) => b.type === "text")?.text ?? "";
+      if (text) setMensagem((prev) => prev ? `${prev}\n\n${text}` : text);
+      else toast.error("Sem resposta da IA");
+    } catch {
+      toast.error("Erro ao contactar a IA");
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -441,6 +481,20 @@ export function NewCommentForm({
               <Checkbox checked={adminOnly} disabled={internal} onCheckedChange={(v) => setAdminOnly(!!v)} />
               <Lock className="h-3.5 w-3.5 text-amber-600" /> Partilhar só com admin
             </label>
+          )}
+          {isAdmin && ticketContext && (
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              className="h-9 text-primary"
+              onClick={sugerirResposta}
+              disabled={aiLoading}
+              title="Sugerir resposta com IA"
+            >
+              <Sparkles className="h-4 w-4 mr-1" />
+              {aiLoading ? "A gerar…" : "IA"}
+            </Button>
           )}
           {isAdmin && templates.length > 0 && (
             <Popover>
