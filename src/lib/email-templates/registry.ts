@@ -17,6 +17,7 @@ import { template as adminNovoTicket } from "./admin-novo-ticket";
 import { template as adminNovoComentario } from "./admin-novo-comentario";
 import { template as adminCredencialFornecida } from "./admin-credencial-fornecida";
 import { template as ticketSatisfacao } from "./ticket-satisfacao";
+import { template as digestMensal } from "./digest-mensal";
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "ticket-auto-closed": ticketAutoClosed,
@@ -27,4 +28,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "admin-novo-comentario": adminNovoComentario,
   "admin-credencial-fornecida": adminCredencialFornecida,
   "ticket-satisfacao": ticketSatisfacao,
+  "digest-mensal": digestMensal,
 };
