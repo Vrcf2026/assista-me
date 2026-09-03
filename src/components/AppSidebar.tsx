@@ -103,7 +103,12 @@ export function AppSidebar() {
       );
       return (
         <SidebarMenuItem key={item.url}>
-          <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+          <SidebarMenuButton
+            asChild
+            isActive={active}
+            tooltip={item.title}
+            className={active ? "border-l-4 border-sidebar-primary rounded-l-none rounded-r-md bg-sidebar-accent/70" : undefined}
+          >
             {item.external ? (
               <a href={item.url} target="_blank" rel="noreferrer">
                 {inner}
