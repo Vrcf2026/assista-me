@@ -43,6 +43,7 @@ import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.
 import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as CampanhasExecucaoClienteIdRouteImport } from './routes/campanhas_.execucao.$clienteId'
+import { Route as ApiAiSuggestRouteImport } from './routes/api/ai/suggest'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -224,6 +225,11 @@ const CampanhasExecucaoClienteIdRoute =
     path: '/campanhas/execucao/$clienteId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAiSuggestRoute = ApiAiSuggestRouteImport.update({
+  id: '/api/ai/suggest',
+  path: '/api/ai/suggest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/api/ai/suggest': typeof ApiAiSuggestRoute
   '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva': typeof PreventivaIndexRoute
+  '/api/ai/suggest': typeof ApiAiSuggestRoute
   '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos_/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/api/ai/suggest': typeof ApiAiSuggestRoute
   '/campanhas_/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva_/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva/'
+    | '/api/ai/suggest'
     | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva'
+    | '/api/ai/suggest'
     | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos_/$id'
     | '/preventiva/'
+    | '/api/ai/suggest'
     | '/campanhas_/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva_/execucao/$id'
@@ -574,6 +586,7 @@ export interface RootRouteChildren {
   PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   TrabalhosIdRoute: typeof TrabalhosIdRoute
+  ApiAiSuggestRoute: typeof ApiAiSuggestRoute
   CampanhasExecucaoClienteIdRoute: typeof CampanhasExecucaoClienteIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
@@ -830,6 +843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampanhasExecucaoClienteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/suggest': {
+      id: '/api/ai/suggest'
+      path: '/api/ai/suggest'
+      fullPath: '/api/ai/suggest'
+      preLoaderRoute: typeof ApiAiSuggestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -960,6 +980,7 @@ const rootRouteChildren: RootRouteChildren = {
   PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   TrabalhosIdRoute: TrabalhosIdRoute,
+  ApiAiSuggestRoute: ApiAiSuggestRoute,
   CampanhasExecucaoClienteIdRoute: CampanhasExecucaoClienteIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,
