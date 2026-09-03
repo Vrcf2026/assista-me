@@ -1559,6 +1559,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           descricao: string
+          email_message_id: string | null
           equipamento: string | null
           estado: Database["public"]["Enums"]["ticket_status"]
           fechado_em: string | null
@@ -1585,6 +1586,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           descricao: string
+          email_message_id?: string | null
           equipamento?: string | null
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
@@ -1611,6 +1613,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           descricao?: string
+          email_message_id?: string | null
           equipamento?: string | null
           estado?: Database["public"]["Enums"]["ticket_status"]
           fechado_em?: string | null
