@@ -16,7 +16,7 @@ import {
   useDeleteChecklistTemplate,
 } from "@/hooks/use-ticket-checklists";
 
-export const Route = createFileRoute("/admin/checklists" as any)({
+export const Route = createFileRoute("/admin/checklists")({
   component: AdminChecklistsPage,
 });
 

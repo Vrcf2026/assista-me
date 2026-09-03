@@ -14,7 +14,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/registo-rapido" as any)({
+export const Route = createFileRoute("/registo-rapido")({
   component: RegistoRapidoPage,
 });
 

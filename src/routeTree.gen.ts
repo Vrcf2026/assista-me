@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as RegistoRapidoRouteImport } from './routes/registo-rapido'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
 import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
@@ -35,6 +37,7 @@ import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminChecklistsRouteImport } from './routes/admin.checklists'
 import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.templates.$id'
 import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.relatorio.$id'
 import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
@@ -65,6 +68,11 @@ const TicketsRoute = TicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegistoRapidoRoute = RegistoRapidoRouteImport.update({
+  id: '/registo-rapido',
+  path: '/registo-rapido',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreventivaRoute = PreventivaRouteImport.update({
   id: '/preventiva',
   path: '/preventiva',
@@ -93,6 +101,11 @@ const ClientesRoute = ClientesRouteImport.update({
 const CampanhasRoute = CampanhasRouteImport.update({
   id: '/campanhas',
   path: '/campanhas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -180,6 +193,11 @@ const AdminEmailsRoute = AdminEmailsRouteImport.update({
   path: '/admin/emails',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminChecklistsRoute = AdminChecklistsRouteImport.update({
+  id: '/admin/checklists',
+  path: '/admin/checklists',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreventivaTemplatesIdRoute = PreventivaTemplatesIdRouteImport.update({
   id: '/preventiva_/templates/$id',
   path: '/preventiva/templates/$id',
@@ -261,15 +279,18 @@ const ApiPublicHooksAutoCloseTicketsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
+  '/registo-rapido': typeof RegistoRapidoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/admin/checklists': typeof AdminChecklistsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -303,14 +324,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
+  '/registo-rapido': typeof RegistoRapidoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/admin/checklists': typeof AdminChecklistsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -345,15 +369,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
   '/clientes': typeof ClientesRouteWithChildren
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
+  '/registo-rapido': typeof RegistoRapidoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/admin/checklists': typeof AdminChecklistsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -389,15 +416,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/calendario'
     | '/campanhas'
     | '/clientes'
     | '/login'
     | '/orcamentos'
     | '/painel'
     | '/preventiva'
+    | '/registo-rapido'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
+    | '/admin/checklists'
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
@@ -431,14 +461,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/calendario'
     | '/campanhas'
     | '/clientes'
     | '/login'
     | '/orcamentos'
     | '/painel'
+    | '/registo-rapido'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
+    | '/admin/checklists'
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
@@ -472,15 +505,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/calendario'
     | '/campanhas'
     | '/clientes'
     | '/login'
     | '/orcamentos'
     | '/painel'
     | '/preventiva'
+    | '/registo-rapido'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
+    | '/admin/checklists'
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
@@ -515,15 +551,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalendarioRoute: typeof CalendarioRoute
   CampanhasRoute: typeof CampanhasRoute
   ClientesRoute: typeof ClientesRouteWithChildren
   LoginRoute: typeof LoginRoute
   OrcamentosRoute: typeof OrcamentosRoute
   PainelRoute: typeof PainelRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
+  RegistoRapidoRoute: typeof RegistoRapidoRoute
   TicketsRoute: typeof TicketsRouteWithChildren
   TrabalhosRoute: typeof TrabalhosRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  AdminChecklistsRoute: typeof AdminChecklistsRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
@@ -574,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/registo-rapido': {
+      id: '/registo-rapido'
+      path: '/registo-rapido'
+      fullPath: '/registo-rapido'
+      preLoaderRoute: typeof RegistoRapidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preventiva': {
       id: '/preventiva'
       path: '/preventiva'
@@ -614,6 +660,13 @@ declare module '@tanstack/react-router' {
       path: '/campanhas'
       fullPath: '/campanhas'
       preLoaderRoute: typeof CampanhasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -733,6 +786,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/emails'
       fullPath: '/admin/emails'
       preLoaderRoute: typeof AdminEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/checklists': {
+      id: '/admin/checklists'
+      path: '/admin/checklists'
+      fullPath: '/admin/checklists'
+      preLoaderRoute: typeof AdminChecklistsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preventiva_/templates/$id': {
@@ -877,15 +937,18 @@ const TicketsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalendarioRoute: CalendarioRoute,
   CampanhasRoute: CampanhasRoute,
   ClientesRoute: ClientesRouteWithChildren,
   LoginRoute: LoginRoute,
   OrcamentosRoute: OrcamentosRoute,
   PainelRoute: PainelRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
+  RegistoRapidoRoute: RegistoRapidoRoute,
   TicketsRoute: TicketsRouteWithChildren,
   TrabalhosRoute: TrabalhosRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  AdminChecklistsRoute: AdminChecklistsRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,

@@ -9,7 +9,7 @@ import { RequireRole } from "@/components/RequireRole";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/calendario" as any)({
+export const Route = createFileRoute("/calendario")({
   component: CalendarioPage,
 });
 

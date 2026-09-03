@@ -241,6 +241,106 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_template_items: {
+        Row: {
+          id: string
+          label: string
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          id?: string
+          label: string
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          category: string
+          created_at: string
+          equipment_type: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          equipment_type?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          equipment_type?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      client_equipment: {
+        Row: {
+          client_id: string
+          created_at: string
+          data_instalacao: string | null
+          fim_garantia: string | null
+          id: string
+          marca: string
+          modelo: string
+          notas: string | null
+          numero_serie: string | null
+          tipo: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          data_instalacao?: string | null
+          fim_garantia?: string | null
+          id?: string
+          marca: string
+          modelo?: string
+          notas?: string | null
+          numero_serie?: string | null
+          tipo?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          data_instalacao?: string | null
+          fim_garantia?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          notas?: string | null
+          numero_serie?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_equipment_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_info_items: {
         Row: {
           client_id: string
@@ -1028,6 +1128,83 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_checklist_items: {
+        Row: {
+          checked: boolean
+          checked_at: string | null
+          checklist_id: string
+          id: string
+          label: string
+          notes: string | null
+          sort_order: number
+        }
+        Insert: {
+          checked?: boolean
+          checked_at?: string | null
+          checklist_id: string
+          id?: string
+          label: string
+          notes?: string | null
+          sort_order?: number
+        }
+        Update: {
+          checked?: boolean
+          checked_at?: string | null
+          checklist_id?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_checklists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          template_id: string | null
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          template_id?: string | null
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          template_id?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_checklists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_checklists_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_credenciais: {
         Row: {
           created_at: string
@@ -1392,6 +1569,7 @@ export type Database = {
           num_ordem_oficina: string | null
           numero: number
           pedido_por: string | null
+          prazo: string | null
           prioridade: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada: string | null
           tecnico_responsavel: string | null
@@ -1417,6 +1595,7 @@ export type Database = {
           num_ordem_oficina?: string | null
           numero?: number
           pedido_por?: string | null
+          prazo?: string | null
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null
@@ -1442,6 +1621,7 @@ export type Database = {
           num_ordem_oficina?: string | null
           numero?: number
           pedido_por?: string | null
+          prazo?: string | null
           prioridade?: Database["public"]["Enums"]["ticket_priority"]
           solucao_aplicada?: string | null
           tecnico_responsavel?: string | null
