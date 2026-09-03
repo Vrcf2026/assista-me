@@ -11,7 +11,7 @@ import { createFileRoute } from "@tanstack/react-router";
  *   POST /api/ai/suggest
  *   Body: { messages: [...], system?: string, max_tokens?: number }
  */
-export const Route = createFileRoute("/api/ai/suggest" as any)({
+export const Route = createFileRoute("/api/ai/suggest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
