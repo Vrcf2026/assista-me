@@ -18,6 +18,7 @@ export function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () 
   const [prio, setPrio] = useState(ticket.prioridade);
   const [estado, setEstado] = useState(ticket.estado);
   const [tipo, setTipo] = useState(ticket.tipo_intervencao);
+  const [prazo, setPrazo] = useState(ticket.prazo ?? "");
   const [escalateOpen, setEscalateOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,6 +28,7 @@ export function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () 
     setPrio(ticket.prioridade);
     setEstado(ticket.estado);
     setTipo(ticket.tipo_intervencao);
+    setPrazo(ticket.prazo ?? "");
   }, [ticket]);
 
   const saveBasics = async () => {
@@ -34,6 +36,7 @@ export function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () 
     const { error } = await supabase.from("tickets").update({
       tecnico_responsavel: tecnico || null,
       prioridade: prio,
+      prazo: prazo || null,
     }).eq("id", ticket.id);
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -65,6 +68,10 @@ export function AdminPanel({ ticket, onChange }: { ticket: Ticket; onChange: () 
         <div className="space-y-1.5">
           <Label className="text-xs">Técnico responsável</Label>
           <Input value={tecnico} onChange={(e) => setTecnico(e.target.value)} placeholder="Nome" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Prazo</Label>
+          <Input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs">Prioridade</Label>

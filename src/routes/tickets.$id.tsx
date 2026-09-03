@@ -11,6 +11,7 @@ import { SlaBadge } from "@/components/SlaBadge";
 import { TicketTagsEditor } from "@/components/TicketTagsEditor";
 import { TimeEntriesPanel } from "@/components/TimeEntriesPanel";
 import { TicketChecklistPanel } from "@/components/TicketChecklistPanel";
+import { TicketAIPanel } from "@/components/TicketAIPanel";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
@@ -232,6 +233,10 @@ function TicketDetail({ id }: { id: string }) {
 
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
+
+      {isAdmin && (
+        <TicketAIPanel ticket={ticket} comments={comments} isAdmin={isAdmin} />
+      )}
 
       {/* Informações do cliente (AnyDesk, contactos, notas) — só admin */}
       {isAdmin && <ClientInfoPanel clientId={ticket.client_id} canEdit compact />}

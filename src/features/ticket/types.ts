@@ -20,6 +20,7 @@ export interface Ticket {
   pedido_por: string | null;
   num_ordem_oficina: string | null;
   internal_notes: string | null;
+  prazo: string | null;
   created_at: string;
   updated_at: string;
   client?: { id: string; nome: string; tarifa_hora: number } | null;

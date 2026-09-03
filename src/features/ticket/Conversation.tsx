@@ -221,24 +221,36 @@ export function NewCommentForm({
         .map((c) => (c.user_id === "admin" ? `Técnico: ${c.mensagem}` : `Cliente: ${c.mensagem}`))
         .join("\n");
 
-      const prompt = `És um técnico de suporte informático da VRCF – Informática & Segurança.
-Ticket #: ${ticketContext.titulo}
-Tipo: ${ticketContext.tipo_intervencao}
-Descrição original: ${ticketContext.descricao}
-${conversaVisivel ? `\nConversa até agora:\n${conversaVisivel}` : ""}
+      const { data: { session } } = await supabase.auth.getSession();
 
-Escreve uma resposta profissional, direta e empática para o cliente em português europeu. Máximo 150 palavras. Não uses saudações formais como "Exmo.". Não incluas assinatura.`;
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/ai/suggest", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-supabase-auth": session?.access_token ?? "",
+        },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
           max_tokens: 400,
-          messages: [{ role: "user", content: prompt }],
+          system: "És um técnico de suporte informático da VRCF – Informática & Segurança. Escreve respostas profissionais, directas e empáticas em português europeu. Máximo 150 palavras. Sem saudações formais como 'Exmo.'. Sem assinatura.",
+          messages: [
+            {
+              role: "user",
+              content: `Ticket: ${ticketContext.titulo}
+Tipo: ${ticketContext.tipo_intervencao}
+Descrição: ${ticketContext.descricao}
+${conversaVisivel ? `\nConversa:\n${conversaVisivel}` : ""}
+
+Escreve uma resposta para o cliente.`,
+            },
+          ],
         }),
       });
-      const data = await res.json() as { content?: { type: string; text: string }[] };
+
+      const data = await res.json() as { content?: { type: string; text: string }[]; error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Erro ao contactar a IA");
+        return;
+      }
       const text = data.content?.find((b) => b.type === "text")?.text ?? "";
       if (text) setMensagem((prev) => prev ? `${prev}\n\n${text}` : text);
       else toast.error("Sem resposta da IA");
