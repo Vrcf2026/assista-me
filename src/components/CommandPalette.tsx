@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   LayoutDashboard, Ticket, PlusCircle, Wrench, FileText,
   Megaphone, Users, Calendar, Mail, Tags, MessageSquare,
-  BarChart3, Receipt, Moon, Sun, Search, Loader2,
+  BarChart3, Receipt, Moon, Sun, Search, Loader2, CalendarDays,
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,7 @@ type Item = {
 const ITEMS: Item[] = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard, group: "Navegação" },
   { label: "Tickets", to: "/tickets", icon: Ticket, group: "Operação" },
+  { label: "Calendário", to: "/calendario", icon: CalendarDays, keywords: "agenda datas prazos", group: "Operação" },
   { label: "Novo Ticket", to: "/tickets/novo", icon: PlusCircle, keywords: "criar abrir", group: "Operação" },
   { label: "Trabalhos", to: "/trabalhos", icon: Wrench, group: "Operação" },
   { label: "Preventiva", to: "/preventiva", icon: Calendar, group: "Operação" },

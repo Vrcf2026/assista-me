@@ -10,6 +10,7 @@ import { StatusBadge, PriorityBadge, TipoBadge } from "@/components/StatusBadge"
 import { SlaBadge } from "@/components/SlaBadge";
 import { TicketTagsEditor } from "@/components/TicketTagsEditor";
 import { TimeEntriesPanel } from "@/components/TimeEntriesPanel";
+import { TicketChecklistPanel } from "@/components/TicketChecklistPanel";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
@@ -240,6 +241,15 @@ function TicketDetail({ id }: { id: string }) {
 
       {/* Time entries — visíveis a admin (com formulário) e cliente (read-only) */}
       <TimeEntriesPanel ticketId={ticket.id} clientId={ticket.client_id} isAdmin={isAdmin} onChange={load} />
+
+      {isAdmin && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            ✅ Checklists
+          </h3>
+          <TicketChecklistPanel ticketId={ticket.id} isAdmin={isAdmin} />
+        </div>
+      )}
 
       {/* Original (non-comment) attachments */}
       {attachments.filter((a) => !a.comment_id && (isAdmin || !a.is_internal)).length > 0 && (

@@ -14,6 +14,8 @@ import {
   Mail,
   Monitor,
   Ticket,
+  CalendarDays,
+  Zap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,8 +38,10 @@ type Item = { title: string; url: string; icon: React.ComponentType<{ className?
 const operacao: Item[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Tickets", url: "/tickets", icon: List },
+  { title: "Calendário", url: "/calendario", icon: CalendarDays },
   { title: "Preventiva", url: "/preventiva", icon: ShieldCheck },
   { title: "Trabalhos", url: "/trabalhos", icon: ClipboardList },
+  { title: "Registo rápido", url: "/registo-rapido", icon: Zap },
 ];
 
 const comercial: Item[] = [
@@ -49,6 +53,7 @@ const comercial: Item[] = [
 const administracao: Item[] = [
   { title: "Faturação", url: "/admin/faturacao", icon: Receipt },
   { title: "Relatórios", url: "/admin/relatorios", icon: FileText },
+  { title: "Checklists", url: "/admin/checklists", icon: ClipboardList },
   { title: "Tags", url: "/admin/tags", icon: Tag },
   { title: "Respostas", url: "/admin/templates", icon: MessageSquare },
   { title: "Emails", url: "/admin/emails", icon: Mail },
