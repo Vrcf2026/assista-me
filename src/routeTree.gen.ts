@@ -9,99 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as TrabalhosRouteImport } from './routes/trabalhos'
-import { Route as TicketsRouteImport } from './routes/tickets'
-import { Route as RegistoRapidoRouteImport } from './routes/registo-rapido'
-import { Route as PreventivaRouteImport } from './routes/preventiva'
-import { Route as PainelRouteImport } from './routes/painel'
-import { Route as OrcamentosRouteImport } from './routes/orcamentos'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ClientesRouteImport } from './routes/clientes'
-import { Route as CampanhasRouteImport } from './routes/campanhas'
-import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
-import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
-import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
-import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
-import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
-import { Route as PreventivaAgendamentosRouteImport } from './routes/preventiva_.agendamentos'
-import { Route as PreventivaTemplatesRouteImport } from './routes/preventiva.templates'
-import { Route as OrcamentosIdRouteImport } from './routes/orcamentos_.$id'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
-import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
-import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
-import { Route as AdminTagsRouteImport } from './routes/admin.tags'
-import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
-import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
-import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as OrcamentosRouteImport } from './routes/orcamentos'
+import { Route as PainelRouteImport } from './routes/painel'
+import { Route as PreventivaRouteImport } from './routes/preventiva'
+import { Route as RegistoRapidoRouteImport } from './routes/registo-rapido'
+import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as TrabalhosRouteImport } from './routes/trabalhos'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as AdminChecklistsRouteImport } from './routes/admin.checklists'
-import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.templates.$id'
-import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.relatorio.$id'
-import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as CampanhasExecucaoClienteIdRouteImport } from './routes/campanhas_.execucao.$clienteId'
+import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
+import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
+import { Route as AdminTagsRouteImport } from './routes/admin.tags'
+import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
+import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
+import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as OrcamentosIdRouteImport } from './routes/orcamentos_.$id'
+import { Route as PreventivaIndexRouteImport } from './routes/preventiva.index'
+import { Route as PreventivaTemplatesRouteImport } from './routes/preventiva.templates'
+import { Route as PreventivaAgendamentosRouteImport } from './routes/preventiva_.agendamentos'
+import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
+import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
+import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
+import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
 import { Route as ApiAiSuggestRouteImport } from './routes/api/ai/suggest'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiPublicSatisfacaoTokenRouteImport } from './routes/api/public/satisfacao.$token'
-import { Route as ApiPublicHooksEmailInboundRouteImport } from './routes/api/public/hooks/email-inbound'
-import { Route as ApiPublicHooksDigestMensalRouteImport } from './routes/api/public/hooks/digest-mensal'
+import { Route as CampanhasExecucaoClienteIdRouteImport } from './routes/campanhas_.execucao.$clienteId'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
+import { Route as PreventivaRelatorioIdRouteImport } from './routes/preventiva_.relatorio.$id'
+import { Route as PreventivaTemplatesIdRouteImport } from './routes/preventiva_.templates.$id'
 import { Route as ApiPublicHooksAutoCloseTicketsRouteImport } from './routes/api/public/hooks/auto-close-tickets'
+import { Route as ApiPublicHooksDigestMensalRouteImport } from './routes/api/public/hooks/digest-mensal'
+import { Route as ApiPublicHooksEmailInboundRouteImport } from './routes/api/public/hooks/email-inbound'
+import { Route as ApiPublicSatisfacaoTokenRouteImport } from './routes/api/public/satisfacao.$token'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrabalhosRoute = TrabalhosRouteImport.update({
-  id: '/trabalhos',
-  path: '/trabalhos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TicketsRoute = TicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegistoRapidoRoute = RegistoRapidoRouteImport.update({
-  id: '/registo-rapido',
-  path: '/registo-rapido',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreventivaRoute = PreventivaRouteImport.update({
-  id: '/preventiva',
-  path: '/preventiva',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PainelRoute = PainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrcamentosRoute = OrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesRoute = ClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CampanhasRoute = CampanhasRouteImport.update({
-  id: '/campanhas',
-  path: '/campanhas',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarioRoute = CalendarioRouteImport.update({
@@ -109,89 +64,54 @@ const CalendarioRoute = CalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CampanhasRoute = CampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreventivaRoute,
-} as any)
-const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
-  id: '/trabalhos_/$id',
-  path: '/trabalhos/$id',
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TicketsNovoRoute = TicketsNovoRouteImport.update({
-  id: '/novo',
-  path: '/novo',
-  getParentRoute: () => TicketsRoute,
-} as any)
-const TicketsIdRoute = TicketsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => TicketsRoute,
-} as any)
-const SatisfacaoTokenRoute = SatisfacaoTokenRouteImport.update({
-  id: '/satisfacao/$token',
-  path: '/satisfacao/$token',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaAgendamentosRoute = PreventivaAgendamentosRouteImport.update({
-  id: '/preventiva_/agendamentos',
-  path: '/preventiva/agendamentos',
+const OrcamentosRoute = OrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaTemplatesRoute = PreventivaTemplatesRouteImport.update({
-  id: '/templates',
-  path: '/templates',
-  getParentRoute: () => PreventivaRoute,
-} as any)
-const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
-  id: '/orcamentos_/$id',
-  path: '/orcamentos/$id',
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
+const PreventivaRoute = PreventivaRouteImport.update({
+  id: '/preventiva',
+  path: '/preventiva',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClientesIdRoute = ClientesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ClientesRoute,
-} as any)
-const CampanhasIdRoute = CampanhasIdRouteImport.update({
-  id: '/campanhas_/$id',
-  path: '/campanhas/$id',
+const RegistoRapidoRoute = RegistoRapidoRouteImport.update({
+  id: '/registo-rapido',
+  path: '/registo-rapido',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
-  id: '/admin/templates',
-  path: '/admin/templates',
+const TicketsRoute = TicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminTagsRoute = AdminTagsRouteImport.update({
-  id: '/admin/tags',
-  path: '/admin/tags',
+const TrabalhosRoute = TrabalhosRouteImport.update({
+  id: '/trabalhos',
+  path: '/trabalhos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
-  id: '/admin/relatorios',
-  path: '/admin/relatorios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminFaturacaoRoute = AdminFaturacaoRouteImport.update({
-  id: '/admin/faturacao',
-  path: '/admin/faturacao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmailsRoute = AdminEmailsRouteImport.update({
-  id: '/admin/emails',
-  path: '/admin/emails',
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminChecklistsRoute = AdminChecklistsRouteImport.update({
@@ -199,24 +119,89 @@ const AdminChecklistsRoute = AdminChecklistsRouteImport.update({
   path: '/admin/checklists',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaTemplatesIdRoute = PreventivaTemplatesIdRouteImport.update({
-  id: '/preventiva_/templates/$id',
-  path: '/preventiva/templates/$id',
+const AdminEmailsRoute = AdminEmailsRouteImport.update({
+  id: '/admin/emails',
+  path: '/admin/emails',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaRelatorioIdRoute = PreventivaRelatorioIdRouteImport.update({
-  id: '/preventiva_/relatorio/$id',
-  path: '/preventiva/relatorio/$id',
+const AdminFaturacaoRoute = AdminFaturacaoRouteImport.update({
+  id: '/admin/faturacao',
+  path: '/admin/faturacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreventivaExecucaoIdRoute = PreventivaExecucaoIdRouteImport.update({
-  id: '/preventiva_/execucao/$id',
-  path: '/preventiva/execucao/$id',
+const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
+  id: '/admin/relatorios',
+  path: '/admin/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
+const AdminTagsRoute = AdminTagsRouteImport.update({
+  id: '/admin/tags',
+  path: '/admin/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
+  id: '/admin/templates',
+  path: '/admin/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CampanhasIdRoute = CampanhasIdRouteImport.update({
+  id: '/campanhas_/$id',
+  path: '/campanhas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesIdRoute = ClientesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClientesRoute,
+} as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
+  id: '/orcamentos_/$id',
+  path: '/orcamentos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreventivaIndexRoute = PreventivaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreventivaRoute,
+} as any)
+const PreventivaTemplatesRoute = PreventivaTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => PreventivaRoute,
+} as any)
+const PreventivaAgendamentosRoute = PreventivaAgendamentosRouteImport.update({
+  id: '/preventiva_/agendamentos',
+  path: '/preventiva/agendamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SatisfacaoTokenRoute = SatisfacaoTokenRouteImport.update({
+  id: '/satisfacao/$token',
+  path: '/satisfacao/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsIdRoute = TicketsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TicketsRoute,
+} as any)
+const TicketsNovoRoute = TicketsNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => TicketsRoute,
+} as any)
+const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
+  id: '/trabalhos_/$id',
+  path: '/trabalhos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiSuggestRoute = ApiAiSuggestRouteImport.update({
+  id: '/api/ai/suggest',
+  path: '/api/ai/suggest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampanhasExecucaoClienteIdRoute =
@@ -225,49 +210,30 @@ const CampanhasExecucaoClienteIdRoute =
     path: '/campanhas/execucao/$clienteId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiAiSuggestRoute = ApiAiSuggestRouteImport.update({
-  id: '/api/ai/suggest',
-  path: '/api/ai/suggest',
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
+const PreventivaExecucaoIdRoute = PreventivaExecucaoIdRouteImport.update({
+  id: '/preventiva_/execucao/$id',
+  path: '/preventiva/execucao/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
+const PreventivaRelatorioIdRoute = PreventivaRelatorioIdRouteImport.update({
+  id: '/preventiva_/relatorio/$id',
+  path: '/preventiva/relatorio/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSatisfacaoTokenRoute =
-  ApiPublicSatisfacaoTokenRouteImport.update({
-    id: '/api/public/satisfacao/$token',
-    path: '/api/public/satisfacao/$token',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksEmailInboundRoute =
-  ApiPublicHooksEmailInboundRouteImport.update({
-    id: '/api/public/hooks/email-inbound',
-    path: '/api/public/hooks/email-inbound',
+const PreventivaTemplatesIdRoute = PreventivaTemplatesIdRouteImport.update({
+  id: '/preventiva_/templates/$id',
+  path: '/preventiva/templates/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksAutoCloseTicketsRoute =
+  ApiPublicHooksAutoCloseTicketsRouteImport.update({
+    id: '/api/public/hooks/auto-close-tickets',
+    path: '/api/public/hooks/auto-close-tickets',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksDigestMensalRoute =
@@ -276,10 +242,44 @@ const ApiPublicHooksDigestMensalRoute =
     path: '/api/public/hooks/digest-mensal',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksAutoCloseTicketsRoute =
-  ApiPublicHooksAutoCloseTicketsRouteImport.update({
-    id: '/api/public/hooks/auto-close-tickets',
-    path: '/api/public/hooks/auto-close-tickets',
+const ApiPublicHooksEmailInboundRoute =
+  ApiPublicHooksEmailInboundRouteImport.update({
+    id: '/api/public/hooks/email-inbound',
+    path: '/api/public/hooks/email-inbound',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSatisfacaoTokenRoute =
+  ApiPublicSatisfacaoTokenRouteImport.update({
+    id: '/api/public/satisfacao/$token',
+    path: '/api/public/satisfacao/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -605,74 +605,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trabalhos': {
-      id: '/trabalhos'
-      path: '/trabalhos'
-      fullPath: '/trabalhos'
-      preLoaderRoute: typeof TrabalhosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets': {
-      id: '/tickets'
-      path: '/tickets'
-      fullPath: '/tickets'
-      preLoaderRoute: typeof TicketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/registo-rapido': {
-      id: '/registo-rapido'
-      path: '/registo-rapido'
-      fullPath: '/registo-rapido'
-      preLoaderRoute: typeof RegistoRapidoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preventiva': {
-      id: '/preventiva'
-      path: '/preventiva'
-      fullPath: '/preventiva'
-      preLoaderRoute: typeof PreventivaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/painel': {
-      id: '/painel'
-      path: '/painel'
-      fullPath: '/painel'
-      preLoaderRoute: typeof PainelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orcamentos': {
-      id: '/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/orcamentos'
-      preLoaderRoute: typeof OrcamentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes': {
-      id: '/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof ClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/campanhas': {
-      id: '/campanhas'
-      path: '/campanhas'
-      fullPath: '/campanhas'
-      preLoaderRoute: typeof CampanhasRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendario': {
@@ -682,123 +619,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/campanhas': {
+      id: '/campanhas'
+      path: '/campanhas'
+      fullPath: '/campanhas'
+      preLoaderRoute: typeof CampanhasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva/': {
-      id: '/preventiva/'
-      path: '/'
-      fullPath: '/preventiva/'
-      preLoaderRoute: typeof PreventivaIndexRouteImport
-      parentRoute: typeof PreventivaRoute
-    }
-    '/trabalhos_/$id': {
-      id: '/trabalhos_/$id'
-      path: '/trabalhos/$id'
-      fullPath: '/trabalhos/$id'
-      preLoaderRoute: typeof TrabalhosIdRouteImport
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tickets/novo': {
-      id: '/tickets/novo'
-      path: '/novo'
-      fullPath: '/tickets/novo'
-      preLoaderRoute: typeof TicketsNovoRouteImport
-      parentRoute: typeof TicketsRoute
-    }
-    '/tickets/$id': {
-      id: '/tickets/$id'
-      path: '/$id'
-      fullPath: '/tickets/$id'
-      preLoaderRoute: typeof TicketsIdRouteImport
-      parentRoute: typeof TicketsRoute
-    }
-    '/satisfacao/$token': {
-      id: '/satisfacao/$token'
-      path: '/satisfacao/$token'
-      fullPath: '/satisfacao/$token'
-      preLoaderRoute: typeof SatisfacaoTokenRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva_/agendamentos': {
-      id: '/preventiva_/agendamentos'
-      path: '/preventiva/agendamentos'
-      fullPath: '/preventiva/agendamentos'
-      preLoaderRoute: typeof PreventivaAgendamentosRouteImport
+    '/orcamentos': {
+      id: '/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/orcamentos'
+      preLoaderRoute: typeof OrcamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva/templates': {
-      id: '/preventiva/templates'
-      path: '/templates'
-      fullPath: '/preventiva/templates'
-      preLoaderRoute: typeof PreventivaTemplatesRouteImport
-      parentRoute: typeof PreventivaRoute
-    }
-    '/orcamentos_/$id': {
-      id: '/orcamentos_/$id'
-      path: '/orcamentos/$id'
-      fullPath: '/orcamentos/$id'
-      preLoaderRoute: typeof OrcamentosIdRouteImport
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+    '/preventiva': {
+      id: '/preventiva'
+      path: '/preventiva'
+      fullPath: '/preventiva'
+      preLoaderRoute: typeof PreventivaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clientes/$id': {
-      id: '/clientes/$id'
-      path: '/$id'
-      fullPath: '/clientes/$id'
-      preLoaderRoute: typeof ClientesIdRouteImport
-      parentRoute: typeof ClientesRoute
-    }
-    '/campanhas_/$id': {
-      id: '/campanhas_/$id'
-      path: '/campanhas/$id'
-      fullPath: '/campanhas/$id'
-      preLoaderRoute: typeof CampanhasIdRouteImport
+    '/registo-rapido': {
+      id: '/registo-rapido'
+      path: '/registo-rapido'
+      fullPath: '/registo-rapido'
+      preLoaderRoute: typeof RegistoRapidoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/templates': {
-      id: '/admin/templates'
-      path: '/admin/templates'
-      fullPath: '/admin/templates'
-      preLoaderRoute: typeof AdminTemplatesRouteImport
+    '/tickets': {
+      id: '/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/tags': {
-      id: '/admin/tags'
-      path: '/admin/tags'
-      fullPath: '/admin/tags'
-      preLoaderRoute: typeof AdminTagsRouteImport
+    '/trabalhos': {
+      id: '/trabalhos'
+      path: '/trabalhos'
+      fullPath: '/trabalhos'
+      preLoaderRoute: typeof TrabalhosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/relatorios': {
-      id: '/admin/relatorios'
-      path: '/admin/relatorios'
-      fullPath: '/admin/relatorios'
-      preLoaderRoute: typeof AdminRelatoriosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/faturacao': {
-      id: '/admin/faturacao'
-      path: '/admin/faturacao'
-      fullPath: '/admin/faturacao'
-      preLoaderRoute: typeof AdminFaturacaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/emails': {
-      id: '/admin/emails'
-      path: '/admin/emails'
-      fullPath: '/admin/emails'
-      preLoaderRoute: typeof AdminEmailsRouteImport
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/checklists': {
@@ -808,39 +696,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChecklistsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva_/templates/$id': {
-      id: '/preventiva_/templates/$id'
-      path: '/preventiva/templates/$id'
-      fullPath: '/preventiva/templates/$id'
-      preLoaderRoute: typeof PreventivaTemplatesIdRouteImport
+    '/admin/emails': {
+      id: '/admin/emails'
+      path: '/admin/emails'
+      fullPath: '/admin/emails'
+      preLoaderRoute: typeof AdminEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva_/relatorio/$id': {
-      id: '/preventiva_/relatorio/$id'
-      path: '/preventiva/relatorio/$id'
-      fullPath: '/preventiva/relatorio/$id'
-      preLoaderRoute: typeof PreventivaRelatorioIdRouteImport
+    '/admin/faturacao': {
+      id: '/admin/faturacao'
+      path: '/admin/faturacao'
+      fullPath: '/admin/faturacao'
+      preLoaderRoute: typeof AdminFaturacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preventiva_/execucao/$id': {
-      id: '/preventiva_/execucao/$id'
-      path: '/preventiva/execucao/$id'
-      fullPath: '/preventiva/execucao/$id'
-      preLoaderRoute: typeof PreventivaExecucaoIdRouteImport
+    '/admin/relatorios': {
+      id: '/admin/relatorios'
+      path: '/admin/relatorios'
+      fullPath: '/admin/relatorios'
+      preLoaderRoute: typeof AdminRelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/admin/tags': {
+      id: '/admin/tags'
+      path: '/admin/tags'
+      fullPath: '/admin/tags'
+      preLoaderRoute: typeof AdminTagsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/campanhas_/execucao/$clienteId': {
-      id: '/campanhas_/execucao/$clienteId'
-      path: '/campanhas/execucao/$clienteId'
-      fullPath: '/campanhas/execucao/$clienteId'
-      preLoaderRoute: typeof CampanhasExecucaoClienteIdRouteImport
+    '/admin/templates': {
+      id: '/admin/templates'
+      path: '/admin/templates'
+      fullPath: '/admin/templates'
+      preLoaderRoute: typeof AdminTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campanhas_/$id': {
+      id: '/campanhas_/$id'
+      path: '/campanhas/$id'
+      fullPath: '/campanhas/$id'
+      preLoaderRoute: typeof CampanhasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/$id': {
+      id: '/clientes/$id'
+      path: '/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof ClientesIdRouteImport
+      parentRoute: typeof ClientesRoute
+    }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamentos_/$id': {
+      id: '/orcamentos_/$id'
+      path: '/orcamentos/$id'
+      fullPath: '/orcamentos/$id'
+      preLoaderRoute: typeof OrcamentosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preventiva/': {
+      id: '/preventiva/'
+      path: '/'
+      fullPath: '/preventiva/'
+      preLoaderRoute: typeof PreventivaIndexRouteImport
+      parentRoute: typeof PreventivaRoute
+    }
+    '/preventiva/templates': {
+      id: '/preventiva/templates'
+      path: '/templates'
+      fullPath: '/preventiva/templates'
+      preLoaderRoute: typeof PreventivaTemplatesRouteImport
+      parentRoute: typeof PreventivaRoute
+    }
+    '/preventiva_/agendamentos': {
+      id: '/preventiva_/agendamentos'
+      path: '/preventiva/agendamentos'
+      fullPath: '/preventiva/agendamentos'
+      preLoaderRoute: typeof PreventivaAgendamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/satisfacao/$token': {
+      id: '/satisfacao/$token'
+      path: '/satisfacao/$token'
+      fullPath: '/satisfacao/$token'
+      preLoaderRoute: typeof SatisfacaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/$id': {
+      id: '/tickets/$id'
+      path: '/$id'
+      fullPath: '/tickets/$id'
+      preLoaderRoute: typeof TicketsIdRouteImport
+      parentRoute: typeof TicketsRoute
+    }
+    '/tickets/novo': {
+      id: '/tickets/novo'
+      path: '/novo'
+      fullPath: '/tickets/novo'
+      preLoaderRoute: typeof TicketsNovoRouteImport
+      parentRoute: typeof TicketsRoute
+    }
+    '/trabalhos_/$id': {
+      id: '/trabalhos_/$id'
+      path: '/trabalhos/$id'
+      fullPath: '/trabalhos/$id'
+      preLoaderRoute: typeof TrabalhosIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/suggest': {
@@ -850,53 +815,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiSuggestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+    '/campanhas_/execucao/$clienteId': {
+      id: '/campanhas_/execucao/$clienteId'
+      path: '/campanhas/execucao/$clienteId'
+      fullPath: '/campanhas/execucao/$clienteId'
+      preLoaderRoute: typeof CampanhasExecucaoClienteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/preventiva_/execucao/$id': {
+      id: '/preventiva_/execucao/$id'
+      path: '/preventiva/execucao/$id'
+      fullPath: '/preventiva/execucao/$id'
+      preLoaderRoute: typeof PreventivaExecucaoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+    '/preventiva_/relatorio/$id': {
+      id: '/preventiva_/relatorio/$id'
+      path: '/preventiva/relatorio/$id'
+      fullPath: '/preventiva/relatorio/$id'
+      preLoaderRoute: typeof PreventivaRelatorioIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+    '/preventiva_/templates/$id': {
+      id: '/preventiva_/templates/$id'
+      path: '/preventiva/templates/$id'
+      fullPath: '/preventiva/templates/$id'
+      preLoaderRoute: typeof PreventivaTemplatesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/satisfacao/$token': {
-      id: '/api/public/satisfacao/$token'
-      path: '/api/public/satisfacao/$token'
-      fullPath: '/api/public/satisfacao/$token'
-      preLoaderRoute: typeof ApiPublicSatisfacaoTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/email-inbound': {
-      id: '/api/public/hooks/email-inbound'
-      path: '/api/public/hooks/email-inbound'
-      fullPath: '/api/public/hooks/email-inbound'
-      preLoaderRoute: typeof ApiPublicHooksEmailInboundRouteImport
+    '/api/public/hooks/auto-close-tickets': {
+      id: '/api/public/hooks/auto-close-tickets'
+      path: '/api/public/hooks/auto-close-tickets'
+      fullPath: '/api/public/hooks/auto-close-tickets'
+      preLoaderRoute: typeof ApiPublicHooksAutoCloseTicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/digest-mensal': {
@@ -906,11 +864,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDigestMensalRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/auto-close-tickets': {
-      id: '/api/public/hooks/auto-close-tickets'
-      path: '/api/public/hooks/auto-close-tickets'
-      fullPath: '/api/public/hooks/auto-close-tickets'
-      preLoaderRoute: typeof ApiPublicHooksAutoCloseTicketsRouteImport
+    '/api/public/hooks/email-inbound': {
+      id: '/api/public/hooks/email-inbound'
+      path: '/api/public/hooks/email-inbound'
+      fullPath: '/api/public/hooks/email-inbound'
+      preLoaderRoute: typeof ApiPublicHooksEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/satisfacao/$token': {
+      id: '/api/public/satisfacao/$token'
+      path: '/api/public/satisfacao/$token'
+      fullPath: '/api/public/satisfacao/$token'
+      preLoaderRoute: typeof ApiPublicSatisfacaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
