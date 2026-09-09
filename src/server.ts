@@ -1,8 +1,5 @@
-import {
-  createServerEntry,
-  createStartHandler,
-  defaultStreamHandler,
-} from "@tanstack/react-start/server";
+import { createStartHandler, defaultStreamHandler } from "@tanstack/react-start/server";
+import type { ServerEntry } from "@tanstack/react-start/server-entry";
 
 const handleRequest = createStartHandler(defaultStreamHandler);
 
@@ -22,7 +19,7 @@ function isDisconnectedRequest(error: unknown, request: Request) {
   );
 }
 
-export default createServerEntry({
+export default {
   async fetch(request, options) {
     try {
       return await handleRequest(request, options);
@@ -36,4 +33,4 @@ export default createServerEntry({
       throw error;
     }
   },
-});
+} satisfies ServerEntry;
