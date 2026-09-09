@@ -8,14 +8,22 @@ import path from "node:path";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig(({ mode }) => {
-  // Load all env vars (no prefix) into process.env so server routes can access
-  // SUPABASE_SERVICE_ROLE_KEY, LOVABLE_API_KEY, etc. without VITE_ prefix.
-  // Do NOT add these to envDefine — that would leak secrets to the client bundle.
-  const serverEnv = loadEnv(mode, process.cwd(), "");
-  Object.assign(process.env, serverEnv);
-
-  return {
+export default defineConfig({
+  // TanStack otherwise uses its virtual default entry and never executes
+  // src/server.ts, where disconnected preview requests are handled safely.
+  tanstackStart: {
+    server: { entry: "server" },
+  },
+  plugins: [
+    {
+      name: "load-server-environment",
+      config: (_config, { mode }) => {
+        // Keep secrets server-only while making them available to server routes.
+        Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
+      },
+    },
+  ],
+  vite: {
     resolve: {
       alias: {
         // Force entities to v4.5.0 (hoisted copy) — react-email's htmlparser2
@@ -25,5 +33,5 @@ export default defineConfig(({ mode }) => {
         entities: path.resolve(__dirname, "node_modules/entities"),
       },
     },
-  };
+  },
 });
