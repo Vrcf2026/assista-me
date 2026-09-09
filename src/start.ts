@@ -18,17 +18,15 @@ const errorMiddleware = createMiddleware({ type: "request" }).server(
       return await next();
     } catch (error) {
       if (isDisconnectedRequest(error, request)) {
-        return { response: new Response(null, { status: 499 }) };
+        return new Response(null, { status: 499 });
       }
 
       if (error instanceof Response && error.status < 500) throw error;
       console.error(error);
-      return {
-        response: new Response(renderErrorPage(), {
-          status: 500,
-          headers: { "content-type": "text/html; charset=utf-8" },
-        }),
-      };
+      return new Response(renderErrorPage(), {
+        status: 500,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
   },
 );
