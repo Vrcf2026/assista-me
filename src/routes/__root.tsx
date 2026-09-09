@@ -1,4 +1,5 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 
 import appCss from "../styles.css?url";
@@ -6,6 +7,39 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeInitScript } from "@/hooks/use-theme";
 import { queryClient } from "@/lib/query-client";
+import { Button } from "@/components/ui/button";
+
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-2xl font-bold text-foreground">Não foi possível abrir esta página</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Ocorreu um erro inesperado. Pode tentar novamente sem perder os seus dados.
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button
+            onClick={() => {
+              void router.invalidate();
+              reset();
+            }}
+          >
+            Tentar novamente
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/">Ir para o início</Link>
+          </Button>
+        </div>
+      </div>
+    </main>
+  );
+}
 
 function NotFoundComponent() {
   return (
@@ -50,6 +84,7 @@ export const Route = createRootRoute({
   }),
   shellComponent: RootShell,
   component: RootComponent,
+  errorComponent: ErrorComponent,
   notFoundComponent: NotFoundComponent,
 });
 
