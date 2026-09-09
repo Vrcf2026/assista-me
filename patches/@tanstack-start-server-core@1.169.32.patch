@@ -1,0 +1,34 @@
+--- a/src/createStartHandler.ts
++++ b/src/createStartHandler.ts
+@@ -779,6 +779,16 @@
+       request.signal.throwIfAborted()
+       responseOwnsCleanup = response.serverSsrCleanup === 'stream'
+       return response.response
++    } catch (err) {
++      // A disconnected client is not an application failure. Match only the
++      // exact abort reason so genuine AbortErrors still propagate.
++      if (request.signal.aborted && err === request.signal.reason) {
++        return new Response(null, {
++          status: 499,
++          statusText: 'Client Closed Request',
++        })
++      }
++      throw err
+     } finally {
+       if (router?.serverSsr && !responseOwnsCleanup) {
+         // Clean up router SSR state if it was set up but won't be cleaned up by the callback
+--- a/dist/esm/createStartHandler.js
++++ b/dist/esm/createStartHandler.js
+@@ -411,6 +411,12 @@
+ 			request.signal.throwIfAborted();
+ 			responseOwnsCleanup = response.serverSsrCleanup === "stream";
+ 			return response.response;
++		} catch (err) {
++			if (request.signal.aborted && err === request.signal.reason) return new Response(null, {
++				status: 499,
++				statusText: "Client Closed Request"
++			});
++			throw err;
+ 		} finally {
+ 			if (router?.serverSsr && !responseOwnsCleanup) router.serverSsr.cleanup();
+ 			router = null;
