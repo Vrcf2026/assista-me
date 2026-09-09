@@ -7,6 +7,13 @@ function recordError(error: unknown) {
   lastCapturedError = { error, at: Date.now() };
 }
 
+const originalConsoleError = console.error.bind(console);
+console.error = (...args: unknown[]) => {
+  const error = args.find((argument) => argument instanceof Error);
+  if (error) recordError(error);
+  originalConsoleError(...args);
+};
+
 if (typeof globalThis.addEventListener === "function") {
   globalThis.addEventListener("error", (event) => {
     recordError((event as ErrorEvent).error ?? event);

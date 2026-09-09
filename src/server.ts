@@ -38,13 +38,18 @@ function isHiddenServerError(response: Response, body: string) {
   }
 }
 
-async function normalizeResponse(response: Response) {
+async function normalizeResponse(response: Response, request: Request) {
   if (response.status < 500) return response;
 
   const body = await response.clone().text();
   if (!isHiddenServerError(response, body)) return response;
 
-  console.error(consumeLastCapturedError() ?? new Error(`Erro SSR ocultado: ${body}`));
+  const capturedError = consumeLastCapturedError();
+  if (isDisconnectedRequest(capturedError, request)) {
+    return new Response(null, { status: 499 });
+  }
+
+  console.error(capturedError ?? new Error(`Erro SSR ocultado: ${body}`));
   return new Response(renderErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
@@ -56,7 +61,7 @@ export default {
     try {
       const startServer = await getStartServer();
       const response = await startServer.fetch(request, env, context);
-      return await normalizeResponse(response);
+      return await normalizeResponse(response, request);
     } catch (error) {
       if (isDisconnectedRequest(error, request)) {
         return new Response(null, { status: 499 });
