@@ -37,11 +37,6 @@ export default defineConfig({
   // promotes those expected ECONNRESET events to a full-screen runtime error.
   // Real application errors remain logged by src/start.ts and src/server.ts.
   ssrErrorLogger: false,
-  // TanStack otherwise uses its virtual default entry and never executes
-  // src/server.ts, where disconnected preview requests are handled safely.
-  tanstackStart: {
-    server: { entry: "server" },
-  },
   plugins: [
     {
       name: "load-server-environment",
