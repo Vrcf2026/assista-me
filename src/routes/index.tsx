@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { AppLayout } from "@/components/AppLayout";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ClientTickets } from "@/components/client/ClientTickets";
+import { WhatsAppWidget } from "@/components/WhatsAppButton";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -27,7 +28,12 @@ function Index() {
 
   return (
     <AppLayout>
-      {role === "admin" ? <AdminDashboard /> : <ClientTickets />}
+      {role === "admin" ? <AdminDashboard /> : (
+        <>
+          <ClientTickets />
+          <WhatsAppWidget />
+        </>
+      )}
     </AppLayout>
   );
 }

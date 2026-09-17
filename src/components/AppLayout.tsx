@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { PushToggle } from "@/components/PushToggle";
 
 // Map de pathname → label legível para breadcrumb
 const PATH_LABELS: Record<string, string> = {
@@ -72,6 +73,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
             <div className="flex items-center gap-1">
               <NotificationsBell />
+              <PushToggle />
               <ThemeToggle />
               <span className="text-xs text-muted-foreground hidden md:inline">
                 {user?.email}

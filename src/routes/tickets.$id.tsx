@@ -12,6 +12,8 @@ import { TicketTagsEditor } from "@/components/TicketTagsEditor";
 import { TimeEntriesPanel } from "@/components/TimeEntriesPanel";
 import { TicketChecklistPanel } from "@/components/TicketChecklistPanel";
 import { TicketAIPanel } from "@/components/TicketAIPanel";
+import { SimilarTickets } from "@/components/SimilarTickets";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
@@ -132,6 +134,12 @@ function TicketDetail({ id }: { id: string }) {
           <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Link>
         </Button>
         <div className="flex items-center gap-2">
+          {!isAdmin && (
+            <WhatsAppButton
+              ticketNumero={ticket.numero}
+              ticketTitulo={ticket.titulo}
+            />
+          )}
           {isAdmin && (
             <TicketTimer
               ticketId={ticket.id}
@@ -233,6 +241,15 @@ function TicketDetail({ id }: { id: string }) {
 
       {/* Admin management panel */}
       {isAdmin && <AdminPanel ticket={ticket} onChange={load} />}
+
+      {isAdmin && (
+        <SimilarTickets
+          ticketId={ticket.id}
+          titulo={ticket.titulo}
+          descricao={ticket.descricao}
+          isAdmin={isAdmin}
+        />
+      )}
 
       {isAdmin && (
         <TicketAIPanel ticket={ticket} comments={comments} isAdmin={isAdmin} />

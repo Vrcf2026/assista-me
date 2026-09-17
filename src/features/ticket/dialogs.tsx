@@ -212,6 +212,16 @@ export function CloseDialog({
       void notifyTicketSatisfacao(
         { id: ticket.id, numero: ticket.numero, titulo: ticket.titulo, client_id: ticket.client_id },
       );
+      // Gerar embedding para pesquisa semântica futura (best-effort)
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch("/api/ai/embed-ticket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-secret": (session?.access_token ?? "").slice(0, 32),
+        },
+        body: JSON.stringify({ ticket_id: ticket.id }),
+      }).catch(() => {});
       onOpenChange(false);
       onDone();
     } catch (err) {

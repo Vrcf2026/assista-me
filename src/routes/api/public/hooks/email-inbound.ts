@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 import { sendEmailResend } from "@/lib/resend";
+import { sendPushToAdmins } from "@/lib/push";
 
 /**
  * Webhook email-to-ticket via Resend Inbound.
@@ -165,19 +166,27 @@ export const Route = createFileRoute("/api/public/hooks/email-inbound")({
 
         if (!ticket) return Response.json({ error: "No ticket returned" }, { status: 500 });
 
-        // Notificar admin via Resend
-        await sendEmailResend({
-          to: ADMIN_EMAIL,
-          templateName: "admin-novo-ticket",
-          templateData: {
-            clienteNome: clienteNome ?? fromEmail,
-            ticketNumero: ticket.numero,
-            ticketTitulo: ticket.titulo,
-            prioridade: "media",
-            ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-          },
-          idempotencyKey: `email-inbound-admin-${ticket.id}`,
-        });
+        // Notificar admin via Resend + Push
+        await Promise.all([
+          sendEmailResend({
+            to: ADMIN_EMAIL,
+            templateName: "admin-novo-ticket",
+            templateData: {
+              clienteNome: clienteNome ?? fromEmail,
+              ticketNumero: ticket.numero,
+              ticketTitulo: ticket.titulo,
+              prioridade: "media",
+              ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
+            },
+            idempotencyKey: `email-inbound-admin-${ticket.id}`,
+          }),
+          sendPushToAdmins({
+            title: `📧 Novo ticket #${String(ticket.numero).padStart(5, "0")}`,
+            body: `${clienteNome ?? fromEmail}: ${ticket.titulo}`,
+            link: `/tickets/${ticket.id}`,
+            serviceKey: SERVICE_KEY,
+          }),
+        ]);
 
         // Confirmar ao cliente via Resend (reply-to para resposta directa)
         await sendEmailResend({
@@ -192,6 +201,20 @@ export const Route = createFileRoute("/api/public/hooks/email-inbound")({
           idempotencyKey: `email-inbound-cliente-${ticket.id}`,
           replyTo: ADMIN_EMAIL,
         });
+
+        // Tentar resposta automática com IA (best-effort, não bloqueia)
+        fetch(`${SITE_URL}/api/ai/auto-reply`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": SERVICE_KEY.slice(0, 32),
+          },
+          body: JSON.stringify({
+            ticket_id: ticket.id,
+            client_email: fromEmail,
+            client_nome: clienteNome ?? fromName ?? fromEmail,
+          }),
+        }).catch(() => {});
 
         return Response.json({
           ok: true,
