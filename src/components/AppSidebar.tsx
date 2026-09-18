@@ -16,6 +16,7 @@ import {
   Ticket,
   CalendarDays,
   Zap,
+  Smartphone,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,6 +43,7 @@ const operacao: Item[] = [
   { title: "Preventiva", url: "/preventiva", icon: ShieldCheck },
   { title: "Trabalhos", url: "/trabalhos", icon: ClipboardList },
   { title: "Registo rápido", url: "/registo-rapido", icon: Zap },
+  { title: "Vista técnico", url: "/tecnico", icon: Smartphone },
 ];
 
 const comercial: Item[] = [
