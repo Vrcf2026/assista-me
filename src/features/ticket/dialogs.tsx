@@ -55,6 +55,23 @@ export function EscalateDialog({
           is_internal: true,
         });
       }
+      // Push imediato se escalou para crítico
+      if (novoTipo === "critica") {
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: tkt } = await supabase
+          .from("tickets").select("numero, titulo, client:clients(nome)").eq("id", ticket.id).single();
+        fetch("/api/ai/escalate-critico", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-supabase-auth": session?.access_token ?? "" },
+          body: JSON.stringify({
+            ticket_id: ticket.id,
+            numero: (tkt as any)?.numero,
+            titulo: (tkt as any)?.titulo ?? ticket.titulo,
+            client_nome: (tkt as any)?.client?.nome ?? "Cliente",
+            motivo: motivo.trim() || undefined,
+          }),
+        }).catch(() => {});
+      }
       toast.success("Intervenção escalada");
       onOpenChange(false);
       onDone();

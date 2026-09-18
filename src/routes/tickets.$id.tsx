@@ -14,6 +14,7 @@ import { TicketChecklistPanel } from "@/components/TicketChecklistPanel";
 import { TicketAIPanel } from "@/components/TicketAIPanel";
 import { SimilarTickets } from "@/components/SimilarTickets";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { TicketPostmortem } from "@/components/TicketPostmortem";
 import {
   formatTicketNumber, formatDateTime, formatCurrency, formatMinutes,
   calcValor, MOTIVO_FECHO_LABELS, TIPO_LABELS,
@@ -253,6 +254,15 @@ function TicketDetail({ id }: { id: string }) {
 
       {isAdmin && (
         <TicketAIPanel ticket={ticket} comments={comments} isAdmin={isAdmin} />
+      )}
+
+      {/* Post-mortem — só para tickets críticos */}
+      {isAdmin && ticket.tipo_intervencao === "critica" && (
+        <TicketPostmortem
+          ticketId={ticket.id}
+          ticketEstado={ticket.estado}
+          isAdmin={isAdmin}
+        />
       )}
 
       {/* Informações do cliente (AnyDesk, contactos, notas) — só admin */}

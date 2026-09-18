@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, List, ShieldCheck, ClipboardList, Receipt,
   Megaphone, Users, FileText, Tag, MessageSquare, Mail,
-  Monitor, Ticket, CalendarDays, Zap, Smartphone, BarChart2,
+  Monitor, Ticket, CalendarDays, Zap, Smartphone, BarChart2, AlertOctagon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ type Item = { title: string; url: string; icon: React.ComponentType<{ className?
 const operacao: Item[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Tickets", url: "/tickets", icon: List },
+  { title: "Incidentes", url: "/incidentes", icon: AlertOctagon },
   { title: "Calendário", url: "/calendario", icon: CalendarDays },
   { title: "Preventiva", url: "/preventiva", icon: ShieldCheck },
   { title: "Trabalhos", url: "/trabalhos", icon: ClipboardList },
