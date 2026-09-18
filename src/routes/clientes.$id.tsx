@@ -16,6 +16,7 @@ import { ClientUsersPanel } from "@/components/ClientUsersPanel";
 import { ClientInfoPanel } from "@/components/ClientInfoPanel";
 import { HealthScoreCard } from "@/components/ClientHealthScore";
 import { ClientEquipmentPanel } from "@/components/ClientEquipmentPanel";
+import { ContratoPanel } from "@/components/ContratoPanel";
 import { ArrowLeft, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/clientes/$id")({
@@ -252,6 +253,8 @@ function ClienteDetail({ id }: { id: string }) {
       ) : null}
 
       <ClientInfoPanel clientId={client.id} canEdit />
+
+      <ContratoPanel clientId={client.id} canEdit />
 
       <HealthScoreCard clientId={client.id} />
 

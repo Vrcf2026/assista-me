@@ -134,7 +134,23 @@ export function AdminDashboard() {
     },
   });
 
-  // Health scores de todos os clientes activos (agregação leve)
+  // Contratos a renovar nos próximos 30 dias
+  const { data: contratosRenovar = [] } = useQuery({
+    queryKey: ["dashboard-contratos-renovar"],
+    staleTime: 30 * 60 * 1000,
+    queryFn: async () => {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const em30 = new Date(Date.now() + 30 * 86400_000).toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("contratos" as any)
+        .select("id, numero, tipo, data_fim, client_id, client:clients(id, nome)")
+        .eq("estado", "activo")
+        .gte("data_fim", hoje)
+        .lte("data_fim", em30)
+        .order("data_fim");
+      return (data ?? []) as any[];
+    },
+  });
   const { data: clientsHealth = [] } = useQuery({
     queryKey: ["dashboard-clients-health"],
     staleTime: 10 * 60 * 1000,
@@ -514,6 +530,38 @@ export function AdminDashboard() {
           </Card>
         </Link>
       </div>
+
+      {/* SECÇÃO — Contratos a renovar */}
+      {contratosRenovar.length > 0 && (
+        <Card className="p-5 shadow-sm border-amber-500/30 bg-amber-500/5">
+          <h2 className="text-base font-semibold mb-3 flex items-center gap-2 text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="h-5 w-5" />
+            Contratos a renovar ({contratosRenovar.length})
+          </h2>
+          <div className="space-y-2">
+            {contratosRenovar.map((c: any) => {
+              const dias = Math.floor((new Date(c.data_fim).getTime() - Date.now()) / 86400_000);
+              return (
+                <Link
+                  key={c.id}
+                  to="/clientes/$id"
+                  params={{ id: c.client_id }}
+                  className="flex items-center gap-3 p-2.5 rounded-md border bg-background hover:bg-secondary/40 transition"
+                >
+                  <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium">{c.client?.nome ?? "—"}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{c.numero}</span>
+                  </div>
+                  <span className={`text-xs font-medium shrink-0 ${dias <= 7 ? "text-red-500" : "text-amber-600 dark:text-amber-400"}`}>
+                    {dias === 0 ? "Hoje" : `${dias}d`}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* SECÇÃO — Clientes a monitorizar */}
       {clientsHealth.length > 0 && (

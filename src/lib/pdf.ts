@@ -2,3 +2,4 @@
 export { gerarRelatorioTicketCliente, gerarRelatorioTicketInterno } from "./pdf/tickets";
 export { gerarRelatorioMensalCliente, gerarRelatorioMensalInterno, gerarArquivoCliente } from "./pdf/mensal";
 export { gerarOrcamentoPDF, gerarOrcamentoIndependentePDF } from "./pdf/orcamentos";
+export { gerarContratoServicos } from "./pdf/contratos";

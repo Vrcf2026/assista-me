@@ -42,6 +42,11 @@ export async function gerarOrcamentoPDF(orcamentoId: string): Promise<void> {
   return fn(orcamentoId);
 }
 
+export async function gerarContratoServicos(contratoId: string): Promise<void> {
+  const { gerarContratoServicos: fn } = await import("@/lib/pdf");
+  return fn(contratoId);
+}
+
 export async function gerarOrcamentoIndependentePDF(orcamentoId: string): Promise<void> {
   const { gerarOrcamentoIndependentePDF: fn } = await import("@/lib/pdf");
   return fn(orcamentoId);
