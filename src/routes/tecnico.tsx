@@ -2,19 +2,18 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { RequireRole } from "@/components/RequireRole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import {
   Ticket, Clock, CheckSquare, Building2, Camera,
   Play, Pause, Save, ArrowLeft, AlertTriangle,
-  ChevronRight, Plus, Check, X, Zap, RefreshCw,
-  Megaphone, Wrench, ShieldCheck, CalendarDays,
+  ChevronRight, Plus, Check, Zap, RefreshCw,
+  Megaphone, Wrench, ShieldCheck, Repeat,
 } from "lucide-react";
 import { useTicketChecklists, useChecklistTemplates, useApplyChecklistTemplate, useToggleChecklistItem } from "@/hooks/use-ticket-checklists";
 
@@ -25,37 +24,46 @@ export const Route = createFileRoute("/tecnico" as any)({
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type Tab = "tickets" | "timer" | "checklist" | "cliente" | "campo";
+type RiscoC = "risco" | "atencao" | "ok" | "sem_prazo";
 
 interface TicketLite {
-  id: string;
-  numero: number;
-  titulo: string;
+  id: string; numero: number; titulo: string;
   prioridade: "baixa" | "media" | "alta";
-  estado: string;
-  tipo_intervencao: string;
+  estado: string; tipo_intervencao: string;
   prazo: string | null;
   client: { id: string; nome: string } | null;
 }
 
 interface TrabalhoLite {
-  id: string;
-  titulo: string;
+  id: string; titulo: string;
   data_agendada: string | null;
   estado: string;
   client: { nome: string } | null;
 }
 
 interface PreventivaLite {
-  id: string;
-  titulo: string;
-  proxima_execucao: string | null;
+  id: string; titulo: string;
+  proxima_data: string | null;
   client: { nome: string } | null;
+  agendamento_id: string;
 }
 
 interface CampanhaLite {
-  id: string;
-  titulo: string;
-  estado: string;
+  id: string; titulo: string; estado: string;
+  data_fim: string | null; prazo: string | null;
+  tipo: string; recorrencia: string | null;
+  total: number; concluidos: number;
+}
+
+function calcRiscoCampanha(c: CampanhaLite): RiscoC {
+  const fim = c.data_fim ?? c.prazo;
+  if (!fim) return "sem_prazo";
+  const dias = Math.floor((new Date(fim).getTime() - Date.now()) / 86400_000);
+  const pendentes = c.total - c.concluidos;
+  if (dias < 0 && pendentes > 0) return "risco";
+  if (dias <= 2 && pendentes > 0) return "risco";
+  if (dias <= 5 && pendentes > 0) return "atencao";
+  return "ok";
 }
 
 // ── Utilitários ───────────────────────────────────────────────────────────────
@@ -149,6 +157,129 @@ function TecnicoInner() {
   );
 }
 
+// ── Componente TrabalhoCard — com botões de mudança de estado ─────────────────
+
+function TrabalhoCard({ trabalho }: { trabalho: TrabalhoLite }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const changeEstado = async (novoEstado: string) => {
+    setBusy(true);
+    const { error } = await supabase.from("trabalhos").update({ estado: novoEstado }).eq("id", trabalho.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Estado actualizado"); qc.invalidateQueries({ queryKey: ["tecnico-trabalhos-hoje"] }); }
+    setBusy(false);
+  };
+
+  const ESTADOS = [
+    { value: "pendente", label: "Pendente", next: "em_progresso", nextLabel: "Iniciar", cls: "text-muted-foreground" },
+    { value: "em_progresso", label: "Em progresso", next: "concluido", nextLabel: "Concluir", cls: "text-primary" },
+    { value: "concluido", label: "Concluído", next: null, nextLabel: null, cls: "text-emerald-600" },
+  ];
+  const est = ESTADOS.find(e => e.value === trabalho.estado) ?? ESTADOS[0];
+
+  return (
+    <div className="rounded-xl border bg-card mb-2 overflow-hidden">
+      <div className="flex items-center gap-3 p-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{trabalho.titulo}</p>
+          <p className="text-xs text-muted-foreground">{(trabalho.client as any)?.nome ?? "—"}</p>
+        </div>
+        <span className={`text-xs font-medium shrink-0 ${est.cls}`}>{est.label}</span>
+      </div>
+      <div className={`border-t grid ${est.next ? "grid-cols-2" : "grid-cols-1"}`}>
+        <Link
+          to="/trabalhos/$id"
+          params={{ id: trabalho.id } as any}
+          className="flex items-center justify-center gap-1 py-2.5 text-xs text-muted-foreground hover:bg-secondary transition-colors"
+        >
+          <ChevronRight className="h-3.5 w-3.5" /> Ver
+        </Link>
+        {est.next && (
+          <button
+            onClick={() => void changeEstado(est.next!)}
+            disabled={busy}
+            className="flex items-center justify-center gap-1 py-2.5 text-xs text-primary hover:bg-primary/5 border-l transition-colors font-medium"
+          >
+            <Play className="h-3.5 w-3.5" /> {est.nextLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Componente IniciarPreventivaBtn ────────────────────────────────────────────
+
+function IniciarPreventivaBtn({ agendamentoId, clientId }: { agendamentoId: string; clientId: string }) {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+
+  const iniciar = async () => {
+    setBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: ag } = await supabase
+        .from("preventiva_agendamentos")
+        .select("template_id")
+        .eq("id", agendamentoId)
+        .single();
+
+      if (!ag) throw new Error("Agendamento não encontrado");
+
+      // Criar execução
+      const { data: exec, error } = await supabase.from("preventiva_execucoes").insert({
+        agendamento_id: agendamentoId,
+        client_id: clientId,
+        template_id: (ag as any).template_id,
+        data_execucao: today(),
+        estado: "em_curso",
+        tecnico_id: user?.id ?? null,
+        minutos: 0,
+      }).select("id").single();
+
+      if (error) throw error;
+
+      // Copiar tarefas do agendamento para o checklist da execução
+      const { data: tarefas } = await supabase
+        .from("preventiva_agendamento_tarefas")
+        .select("id, descricao, ordem")
+        .eq("agendamento_id", agendamentoId)
+        .eq("ativo", true)
+        .order("ordem");
+
+      if (tarefas && tarefas.length > 0 && exec) {
+        await supabase.from("preventiva_checklist").insert(
+          tarefas.map((t: any) => ({
+            execucao_id: (exec as any).id,
+            tarefa_id: t.id,
+            descricao: t.descricao,
+            concluida: false,
+            minutos: 0,
+          }))
+        );
+      }
+
+      toast.success("Preventiva iniciada!");
+      navigate({ to: "/preventiva_/execucao/$id" as any, params: { id: (exec as any).id } as any });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao iniciar preventiva");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={() => void iniciar()}
+      disabled={busy}
+      className="flex items-center justify-center gap-1 py-2.5 text-xs text-primary hover:bg-primary/5 border-l transition-colors font-medium"
+    >
+      <Play className="h-3.5 w-3.5" /> {busy ? "A iniciar…" : "Executar"}
+    </button>
+  );
+}
+
 // ── Tab: Tickets ───────────────────────────────────────────────────────────────
 
 function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
@@ -191,14 +322,16 @@ function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
     queryFn: async () => {
       const { data } = await supabase
         .from("preventiva_agendamentos")
-        .select("id, titulo:preventiva_templates(titulo), proxima_execucao, client:clients(nome)")
-        .lte("proxima_execucao", today())
-        .order("proxima_execucao")
+        .select("id, proxima_data, client:clients(nome), preventiva_templates(nome)")
+        .eq("ativo", true)
+        .lte("proxima_data", today())
+        .order("proxima_data")
         .limit(5);
-      return (data ?? []).map((p: any) => ({
+      return ((data ?? []) as any[]).map((p: any) => ({
         id: p.id,
-        titulo: p.titulo?.titulo ?? "Preventiva",
-        proxima_execucao: p.proxima_execucao,
+        agendamento_id: p.id,
+        titulo: p.preventiva_templates?.nome ?? "Preventiva",
+        proxima_data: p.proxima_data,
         client: p.client,
       })) as PreventivaLite[];
     },
@@ -207,13 +340,33 @@ function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
   const { data: campanhas = [] } = useQuery<CampanhaLite[]>({
     queryKey: ["tecnico-campanhas"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("campanhas")
-        .select("id, titulo, estado")
+      const { data: camps } = await supabase
+        .from("campanhas" as any)
+        .select("id, titulo, estado, data_fim, prazo, tipo, recorrencia")
         .eq("estado", "ativa")
         .order("created_at", { ascending: false })
-        .limit(5);
-      return (data ?? []) as unknown as CampanhaLite[];
+        .limit(10);
+
+      if (!camps?.length) return [];
+      const ids = (camps as any[]).map((c: any) => c.id);
+      const { data: cli } = await supabase
+        .from("campanha_clientes" as any)
+        .select("campanha_id, estado")
+        .in("campanha_id", ids);
+
+      const prog = new Map<string, { total: number; concluidos: number }>();
+      ((cli ?? []) as any[]).forEach((c: any) => {
+        const p = prog.get(c.campanha_id) ?? { total: 0, concluidos: 0 };
+        p.total++;
+        if (c.estado === "concluido") p.concluidos++;
+        prog.set(c.campanha_id, p);
+      });
+
+      return (camps as any[]).map((c: any) => ({
+        ...c,
+        total: prog.get(c.id)?.total ?? 0,
+        concluidos: prog.get(c.id)?.concluidos ?? 0,
+      })) as CampanhaLite[];
     },
   });
 
@@ -226,15 +379,7 @@ function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
             <Wrench className="h-3.5 w-3.5" /> Trabalhos hoje
           </h2>
           {trabalhos.map((t) => (
-            <Link key={t.id} to="/trabalhos/$id" params={{ id: t.id } as any} className="block">
-              <div className="flex items-center gap-3 p-3 rounded-xl border bg-card mb-2">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{t.titulo}</p>
-                  <p className="text-xs text-muted-foreground">{(t.client as any)?.nome ?? "—"}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              </div>
-            </Link>
+            <TrabalhoCard key={t.id} trabalho={t} />
           ))}
         </section>
       )}
@@ -246,16 +391,24 @@ function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
             <ShieldCheck className="h-3.5 w-3.5" /> Preventivas pendentes
           </h2>
           {preventivas.map((p) => (
-            <Link key={p.id} to="/preventiva" className="block">
-              <div className="flex items-center gap-3 p-3 rounded-xl border bg-amber-500/5 border-amber-500/20 mb-2">
+            <div key={p.id} className="rounded-xl border bg-amber-500/5 border-amber-500/20 mb-2 overflow-hidden">
+              <div className="flex items-center gap-3 p-3">
                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{p.titulo}</p>
-                  <p className="text-xs text-muted-foreground">{(p.client as any)?.nome ?? "—"} · {p.proxima_execucao}</p>
+                  <p className="text-xs text-muted-foreground">{(p.client as any)?.nome ?? "—"} · {(p as any).proxima_data}</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
               </div>
-            </Link>
+              <div className="border-t grid grid-cols-2">
+                <Link
+                  to="/preventiva"
+                  className="flex items-center justify-center gap-1 py-2.5 text-xs text-muted-foreground hover:bg-secondary transition-colors"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" /> Ver
+                </Link>
+                <IniciarPreventivaBtn agendamentoId={p.agendamento_id} clientId={(p.client as any)?.id ?? ""} />
+              </div>
+            </div>
           ))}
         </section>
       )}
@@ -266,15 +419,37 @@ function TabTickets({ onOpenTicket, onStartTimer, onOpenCliente }: {
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
             <Megaphone className="h-3.5 w-3.5" /> Campanhas activas
           </h2>
-          {campanhas.map((c) => (
-            <Link key={c.id} to="/campanhas/$id" params={{ id: c.id } as any} className="block">
-              <div className="flex items-center gap-3 p-3 rounded-xl border bg-card mb-2">
-                <Megaphone className="h-4 w-4 text-primary shrink-0" />
-                <p className="text-sm font-medium flex-1 truncate">{c.titulo}</p>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              </div>
-            </Link>
-          ))}
+          {campanhas.map((c) => {
+            const risco = calcRiscoCampanha(c);
+            const pct = c.total > 0 ? Math.round((c.concluidos / c.total) * 100) : 0;
+            const fim = c.data_fim ?? c.prazo;
+            const dias = fim ? Math.floor((new Date(fim).getTime() - Date.now()) / 86400_000) : null;
+            const iconCls = risco === "risco" ? "text-red-500" : risco === "atencao" ? "text-amber-500" : "text-primary";
+            const borderCls = risco === "risco" ? "border-red-500/30 bg-red-500/5" : risco === "atencao" ? "border-amber-500/30 bg-amber-500/5" : "border-border bg-card";
+            return (
+              <Link key={c.id} to="/campanhas/$id" params={{ id: c.id } as any} className="block mb-2">
+                <div className={`p-3 rounded-xl border ${borderCls}`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {risco === "risco" ? <AlertTriangle className={`h-4 w-4 shrink-0 ${iconCls}`} /> : <Megaphone className={`h-4 w-4 shrink-0 ${iconCls}`} />}
+                    <p className="text-sm font-medium flex-1 truncate">{c.titulo}</p>
+                    {c.recorrencia && <Repeat className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </div>
+                  {c.total > 0 && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{c.concluidos}/{c.total} clientes</span>
+                        <span className={risco === "risco" ? "text-red-500 font-medium" : risco === "atencao" ? "text-amber-500 font-medium" : ""}>
+                          {dias !== null ? (dias < 0 ? `${Math.abs(dias)}d em atraso` : dias === 0 ? "Hoje!" : `${dias}d`) : ""}
+                        </span>
+                      </div>
+                      <Progress value={pct} className="h-1.5" />
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </section>
       )}
 
