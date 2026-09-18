@@ -1,22 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  List,
-  ShieldCheck,
-  ClipboardList,
-  Receipt,
-  Megaphone,
-  Users,
-  FileText,
-  Tag,
-  MessageSquare,
-  Mail,
-  Monitor,
-  Ticket,
-  CalendarDays,
-  Zap,
-  Smartphone,
+  LayoutDashboard, List, ShieldCheck, ClipboardList, Receipt,
+  Megaphone, Users, FileText, Tag, MessageSquare, Mail,
+  Monitor, Ticket, CalendarDays, Zap, Smartphone, BarChart2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +41,7 @@ const comercial: Item[] = [
 
 const administracao: Item[] = [
   { title: "Faturação", url: "/admin/faturacao", icon: Receipt },
+  { title: "Rentabilidade", url: "/admin/rentabilidade", icon: BarChart2 },
   { title: "Relatórios", url: "/admin/relatorios", icon: FileText },
   { title: "Checklists", url: "/admin/checklists", icon: ClipboardList },
   { title: "Tags", url: "/admin/tags", icon: Tag },
