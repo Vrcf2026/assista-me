@@ -210,33 +210,54 @@ export type Database = {
       }
       campanhas: {
         Row: {
+          campanha_pai_id: string | null
           created_at: string
           created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
           descricao: string | null
+          dia_fim_recorrencia: number | null
+          dia_inicio_recorrencia: number | null
           estado: string
           id: string
           prazo: string | null
           prioridade: string
+          recorrencia: string | null
+          tipo: string
           titulo: string
         }
         Insert: {
+          campanha_pai_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           descricao?: string | null
+          dia_fim_recorrencia?: number | null
+          dia_inicio_recorrencia?: number | null
           estado?: string
           id?: string
           prazo?: string | null
           prioridade?: string
+          recorrencia?: string | null
+          tipo?: string
           titulo: string
         }
         Update: {
+          campanha_pai_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           descricao?: string | null
+          dia_fim_recorrencia?: number | null
+          dia_inicio_recorrencia?: number | null
           estado?: string
           id?: string
           prazo?: string | null
           prioridade?: string
+          recorrencia?: string | null
+          tipo?: string
           titulo?: string
         }
         Relationships: []
@@ -549,6 +570,83 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos: {
+        Row: {
+          assinado_em: string | null
+          assinado_por_cliente: string | null
+          aviso_renovacao_dias: number
+          client_id: string
+          condicoes: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          estado: string
+          horas_incluidas: number | null
+          id: string
+          inclui: string | null
+          nao_inclui: string | null
+          numero: string
+          renovacao_automatica: boolean
+          tarifa_hora_extra: number | null
+          tipo: string
+          updated_at: string
+          valor_mensal: number | null
+          valor_total: number | null
+        }
+        Insert: {
+          assinado_em?: string | null
+          assinado_por_cliente?: string | null
+          aviso_renovacao_dias?: number
+          client_id: string
+          condicoes?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          estado?: string
+          horas_incluidas?: number | null
+          id?: string
+          inclui?: string | null
+          nao_inclui?: string | null
+          numero?: string
+          renovacao_automatica?: boolean
+          tarifa_hora_extra?: number | null
+          tipo?: string
+          updated_at?: string
+          valor_mensal?: number | null
+          valor_total?: number | null
+        }
+        Update: {
+          assinado_em?: string | null
+          assinado_por_cliente?: string | null
+          aviso_renovacao_dias?: number
+          client_id?: string
+          condicoes?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          estado?: string
+          horas_incluidas?: number | null
+          id?: string
+          inclui?: string | null
+          nao_inclui?: string | null
+          numero?: string
+          renovacao_automatica?: boolean
+          tarifa_hora_extra?: number | null
+          tipo?: string
+          updated_at?: string
+          valor_mensal?: number | null
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -1077,6 +1175,36 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       response_templates: {
         Row: {
           created_at: string
@@ -1290,6 +1418,38 @@ export type Database = {
           },
         ]
       }
+      ticket_embeddings: {
+        Row: {
+          conteudo: string
+          created_at: string
+          embedding: string | null
+          id: string
+          ticket_id: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          ticket_id: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_embeddings_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_escalations: {
         Row: {
           created_at: string
@@ -1455,6 +1615,68 @@ export type Database = {
             foreignKeyName: "ticket_orcamentos_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_postmortem: {
+        Row: {
+          acoes_imediatas: string | null
+          acoes_preventivas: string | null
+          causa_raiz: string
+          created_at: string
+          duracao_minutos: number | null
+          id: string
+          impacto: string | null
+          mudancas_necessarias: string | null
+          primeira_resposta_em: string | null
+          recorrente: boolean
+          resolucao_em: string | null
+          resumo: string
+          severidade: string
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          acoes_imediatas?: string | null
+          acoes_preventivas?: string | null
+          causa_raiz: string
+          created_at?: string
+          duracao_minutos?: number | null
+          id?: string
+          impacto?: string | null
+          mudancas_necessarias?: string | null
+          primeira_resposta_em?: string | null
+          recorrente?: boolean
+          resolucao_em?: string | null
+          resumo: string
+          severidade?: string
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          acoes_imediatas?: string | null
+          acoes_preventivas?: string | null
+          causa_raiz?: string
+          created_at?: string
+          duracao_minutos?: number | null
+          id?: string
+          impacto?: string | null
+          mudancas_necessarias?: string | null
+          primeira_resposta_em?: string | null
+          recorrente?: boolean
+          resolucao_em?: string | null
+          resumo?: string
+          severidade?: string
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_postmortem_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
             referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
@@ -1865,6 +2087,10 @@ export type Database = {
         Args: { _ano: number; _client_id: string; _mes: number }
         Returns: number
       }
+      criar_instancias_campanhas_recorrentes: {
+        Args: never
+        Returns: undefined
+      }
       decrypt_ticket_credentials: {
         Args: { _key: string; _ticket_id: string }
         Returns: {
@@ -1927,6 +2153,18 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      search_similar_tickets: {
+        Args: {
+          match_count?: number
+          min_similarity?: number
+          query_embedding: string
+        }
+        Returns: {
+          conteudo: string
+          similarity: number
+          ticket_id: string
         }[]
       }
       user_client_ids: { Args: { _user_id: string }; Returns: string[] }
