@@ -1,7 +1,23 @@
-import { sendTransactionalEmail } from "./send";
+import { supabase } from "@/integrations/supabase/client";
 
-const SITE_URL = "https://tickets.vrcf.info";
-const ADMIN_EMAIL = "vrcf.loja@gmail.com";
+/**
+ * Notificações de admin — via /api/notify (Resend server-side).
+ * Substitui o sistema Lovable para notificações de tickets.
+ */
+
+async function callNotify(event: string, ticketId: string, data?: Record<string, unknown>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) return;
+
+  fetch("/api/notify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ event, ticketId, data }),
+  }).catch((e) => console.error("notify-admin failed", e));
+}
 
 interface TicketLite {
   id: string;
@@ -14,18 +30,9 @@ export async function notifyAdminNovoTicket(
   clienteNome: string,
   prioridade: string,
 ) {
-  await sendTransactionalEmail({
-    templateName: "admin-novo-ticket",
-    recipientEmail: ADMIN_EMAIL,
-    idempotencyKey: `admin-novo-ticket-${ticket.id}`,
-    templateData: {
-      clienteNome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      prioridade,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
-  });
+  // Já incluído no evento "ticket-criado" do notify-ticket-event
+  // Esta função fica aqui por compatibilidade com os callers existentes
+  void callNotify("ticket-criado", ticket.id, { prioridade });
 }
 
 export async function notifyAdminNovoComentarioCliente(
@@ -34,17 +41,11 @@ export async function notifyAdminNovoComentarioCliente(
   mensagem: string,
   commentId: string,
 ) {
-  await sendTransactionalEmail({
-    templateName: "admin-novo-comentario",
-    recipientEmail: ADMIN_EMAIL,
-    idempotencyKey: `admin-comentario-${commentId}`,
-    templateData: {
-      clienteNome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      mensagem,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
+  void callNotify("ticket-comentario", ticket.id, {
+    mensagem,
+    autor: clienteNome,
+    commentId,
+    isAdminComment: false, // veio do cliente → notificar admin
   });
 }
 
@@ -54,16 +55,5 @@ export async function notifyAdminCredencialFornecida(
   tipo: string,
   requestId: string,
 ) {
-  await sendTransactionalEmail({
-    templateName: "admin-credencial-fornecida",
-    recipientEmail: ADMIN_EMAIL,
-    idempotencyKey: `admin-credencial-${requestId}`,
-    templateData: {
-      clienteNome,
-      ticketNumero: ticket.numero,
-      ticketTitulo: ticket.titulo,
-      tipo,
-      ticketUrl: `${SITE_URL}/tickets/${ticket.id}`,
-    },
-  });
+  void callNotify("admin-credencial", ticket.id, { tipo, requestId });
 }
