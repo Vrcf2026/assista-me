@@ -1,6 +1,7 @@
 // SLA com horas úteis (Lisboa): seg-sex, 09h-18h.
 // Tickets críticos têm SLA de 8 horas úteis.
 // Se aberto fora de horário, contagem inicia no próximo dia útil às 09h00.
+// Feriados nacionais portugueses não contam como horas úteis.
 
 export const BUSINESS_START_HOUR = 9;
 export const BUSINESS_END_HOUR = 18;
@@ -9,9 +10,32 @@ export const CRITICAL_SLA_HOURS = 8;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function isWeekend(d: Date): boolean {
+/**
+ * Feriados nacionais portugueses (fixos).
+ * Formato: "MM-DD"
+ */
+const FERIADOS_FIXOS = new Set([
+  "01-01", // Ano Novo
+  "04-25", // Dia da Liberdade
+  "05-01", // Dia do Trabalhador
+  "06-10", // Dia de Portugal
+  "08-15", // Assunção de Nossa Senhora
+  "10-05", // Implantação da República
+  "11-01", // Todos os Santos
+  "12-01", // Restauração da Independência
+  "12-08", // Imaculada Conceição
+  "12-25", // Natal
+]);
+
+function isFeriadoFixo(d: Date): boolean {
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return FERIADOS_FIXOS.has(`${mm}-${dd}`);
+}
+
+function isNonWorkingDay(d: Date): boolean {
   const day = d.getDay();
-  return day === 0 || day === 6;
+  return day === 0 || day === 6 || isFeriadoFixo(d);
 }
 
 /**
@@ -20,10 +44,8 @@ function isWeekend(d: Date): boolean {
  */
 export function nextBusinessStart(from: Date): Date {
   const d = new Date(from);
-  // Se sábado/domingo ou antes das 09h, mover para 09h00 do próximo dia útil
-  // Se depois das 18h, mover para 09h00 do dia útil seguinte
   while (true) {
-    if (isWeekend(d)) {
+    if (isNonWorkingDay(d)) {
       d.setDate(d.getDate() + 1);
       d.setHours(BUSINESS_START_HOUR, 0, 0, 0);
       continue;

@@ -52,3 +52,31 @@ describe("formatRemaining", () => {
     expect(formatRemaining(480).length).toBeGreaterThan(0);
   });
 });
+
+describe("feriados portugueses no SLA", () => {
+  it("1 de Janeiro é feriado — SLA não conta", () => {
+    // Ticket aberto a 2 Jan (sexta) às 09:00 UTC
+    // e verificado às 09:00 do mesmo dia — 0 minutos decorridos
+    const openedAt = new Date("2026-01-02T09:00:00Z");
+    const now = new Date("2026-01-02T09:00:00Z");
+    const sla = getCriticalSla(openedAt, now);
+    expect(sla.remainingMinutes).toBe(8 * 60); // SLA intacto
+  });
+
+  it("25 de Dezembro é feriado — SLA intacto no dia", () => {
+    // Ticket aberto a 28 Dez (segunda) às 09:00 e verificado no mesmo instante
+    const openedAt = new Date("2026-12-28T09:00:00Z");
+    const now = new Date("2026-12-28T09:00:00Z");
+    const sla = getCriticalSla(openedAt, now);
+    expect(sla.remainingMinutes).toBe(8 * 60);
+  });
+
+  it("25 de Abril é feriado — dia após conta normalmente", () => {
+    // Ticket aberto a 27 Abril (segunda) às 09:00 — dia normal após feriado
+    const openedAt = new Date("2026-04-27T08:00:00Z"); // 09:00 Lisboa
+    const now = new Date("2026-04-27T08:00:00Z");
+    const sla = getCriticalSla(openedAt, now);
+    expect(sla.remainingMinutes).toBe(8 * 60); // SLA intacto
+    expect(sla.status).toBe("ok");
+  });
+});

@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import { sendEmailResend } from "@/lib/resend";
 
 const SITE_URL = "https://tickets.vrcf.info";
 
@@ -84,6 +83,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-close-tickets")({
           if (userErr || !userData?.user?.email) continue;
           const recipient = userData.user.email;
 
+          const { sendEmailResend } = await import("@/lib/resend");
           const result = await sendEmailResend({
             to: recipient,
             templateName: "ticket-auto-closed",

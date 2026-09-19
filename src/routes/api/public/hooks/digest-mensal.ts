@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import { sendEmailResend } from "@/lib/resend";
 
 /**
  * Cron job chamado pelo pg_cron no dia 1 de cada mês às 08:00.
@@ -188,6 +187,7 @@ export const Route = createFileRoute("/api/public/hooks/digest-mensal")({
                 marca: cliente.marca ?? "vrcf",
               };
 
+              const { sendEmailResend } = await import("@/lib/resend");
               const result = await sendEmailResend({
                 to: email,
                 templateName: "digest-mensal",
