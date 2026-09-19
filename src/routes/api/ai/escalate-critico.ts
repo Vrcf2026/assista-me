@@ -46,12 +46,13 @@ export const Route = createFileRoute("/api/ai/escalate-critico" as any)({
         });
 
         // 2. Inserir notificação no sistema de notificações interno
-        const { data: admins } = await supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin");
+        // Usar auth.users directamente — mais robusto que tabela user_roles separada
+        const { data: adminUsers } = await supabase.auth.admin.listUsers();
+        const admins = (adminUsers?.users ?? [])
+          .filter(u => u.user_metadata?.role === "admin")
+          .map(u => ({ user_id: u.id }));
 
-        if (admins?.length) {
+        if (admins.length) {
           await supabase.from("notifications").insert(
             admins.map((a) => ({
               user_id: a.user_id,
