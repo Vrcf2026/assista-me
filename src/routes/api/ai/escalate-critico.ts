@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { sendPushToAdmins } from "@/lib/push";
 
 /**
  * Escalonamento automático para incidentes críticos.
@@ -38,7 +37,8 @@ export const Route = createFileRoute("/api/ai/escalate-critico" as any)({
         const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
         // 1. Push imediato a todos os admins
-        await sendPushToAdmins({
+        const { sendPushToAdmins: _pushAdmins } = await import("@/lib/push");
+        await _pushAdmins({
           title: `🚨 CRÍTICO #${String(body.numero).padStart(5, "0")}`,
           body: `${body.client_nome}: ${body.titulo}${body.motivo ? ` — ${body.motivo}` : ""}`,
           link: `/tickets/${body.ticket_id}`,

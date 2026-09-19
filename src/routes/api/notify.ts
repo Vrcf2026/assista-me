@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmailResend } from "@/lib/resend";
 
 /**
  * Proxy server-side para notificações de tickets via Resend.
@@ -76,6 +75,7 @@ export const Route = createFileRoute("/api/notify" as any)({
         const errors: string[] = [];
 
         const send = async (to: string, templateName: string, data: Record<string, unknown>, key?: string) => {
+          const { sendEmailResend } = await import("@/lib/resend");
           const result = await sendEmailResend({
             to,
             templateName,

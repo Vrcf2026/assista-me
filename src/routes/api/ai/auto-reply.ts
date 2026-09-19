@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmailResend } from "@/lib/resend";
-import { sendPushToAdmins } from "@/lib/push";
 
 /**
  * Analisa um ticket novo com IA e:
@@ -138,7 +136,8 @@ Cliente: ${body.client_nome}`,
             .eq("id", ticket.id);
 
           // Enviar email ao cliente com a resposta
-          await sendEmailResend({
+          const { sendEmailResend: _sendEmail } = await import("@/lib/resend");
+          await _sendEmail({
             to: body.client_email,
             templateName: "ticket-novo-comentario",
             templateData: {
@@ -153,7 +152,8 @@ Cliente: ${body.client_nome}`,
           });
 
           // Notificar admin que a IA respondeu
-          await sendPushToAdmins({
+          const { sendPushToAdmins: _pushAdmins } = await import("@/lib/push");
+        await _pushAdmins({
             title: `🤖 IA respondeu ao #${String(ticket.numero).padStart(5, "0")}`,
             body: analysis.nota_admin,
             link: `/tickets/${ticket.id}`,
@@ -169,7 +169,8 @@ Cliente: ${body.client_nome}`,
         }
 
         // Ticket complexo — apenas notificar admin com sugestão
-        await sendPushToAdmins({
+        const { sendPushToAdmins: _pushAdmins } = await import("@/lib/push");
+        await _pushAdmins({
           title: `🎫 Ticket #${String(ticket.numero).padStart(5, "0")} precisa de ti`,
           body: `${body.client_nome}: ${analysis.nota_admin}`,
           link: `/tickets/${ticket.id}`,
