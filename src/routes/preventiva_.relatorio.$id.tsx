@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, FileDown } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { useSignedUrl } from "@/lib/storage";
 
 export const Route = createFileRoute("/preventiva_/relatorio/$id")({
@@ -117,8 +115,12 @@ function Inner() {
     return { total, tempoMedio, pctTotal };
   }, [execs, checklist]);
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     if (!ag) return;
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
     const doc = new jsPDF();
     const w = doc.internal.pageSize.getWidth();
     doc.setFontSize(16);
@@ -197,7 +199,7 @@ function Inner() {
         <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/preventiva" })}>
           <ArrowLeft className="h-4 w-4 mr-1" />Voltar
         </Button>
-        <Button onClick={exportPdf}>
+        <Button onClick={() => void exportPdf()}>
           <FileDown className="h-4 w-4 mr-1" />Exportar PDF
         </Button>
       </div>
