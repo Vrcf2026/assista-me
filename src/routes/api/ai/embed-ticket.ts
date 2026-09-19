@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
  * Requer: ANTHROPIC_API_KEY (usa voyage via Anthropic) ou OPENAI_API_KEY
  */
 
-export const Route = createFileRoute("/api/ai/embed-ticket" as any)({
+export const Route = createFileRoute("/api/ai/embed-ticket")({
   server: {
     handlers: {
       POST: async ({ request }) => {

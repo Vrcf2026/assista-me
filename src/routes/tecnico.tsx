@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useTicketChecklists, useChecklistTemplates, useApplyChecklistTemplate, useToggleChecklistItem } from "@/hooks/use-ticket-checklists";
 
-export const Route = createFileRoute("/tecnico" as any)({
+export const Route = createFileRoute("/tecnico")({
   component: TecnicoPage,
 });
 

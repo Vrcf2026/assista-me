@@ -12,12 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as IncidentesRouteImport } from './routes/incidentes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PreventivaRouteImport } from './routes/preventiva'
 import { Route as RegistoRapidoRouteImport } from './routes/registo-rapido'
+import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
@@ -25,8 +28,10 @@ import { Route as AdminChecklistsRouteImport } from './routes/admin.checklists'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
+import { Route as AdminRentabilidadeRouteImport } from './routes/admin.rentabilidade'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
+import { Route as ApiNotifyRouteImport } from './routes/api/notify'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -38,7 +43,12 @@ import { Route as SatisfacaoTokenRouteImport } from './routes/satisfacao.$token'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as TicketsNovoRouteImport } from './routes/tickets.novo'
 import { Route as TrabalhosIdRouteImport } from './routes/trabalhos_.$id'
+import { Route as ApiAiAutoReplyRouteImport } from './routes/api/ai/auto-reply'
+import { Route as ApiAiEmbedTicketRouteImport } from './routes/api/ai/embed-ticket'
+import { Route as ApiAiEscalateCriticoRouteImport } from './routes/api/ai/escalate-critico'
+import { Route as ApiAiSearchSimilarRouteImport } from './routes/api/ai/search-similar'
 import { Route as ApiAiSuggestRouteImport } from './routes/api/ai/suggest'
+import { Route as ApiPushSendRouteImport } from './routes/api/push/send'
 import { Route as CampanhasExecucaoClienteIdRouteImport } from './routes/campanhas_.execucao.$clienteId'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as PreventivaExecucaoIdRouteImport } from './routes/preventiva_.execucao.$id'
@@ -69,9 +79,19 @@ const CampanhasRoute = CampanhasRouteImport.update({
   path: '/campanhas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClienteRoute = ClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientesRoute = ClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IncidentesRoute = IncidentesRouteImport.update({
+  id: '/incidentes',
+  path: '/incidentes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -97,6 +117,11 @@ const PreventivaRoute = PreventivaRouteImport.update({
 const RegistoRapidoRoute = RegistoRapidoRouteImport.update({
   id: '/registo-rapido',
   path: '/registo-rapido',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TecnicoRoute = TecnicoRouteImport.update({
+  id: '/tecnico',
+  path: '/tecnico',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsRoute = TicketsRouteImport.update({
@@ -134,6 +159,11 @@ const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
   path: '/admin/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRentabilidadeRoute = AdminRentabilidadeRouteImport.update({
+  id: '/admin/rentabilidade',
+  path: '/admin/rentabilidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTagsRoute = AdminTagsRouteImport.update({
   id: '/admin/tags',
   path: '/admin/tags',
@@ -142,6 +172,11 @@ const AdminTagsRoute = AdminTagsRouteImport.update({
 const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
   id: '/admin/templates',
   path: '/admin/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotifyRoute = ApiNotifyRouteImport.update({
+  id: '/api/notify',
+  path: '/api/notify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampanhasIdRoute = CampanhasIdRouteImport.update({
@@ -199,9 +234,34 @@ const TrabalhosIdRoute = TrabalhosIdRouteImport.update({
   path: '/trabalhos/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiAutoReplyRoute = ApiAiAutoReplyRouteImport.update({
+  id: '/api/ai/auto-reply',
+  path: '/api/ai/auto-reply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiEmbedTicketRoute = ApiAiEmbedTicketRouteImport.update({
+  id: '/api/ai/embed-ticket',
+  path: '/api/ai/embed-ticket',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiEscalateCriticoRoute = ApiAiEscalateCriticoRouteImport.update({
+  id: '/api/ai/escalate-critico',
+  path: '/api/ai/escalate-critico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiSearchSimilarRoute = ApiAiSearchSimilarRouteImport.update({
+  id: '/api/ai/search-similar',
+  path: '/api/ai/search-similar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiSuggestRoute = ApiAiSuggestRouteImport.update({
   id: '/api/ai/suggest',
   path: '/api/ai/suggest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPushSendRoute = ApiPushSendRouteImport.update({
+  id: '/api/push/send',
+  path: '/api/push/send',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampanhasExecucaoClienteIdRoute =
@@ -287,12 +347,15 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
+  '/cliente': typeof ClienteRoute
   '/clientes': typeof ClientesRouteWithChildren
+  '/incidentes': typeof IncidentesRoute
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/registo-rapido': typeof RegistoRapidoRoute
+  '/tecnico': typeof TecnicoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -300,8 +363,10 @@ export interface FileRoutesByFullPath {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/notify': typeof ApiNotifyRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -313,7 +378,12 @@ export interface FileRoutesByFullPath {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/api/ai/auto-reply': typeof ApiAiAutoReplyRoute
+  '/api/ai/embed-ticket': typeof ApiAiEmbedTicketRoute
+  '/api/ai/escalate-critico': typeof ApiAiEscalateCriticoRoute
+  '/api/ai/search-similar': typeof ApiAiSearchSimilarRoute
   '/api/ai/suggest': typeof ApiAiSuggestRoute
+  '/api/push/send': typeof ApiPushSendRoute
   '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -333,11 +403,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
+  '/cliente': typeof ClienteRoute
   '/clientes': typeof ClientesRouteWithChildren
+  '/incidentes': typeof IncidentesRoute
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/registo-rapido': typeof RegistoRapidoRoute
+  '/tecnico': typeof TecnicoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -345,8 +418,10 @@ export interface FileRoutesByTo {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/notify': typeof ApiNotifyRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -358,7 +433,12 @@ export interface FileRoutesByTo {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos/$id': typeof TrabalhosIdRoute
   '/preventiva': typeof PreventivaIndexRoute
+  '/api/ai/auto-reply': typeof ApiAiAutoReplyRoute
+  '/api/ai/embed-ticket': typeof ApiAiEmbedTicketRoute
+  '/api/ai/escalate-critico': typeof ApiAiEscalateCriticoRoute
+  '/api/ai/search-similar': typeof ApiAiSearchSimilarRoute
   '/api/ai/suggest': typeof ApiAiSuggestRoute
+  '/api/push/send': typeof ApiPushSendRoute
   '/campanhas/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -379,12 +459,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRoute
+  '/cliente': typeof ClienteRoute
   '/clientes': typeof ClientesRouteWithChildren
+  '/incidentes': typeof IncidentesRoute
   '/login': typeof LoginRoute
   '/orcamentos': typeof OrcamentosRoute
   '/painel': typeof PainelRoute
   '/preventiva': typeof PreventivaRouteWithChildren
   '/registo-rapido': typeof RegistoRapidoRoute
+  '/tecnico': typeof TecnicoRoute
   '/tickets': typeof TicketsRouteWithChildren
   '/trabalhos': typeof TrabalhosRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -392,8 +475,10 @@ export interface FileRoutesById {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/notify': typeof ApiNotifyRoute
   '/campanhas_/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -405,7 +490,12 @@ export interface FileRoutesById {
   '/tickets/novo': typeof TicketsNovoRoute
   '/trabalhos_/$id': typeof TrabalhosIdRoute
   '/preventiva/': typeof PreventivaIndexRoute
+  '/api/ai/auto-reply': typeof ApiAiAutoReplyRoute
+  '/api/ai/embed-ticket': typeof ApiAiEmbedTicketRoute
+  '/api/ai/escalate-critico': typeof ApiAiEscalateCriticoRoute
+  '/api/ai/search-similar': typeof ApiAiSearchSimilarRoute
   '/api/ai/suggest': typeof ApiAiSuggestRoute
+  '/api/push/send': typeof ApiPushSendRoute
   '/campanhas_/execucao/$clienteId': typeof CampanhasExecucaoClienteIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/preventiva_/execucao/$id': typeof PreventivaExecucaoIdRoute
@@ -427,12 +517,15 @@ export interface FileRouteTypes {
     | '/'
     | '/calendario'
     | '/campanhas'
+    | '/cliente'
     | '/clientes'
+    | '/incidentes'
     | '/login'
     | '/orcamentos'
     | '/painel'
     | '/preventiva'
     | '/registo-rapido'
+    | '/tecnico'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
@@ -440,8 +533,10 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
+    | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/notify'
     | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
@@ -453,7 +548,12 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva/'
+    | '/api/ai/auto-reply'
+    | '/api/ai/embed-ticket'
+    | '/api/ai/escalate-critico'
+    | '/api/ai/search-similar'
     | '/api/ai/suggest'
+    | '/api/push/send'
     | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -473,11 +573,14 @@ export interface FileRouteTypes {
     | '/'
     | '/calendario'
     | '/campanhas'
+    | '/cliente'
     | '/clientes'
+    | '/incidentes'
     | '/login'
     | '/orcamentos'
     | '/painel'
     | '/registo-rapido'
+    | '/tecnico'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
@@ -485,8 +588,10 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
+    | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/notify'
     | '/campanhas/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
@@ -498,7 +603,12 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos/$id'
     | '/preventiva'
+    | '/api/ai/auto-reply'
+    | '/api/ai/embed-ticket'
+    | '/api/ai/escalate-critico'
+    | '/api/ai/search-similar'
     | '/api/ai/suggest'
+    | '/api/push/send'
     | '/campanhas/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva/execucao/$id'
@@ -518,12 +628,15 @@ export interface FileRouteTypes {
     | '/'
     | '/calendario'
     | '/campanhas'
+    | '/cliente'
     | '/clientes'
+    | '/incidentes'
     | '/login'
     | '/orcamentos'
     | '/painel'
     | '/preventiva'
     | '/registo-rapido'
+    | '/tecnico'
     | '/tickets'
     | '/trabalhos'
     | '/unsubscribe'
@@ -531,8 +644,10 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/faturacao'
     | '/admin/relatorios'
+    | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/notify'
     | '/campanhas_/$id'
     | '/clientes/$id'
     | '/email/unsubscribe'
@@ -544,7 +659,12 @@ export interface FileRouteTypes {
     | '/tickets/novo'
     | '/trabalhos_/$id'
     | '/preventiva/'
+    | '/api/ai/auto-reply'
+    | '/api/ai/embed-ticket'
+    | '/api/ai/escalate-critico'
+    | '/api/ai/search-similar'
     | '/api/ai/suggest'
+    | '/api/push/send'
     | '/campanhas_/execucao/$clienteId'
     | '/lovable/email/suppression'
     | '/preventiva_/execucao/$id'
@@ -565,12 +685,15 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarioRoute: typeof CalendarioRoute
   CampanhasRoute: typeof CampanhasRoute
+  ClienteRoute: typeof ClienteRoute
   ClientesRoute: typeof ClientesRouteWithChildren
+  IncidentesRoute: typeof IncidentesRoute
   LoginRoute: typeof LoginRoute
   OrcamentosRoute: typeof OrcamentosRoute
   PainelRoute: typeof PainelRoute
   PreventivaRoute: typeof PreventivaRouteWithChildren
   RegistoRapidoRoute: typeof RegistoRapidoRoute
+  TecnicoRoute: typeof TecnicoRoute
   TicketsRoute: typeof TicketsRouteWithChildren
   TrabalhosRoute: typeof TrabalhosRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -578,15 +701,22 @@ export interface RootRouteChildren {
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
+  AdminRentabilidadeRoute: typeof AdminRentabilidadeRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
+  ApiNotifyRoute: typeof ApiNotifyRoute
   CampanhasIdRoute: typeof CampanhasIdRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   OrcamentosIdRoute: typeof OrcamentosIdRoute
   PreventivaAgendamentosRoute: typeof PreventivaAgendamentosRoute
   SatisfacaoTokenRoute: typeof SatisfacaoTokenRoute
   TrabalhosIdRoute: typeof TrabalhosIdRoute
+  ApiAiAutoReplyRoute: typeof ApiAiAutoReplyRoute
+  ApiAiEmbedTicketRoute: typeof ApiAiEmbedTicketRoute
+  ApiAiEscalateCriticoRoute: typeof ApiAiEscalateCriticoRoute
+  ApiAiSearchSimilarRoute: typeof ApiAiSearchSimilarRoute
   ApiAiSuggestRoute: typeof ApiAiSuggestRoute
+  ApiPushSendRoute: typeof ApiPushSendRoute
   CampanhasExecucaoClienteIdRoute: typeof CampanhasExecucaoClienteIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   PreventivaExecucaoIdRoute: typeof PreventivaExecucaoIdRoute
@@ -626,11 +756,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampanhasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cliente': {
+      id: '/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof ClienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes': {
       id: '/clientes'
       path: '/clientes'
       fullPath: '/clientes'
       preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/incidentes': {
+      id: '/incidentes'
+      path: '/incidentes'
+      fullPath: '/incidentes'
+      preLoaderRoute: typeof IncidentesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -666,6 +810,13 @@ declare module '@tanstack/react-router' {
       path: '/registo-rapido'
       fullPath: '/registo-rapido'
       preLoaderRoute: typeof RegistoRapidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tecnico': {
+      id: '/tecnico'
+      path: '/tecnico'
+      fullPath: '/tecnico'
+      preLoaderRoute: typeof TecnicoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets': {
@@ -717,6 +868,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/rentabilidade': {
+      id: '/admin/rentabilidade'
+      path: '/admin/rentabilidade'
+      fullPath: '/admin/rentabilidade'
+      preLoaderRoute: typeof AdminRentabilidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/tags': {
       id: '/admin/tags'
       path: '/admin/tags'
@@ -729,6 +887,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/templates'
       fullPath: '/admin/templates'
       preLoaderRoute: typeof AdminTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notify': {
+      id: '/api/notify'
+      path: '/api/notify'
+      fullPath: '/api/notify'
+      preLoaderRoute: typeof ApiNotifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campanhas_/$id': {
@@ -808,11 +973,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrabalhosIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/auto-reply': {
+      id: '/api/ai/auto-reply'
+      path: '/api/ai/auto-reply'
+      fullPath: '/api/ai/auto-reply'
+      preLoaderRoute: typeof ApiAiAutoReplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/embed-ticket': {
+      id: '/api/ai/embed-ticket'
+      path: '/api/ai/embed-ticket'
+      fullPath: '/api/ai/embed-ticket'
+      preLoaderRoute: typeof ApiAiEmbedTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/escalate-critico': {
+      id: '/api/ai/escalate-critico'
+      path: '/api/ai/escalate-critico'
+      fullPath: '/api/ai/escalate-critico'
+      preLoaderRoute: typeof ApiAiEscalateCriticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/search-similar': {
+      id: '/api/ai/search-similar'
+      path: '/api/ai/search-similar'
+      fullPath: '/api/ai/search-similar'
+      preLoaderRoute: typeof ApiAiSearchSimilarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/suggest': {
       id: '/api/ai/suggest'
       path: '/api/ai/suggest'
       fullPath: '/api/ai/suggest'
       preLoaderRoute: typeof ApiAiSuggestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/push/send': {
+      id: '/api/push/send'
+      path: '/api/push/send'
+      fullPath: '/api/push/send'
+      preLoaderRoute: typeof ApiPushSendRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campanhas_/execucao/$clienteId': {
@@ -959,12 +1159,15 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarioRoute: CalendarioRoute,
   CampanhasRoute: CampanhasRoute,
+  ClienteRoute: ClienteRoute,
   ClientesRoute: ClientesRouteWithChildren,
+  IncidentesRoute: IncidentesRoute,
   LoginRoute: LoginRoute,
   OrcamentosRoute: OrcamentosRoute,
   PainelRoute: PainelRoute,
   PreventivaRoute: PreventivaRouteWithChildren,
   RegistoRapidoRoute: RegistoRapidoRoute,
+  TecnicoRoute: TecnicoRoute,
   TicketsRoute: TicketsRouteWithChildren,
   TrabalhosRoute: TrabalhosRoute,
   UnsubscribeRoute: UnsubscribeRoute,
@@ -972,15 +1175,22 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEmailsRoute: AdminEmailsRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,
+  AdminRentabilidadeRoute: AdminRentabilidadeRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
+  ApiNotifyRoute: ApiNotifyRoute,
   CampanhasIdRoute: CampanhasIdRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   OrcamentosIdRoute: OrcamentosIdRoute,
   PreventivaAgendamentosRoute: PreventivaAgendamentosRoute,
   SatisfacaoTokenRoute: SatisfacaoTokenRoute,
   TrabalhosIdRoute: TrabalhosIdRoute,
+  ApiAiAutoReplyRoute: ApiAiAutoReplyRoute,
+  ApiAiEmbedTicketRoute: ApiAiEmbedTicketRoute,
+  ApiAiEscalateCriticoRoute: ApiAiEscalateCriticoRoute,
+  ApiAiSearchSimilarRoute: ApiAiSearchSimilarRoute,
   ApiAiSuggestRoute: ApiAiSuggestRoute,
+  ApiPushSendRoute: ApiPushSendRoute,
   CampanhasExecucaoClienteIdRoute: CampanhasExecucaoClienteIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   PreventivaExecucaoIdRoute: PreventivaExecucaoIdRoute,

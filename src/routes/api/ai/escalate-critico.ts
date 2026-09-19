@@ -15,7 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 const SITE_URL = "https://tickets.vrcf.info";
 const WHATSAPP_ADMIN = "351964602891"; // número VRCF
 
-export const Route = createFileRoute("/api/ai/escalate-critico" as any)({
+export const Route = createFileRoute("/api/ai/escalate-critico")({
   server: {
     handlers: {
       POST: async ({ request }) => {

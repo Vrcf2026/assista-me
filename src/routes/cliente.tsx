@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
-export const Route = createFileRoute("/cliente" as any)({
+export const Route = createFileRoute("/cliente")({
   component: ClientePWA,
 });
 
