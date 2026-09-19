@@ -23,7 +23,7 @@ const CATEGORIAS_SIMPLES = [
 const SITE_URL = "https://tickets.vrcf.info";
 const ADMIN_EMAIL = "vrcf.loja@gmail.com";
 
-export const Route = createFileRoute("/api/ai/auto-reply" as any)({
+export const Route = createFileRoute("/api/ai/auto-reply")({
   server: {
     handlers: {
       POST: async ({ request }) => {

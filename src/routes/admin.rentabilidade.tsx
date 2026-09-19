@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Euro, Clock, Users, ArrowRight } from "lucide-react";
 
-export const Route = createFileRoute("/admin/rentabilidade" as any)({
+export const Route = createFileRoute("/admin/rentabilidade")({
   component: RentabilidadePage,
 });
 

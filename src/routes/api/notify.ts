@@ -24,7 +24,7 @@ interface NotifyBody {
   data?: Record<string, unknown>;
 }
 
-export const Route = createFileRoute("/api/notify" as any)({
+export const Route = createFileRoute("/api/notify")({
   server: {
     handlers: {
       POST: async ({ request }) => {

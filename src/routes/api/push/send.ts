@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
  *   VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY, VAPID_EMAIL
  */
 
-export const Route = createFileRoute("/api/push/send" as any)({
+export const Route = createFileRoute("/api/push/send")({
   server: {
     handlers: {
       POST: async ({ request }) => {

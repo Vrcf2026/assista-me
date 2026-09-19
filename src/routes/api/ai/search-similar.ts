@@ -7,7 +7,7 @@ import { createClient } from "@supabase/supabase-js";
  * os N tickets fechados mais semelhantes com a solução que foi aplicada.
  */
 
-export const Route = createFileRoute("/api/ai/search-similar" as any)({
+export const Route = createFileRoute("/api/ai/search-similar")({
   server: {
     handlers: {
       POST: async ({ request }) => {

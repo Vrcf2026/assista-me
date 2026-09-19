@@ -11,7 +11,7 @@ import {
   TrendingUp, AlertTriangle, Shield,
 } from "lucide-react";
 
-export const Route = createFileRoute("/incidentes" as any)({
+export const Route = createFileRoute("/incidentes")({
   component: IncidentesPage,
 });
 
