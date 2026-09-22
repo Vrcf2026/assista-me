@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js";
  * Útil para: UptimeRobot, BetterStack, Cloudflare Health Checks.
  */
 
-export const Route = createFileRoute("/api/health" as any)({
+export const Route = createFileRoute("/api/health")({
   server: {
     handlers: {
       GET: async () => {
