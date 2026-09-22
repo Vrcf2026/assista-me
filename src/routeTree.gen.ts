@@ -31,6 +31,7 @@ import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminRentabilidadeRouteImport } from './routes/admin.rentabilidade'
 import { Route as AdminTagsRouteImport } from './routes/admin.tags'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiNotifyRouteImport } from './routes/api/notify'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas_.$id'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
@@ -172,6 +173,11 @@ const AdminTagsRoute = AdminTagsRouteImport.update({
 const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
   id: '/admin/templates',
   path: '/admin/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNotifyRoute = ApiNotifyRouteImport.update({
@@ -366,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/notify': typeof ApiNotifyRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -421,6 +428,7 @@ export interface FileRoutesByTo {
   '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/notify': typeof ApiNotifyRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -478,6 +486,7 @@ export interface FileRoutesById {
   '/admin/rentabilidade': typeof AdminRentabilidadeRoute
   '/admin/tags': typeof AdminTagsRoute
   '/admin/templates': typeof AdminTemplatesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/notify': typeof ApiNotifyRoute
   '/campanhas_/$id': typeof CampanhasIdRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -536,6 +545,7 @@ export interface FileRouteTypes {
     | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/health'
     | '/api/notify'
     | '/campanhas/$id'
     | '/clientes/$id'
@@ -591,6 +601,7 @@ export interface FileRouteTypes {
     | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/health'
     | '/api/notify'
     | '/campanhas/$id'
     | '/clientes/$id'
@@ -647,6 +658,7 @@ export interface FileRouteTypes {
     | '/admin/rentabilidade'
     | '/admin/tags'
     | '/admin/templates'
+    | '/api/health'
     | '/api/notify'
     | '/campanhas_/$id'
     | '/clientes/$id'
@@ -704,6 +716,7 @@ export interface RootRouteChildren {
   AdminRentabilidadeRoute: typeof AdminRentabilidadeRoute
   AdminTagsRoute: typeof AdminTagsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiNotifyRoute: typeof ApiNotifyRoute
   CampanhasIdRoute: typeof CampanhasIdRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -887,6 +900,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/templates'
       fullPath: '/admin/templates'
       preLoaderRoute: typeof AdminTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notify': {
@@ -1178,6 +1198,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRentabilidadeRoute: AdminRentabilidadeRoute,
   AdminTagsRoute: AdminTagsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiNotifyRoute: ApiNotifyRoute,
   CampanhasIdRoute: CampanhasIdRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
